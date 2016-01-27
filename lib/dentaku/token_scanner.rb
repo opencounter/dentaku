@@ -27,6 +27,7 @@ module Dentaku
       def available_scanners
         [
           :whitespace,
+          :range,
           :numeric,
           :double_quoted_string,
           :single_quoted_string,
@@ -70,6 +71,14 @@ module Dentaku
 
       def numeric
         new(:numeric, '(\d+(\.\d+)?|\.\d+)\b', lambda { |raw| raw =~ /\./ ? BigDecimal.new(raw) : raw.to_i })
+      end
+
+      R = Struct.new(:range)
+      def range
+        converter = lambda do |raw|
+          R.new(Range.new(*raw.split('..').map { |raw| raw =~ /\./ ? BigDecimal.new(raw) : raw.to_i }))
+        end
+        new(:range, '(\d+(\.\d+)?|\.\d+)\b\.\.(\d+(\.\d+)?|\.\d+)\b', converter)
       end
 
       def double_quoted_string

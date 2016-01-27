@@ -28,7 +28,7 @@ module Dentaku
       def value(context={})
         switch_value = @switch.value(context)
         @conditions.each do |condition|
-          if condition.when.value(context) == switch_value
+          if condition.when.value(context) === switch_value
             return condition.then.value(context)
           end
         end

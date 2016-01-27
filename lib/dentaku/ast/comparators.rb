@@ -44,7 +44,7 @@ module Dentaku
 
     class Equal < Comparator
       def value(context={})
-        left.value(context) == right.value(context)
+        left.value(context) === right.value(context)
       end
     end
   end

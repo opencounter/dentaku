@@ -28,6 +28,9 @@ module Dentaku
         when :numeric
           output.push AST::Numeric.new(token)
 
+        when :range
+          output.push AST::Range.new(token)
+
         when :logical
           output.push AST::Logical.new(token)
 

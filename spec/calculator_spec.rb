@@ -31,6 +31,7 @@ describe Dentaku::Calculator do
     expect(calculator.evaluate('(((695759/735000)^(1/(1981-1991)))-1)*1000').round(4)).to eq(5.5018)
     expect(calculator.evaluate('0.253/0.253')).to eq(1)
     expect(calculator.evaluate('0.253/d', d: 0.253)).to eq(1)
+    expect(calculator.evaluate('1..3 = 2')).to eq(true)
   end
 
   describe 'memory' do
@@ -279,7 +280,7 @@ describe Dentaku::Calculator do
       CASE number
       WHEN (2 * 2)
         THEN 1
-      WHEN (2 * 3)
+      WHEN 5..6
         THEN 2
       END
       FORMULA
