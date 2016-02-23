@@ -40,6 +40,9 @@ module Dentaku
         when :identifier
           output.push AST::Identifier.new(token)
 
+        when :key
+          output.push AST::Key.new(token)
+
         when :operator, :comparator, :combinator
           op_class = operation(token)
 
@@ -177,6 +180,24 @@ module Dentaku
             fail "Unknown grouping token #{ token.value }"
           end
 
+        when :dictionary
+          case token.value
+          when :open
+            operations.push AST::Dictionary
+
+          when :close
+            while operations.any? && operations.last != AST::Dictionary
+              consume
+            end
+            consume(output.length)
+
+          when :comma
+            while operations.any? && operations.last != AST::Dictionary
+              consume
+            end
+          else
+            fail "Unknown dictionary token #{ token.value }"
+          end
         else
           fail "Not implemented for tokens of category #{ token.category }"
         end
