@@ -28,7 +28,7 @@ describe Dentaku::TokenScanner do
   end
 
   it 'returns a list of all configured scanners' do
-    expect(described_class.scanners.length).to eq 16
+    expect(described_class.scanners.length).to eq 17
   end
 
   it 'allows customizing available scanners' do

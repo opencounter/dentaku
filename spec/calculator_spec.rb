@@ -269,6 +269,13 @@ describe Dentaku::Calculator do
     end
   end
 
+  describe 'list' do
+    it 'handles list' do
+      result = calculator.evaluate('[field:code]', 'field:code': 23)
+      expect(result).to eq([23])
+    end
+  end
+
   describe 'case statements' do
     it 'handles complex then statements' do
       formula = <<-FORMULA

@@ -198,6 +198,27 @@ module Dentaku
           else
             fail "Unknown dictionary token #{ token.value }"
           end
+        when :list
+          case token.value
+          when :open
+            operations.push AST::List
+
+          when :close
+            while operations.any? && operations.last != AST::List
+              consume
+            end
+            consume_count = arities.empty? ? output.length : arities.length
+            consume(consume_count)
+
+          when :comma
+            arities[-1] += 1 unless arities.empty?
+
+            while operations.any? && operations.last != AST::List
+              consume
+            end
+          else
+            fail "Unknown list token #{ token.value }"
+          end
         else
           fail "Not implemented for tokens of category #{ token.category }"
         end
