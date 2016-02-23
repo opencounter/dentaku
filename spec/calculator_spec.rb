@@ -274,6 +274,11 @@ describe Dentaku::Calculator do
       result = calculator.evaluate('[field:code]', 'field:code': 23)
       expect(result).to eq([23])
     end
+
+    it 'concats lists' do
+      result = calculator.evaluate('concat([2], [1])')
+      expect(result).to eq([2, 1])
+    end
   end
 
   describe 'case statements' do
