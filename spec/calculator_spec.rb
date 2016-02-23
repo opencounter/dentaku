@@ -263,7 +263,7 @@ describe Dentaku::Calculator do
 
   describe 'dictionary' do
     it 'handles dictionary' do
-      result = calculator.evaluate('{code: code, value: val*10}', code: '23', val: 10)
+      result = calculator.evaluate('{code: field:code, value: val*10}', 'field:code': '23', val: 10)
       expect(result[:code]).to eq('23')
       expect(result[:value]).to eq(100)
     end

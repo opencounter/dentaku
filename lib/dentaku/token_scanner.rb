@@ -123,7 +123,7 @@ module Dentaku
       end
 
       def key
-        new(:key, '\w+\b:', lambda { |raw| raw.gsub(/:$/, '').strip.to_sym })
+        new(:key, '\w+\b:(?!\w)', lambda { |raw| raw.gsub(/:$/, '').strip.to_sym })
       end
 
       def comparator
