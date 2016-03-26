@@ -125,7 +125,7 @@ module Dentaku
 
       def list
         names = { open: '[', close: ']', comma: ',' }.invert
-        new(:list, '\[|\]|,(?=.*])', lambda { |raw| names[raw] })
+        new(:list, '\[|\]|,(?=.*\])', lambda { |raw| names[raw] })
       end
 
       def key
