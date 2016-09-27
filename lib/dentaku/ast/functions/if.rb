@@ -5,7 +5,12 @@ module Dentaku
     class If < Function
       attr_reader :predicate, :left, :right
 
+      def self.type_syntax
+        "if(:bool, %a, %a) = %a"
+      end
+
       def initialize(predicate, left, right)
+        super
         @predicate = predicate
         @left      = left
         @right     = right
@@ -27,4 +32,4 @@ module Dentaku
   end
 end
 
-Dentaku::AST::Function.register_class(:if, Dentaku::AST::If)
+Dentaku::AST::Function.register_class(Dentaku::AST::If)

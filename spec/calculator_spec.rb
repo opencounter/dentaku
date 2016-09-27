@@ -212,11 +212,9 @@ describe Dentaku::Calculator do
     end
 
     it 'include ROUND' do
-      expect(calculator.evaluate('round(8.2)')).to eq(8)
-      expect(calculator.evaluate('round(8.8)')).to eq(9)
       expect(calculator.evaluate('round(8.75, 1)')).to eq(BigDecimal.new('8.8'))
 
-      expect(calculator.evaluate('ROUND(apples * 0.93)', { apples: 10 })).to eq(9)
+      expect(calculator.evaluate('ROUND(apples * 0.93, 0)', { apples: 10 })).to eq(9)
     end
 
     it 'include NOT' do
@@ -241,20 +239,12 @@ describe Dentaku::Calculator do
     end
 
     describe 'roundup' do
-      it 'should work with one argument' do
-        expect(calculator.evaluate('roundup(1.234)')).to eq(2)
-      end
-
       it 'should accept second precision argument like in Office formula' do
         expect(calculator.evaluate('roundup(1.234, 2)')).to eq(1.24)
       end
     end
 
     describe 'rounddown' do
-      it 'should work with one argument' do
-        expect(calculator.evaluate('rounddown(1.234)')).to eq(1)
-      end
-
       it 'should accept second precision argument like in Office formula' do
         expect(calculator.evaluate('rounddown(1.234, 2)')).to eq(1.23)
       end
@@ -390,7 +380,7 @@ describe Dentaku::Calculator do
   describe 'math functions' do
     Math.methods(false).each do |method|
       it method do
-        if Math.method(method).arity == 2
+        if [-1, 2].include?(Math.method(method).arity)
           expect(calculator.evaluate("#{method}(1,2)")).to eq Math.send(method, 1, 2)
         else
           expect(calculator.evaluate("#{method}(1)")).to eq Math.send(method, 1)

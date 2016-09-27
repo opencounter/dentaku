@@ -25,6 +25,15 @@ module Dentaku
         context.has_key?(identifier) ? dependencies_of(context[identifier]) : [identifier]
       end
 
+      def generate_constraints(context)
+        type = context.resolve_identifier(self)
+        context.add_constraint!([:syntax, self], type, Reason.identifier(self))
+      end
+
+      def pretty_print
+        @identifier
+      end
+
       private
 
       def dependencies_of(node)

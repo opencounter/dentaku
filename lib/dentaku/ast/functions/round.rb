@@ -1,5 +1,5 @@
 require_relative '../function'
 
-Dentaku::AST::Function.register(:round, :numeric, ->(numeric, places=nil) {
-  numeric.round(places || 0)
+Dentaku::AST::Function.register("round(:numeric, :numeric) = :numeric", ->(numeric, places) {
+  numeric.round(places)
 })

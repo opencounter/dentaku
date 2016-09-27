@@ -15,6 +15,10 @@ module Dentaku
       def dependencies(*)
         []
       end
+
+      def pretty_print
+        @value.inspect
+      end
     end
   end
 end

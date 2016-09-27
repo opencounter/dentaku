@@ -1,3 +1,10 @@
+require "dentaku/variant"
+require 'dentaku/type_syntax'
+require 'dentaku/reason'
+require 'dentaku/constraint'
+require 'dentaku/constraint_context'
+require 'dentaku/type_expression'
+
 require 'dentaku'
 require 'dentaku/bulk_expression_solver'
 require 'dentaku/exceptions'
@@ -15,13 +22,13 @@ module Dentaku
       @ast_cache = ast_cache
     end
 
-    def add_function(name, type, body)
-      Dentaku::AST::Function.register(name, type, body)
+    def add_function(type, body)
+      Dentaku::AST::Function.register(type, body)
       self
     end
 
     def add_functions(fns)
-      fns.each { |(name, type, body)| add_function(name, type, body) }
+      fns.each { |(type, body)| add_function(type, body) }
       self
     end
 

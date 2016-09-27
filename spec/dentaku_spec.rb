@@ -10,7 +10,7 @@ describe Dentaku do
   end
 
   it 'evaulates a nested function' do
-    expect(Dentaku('roundup(roundup(3 * cherries) + raspberries)', cherries: 1.5, raspberries: 0.9)).to eql(6)
+    expect(Dentaku('roundup(roundup(3 * cherries, 0) + raspberries, 0)', cherries: 1.5, raspberries: 0.9)).to eql(6)
   end
 
   it 'treats variables as case-insensitive' do

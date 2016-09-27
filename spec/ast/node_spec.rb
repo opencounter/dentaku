@@ -1,7 +1,4 @@
 require 'spec_helper'
-require 'dentaku/ast/node'
-require 'dentaku/tokenizer'
-require 'dentaku/parser'
 
 describe Dentaku::AST::Node do
   it 'returns list of dependencies' do

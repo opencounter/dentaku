@@ -1,4 +1,5 @@
 require 'pry'
+require 'dentaku'
 
 # automatically create a token stream from bare values
 def token_stream(*args)
