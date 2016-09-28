@@ -1,6 +1,8 @@
 module Dentaku
   module AST
     class CaseElse < Node
+      attr_reader :node
+
       def self.arity
         1
       end

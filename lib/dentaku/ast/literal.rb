@@ -17,14 +17,14 @@ module Dentaku
       end
 
       def generate_constraints(context)
-        add_constraint([:syntax, self], [:concrete, value_type], [:literal, self])
+        context.add_constraint!([:syntax, self], [:concrete, value_type], [:literal, self])
       end
 
       def value_type
         raise "Abstract #{self.class.name}"
       end
 
-      def pretty_print
+      def repr
         @value.inspect
       end
     end

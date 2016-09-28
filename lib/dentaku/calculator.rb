@@ -11,6 +11,9 @@ require 'dentaku/exceptions'
 require 'dentaku/token'
 require 'dentaku/dependency_resolver'
 require 'dentaku/parser'
+require 'dentaku/solution_set'
+require 'dentaku/solver'
+require 'dentaku/type'
 
 module Dentaku
   class Calculator

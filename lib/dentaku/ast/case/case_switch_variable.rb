@@ -1,6 +1,8 @@
 module Dentaku
   module AST
     class CaseSwitchVariable < Node
+      attr_reader :node
+
       def initialize(node)
         @node = node
       end

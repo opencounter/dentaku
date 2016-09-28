@@ -15,9 +15,12 @@ module Dentaku
 
           define_method(:_name) { name }
           define_method(:_variant) { parent_class.name }
+          define_method("#{name}?") { true }
 
           attr_reader *members
         end
+
+        define_method("#{name}?") { false }
 
         self.singleton_class.class_eval do
           define_method(name) do |*values|
@@ -32,6 +35,8 @@ module Dentaku
         call_case(clauses[self._name], *@_values)
       elsif clauses.key?(:other)
         call_case(clauses[:other])
+      else
+        raise TypeError.new("no case for #{self._name}")
       end
     end
 

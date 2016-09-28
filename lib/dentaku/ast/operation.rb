@@ -22,8 +22,8 @@ module Dentaku
         raise 'Abstract'
       end
 
-      def pretty_print
-        "#{left.pretty_print} #{operator} #{right.pretty_print}"
+      def repr
+        "#{left.repr} #{operator} #{right.repr}"
       end
 
       def generate_constraints(context)

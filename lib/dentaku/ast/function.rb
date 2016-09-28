@@ -30,7 +30,7 @@ module Dentaku
       end
 
       def self.type_spec
-        @type_spec ||= TypeSyntax.parse(type_syntax)
+        @type_spec ||= TypeSyntax.parse_spec(type_syntax)
       end
 
       def self.register(type_syntax, implementation)
@@ -45,10 +45,6 @@ module Dentaku
             define_method(:implementation) { implementation }
           end
         end
-
-        function_class = function.function_name.capitalize
-        Dentaku::AST.send(:remove_const, function_class) if Dentaku::AST.const_defined?(function_class)
-        Dentaku::AST.const_set(function_class, function)
 
         register_class(function)
       end
@@ -65,17 +61,17 @@ module Dentaku
         raise "Abstract #{self.class.name}"
       end
 
-      def pretty_print
-        "#{function_name}(#{args.map(&:pretty_print).join(', ')})"
+      def repr
+        "#{function_name}(#{args.map(&:repr).join(', ')})"
       end
 
       def generate_constraints(context)
         @scope = {}
-        context.add_constraint!([:syntax, self], type_spec.return_type.resolve_vars(@scope), [:retval, self])
         type_spec.arg_types.zip(args).each_with_index do |(type, arg), i|
           arg.generate_constraints(context)
           context.add_constraint!([:syntax, arg], type.resolve_vars(@scope), [:arg, self, i])
         end
+        context.add_constraint!([:syntax, self], type_spec.return_type.resolve_vars(@scope), [:retval, self])
       end
 
       private

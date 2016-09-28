@@ -13,10 +13,6 @@ module Dentaku
         @elements.map { |el| el.value(context) }
       end
 
-      def type
-        :list
-      end
-
       def dependencies(context={})
         @elements.flat_map { |val| val.dependencies(context) }
       end
@@ -30,8 +26,8 @@ module Dentaku
         end
       end
 
-      def pretty_print
-        "[#{@elements.map(&:pretty_print).join(', ')}]"
+      def repr
+        "[#{@elements.map(&:repr).join(', ')}]"
       end
     end
   end

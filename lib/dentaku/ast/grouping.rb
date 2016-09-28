@@ -9,10 +9,6 @@ module Dentaku
         @node.value(context)
       end
 
-      def type
-        @node.type
-      end
-
       def dependencies(context={})
         @node.dependencies(context)
       end
@@ -21,8 +17,8 @@ module Dentaku
         @node.generate_constraints(context)
       end
 
-      def pretty_print
-        "(#{@node.pretty_print})"
+      def repr
+        "(#{@node.repr})"
       end
     end
   end

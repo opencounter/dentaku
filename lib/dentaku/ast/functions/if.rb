@@ -20,10 +20,6 @@ module Dentaku
         predicate.value(context) ? left.value(context) : right.value(context)
       end
 
-      def type
-        left.type
-      end
-
       def dependencies(context={})
         # TODO : short-circuit?
         (predicate.dependencies(context) + left.dependencies(context) + right.dependencies(context)).uniq

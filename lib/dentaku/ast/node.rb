@@ -1,6 +1,10 @@
 module Dentaku
   module AST
     class Node
+      # type annotation to be added later
+      # by the type checker
+      attr_accessor :type
+
       def self.precedence
         0
       end
@@ -19,15 +23,15 @@ module Dentaku
       end
 
       def generate_constraints(context)
-        raise 'Abstract'
+        raise "Abstract #{self.class.name}"
       end
 
-      def pretty_print
+      def repr
         raise "Abstract #{self.class.name}"
       end
 
       def inspect
-        "<AST #{pretty_print}>"
+        "<AST #{repr}>"
       end
     end
   end

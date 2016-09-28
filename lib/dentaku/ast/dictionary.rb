@@ -16,10 +16,6 @@ module Dentaku
         Hash[@dictionary.map {|k,v| [k, v.value(context)]}]
       end
 
-      def type
-        :dictionary
-      end
-
       def dependencies(context={})
         @dictionary.values.flat_map { |val| val.dependencies(context) }
       end
@@ -37,8 +33,8 @@ module Dentaku
         end
       end
 
-      def pretty_print
-        "{#{@dictionary.map { |k,v| "#{k}: #{v.pretty_print}" }.join(', ')}}"
+      def repr
+        "{#{@dictionary.map { |k,v| "#{k}: #{v.repr}" }.join(', ')}}"
       end
     end
   end

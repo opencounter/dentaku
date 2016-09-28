@@ -3,9 +3,12 @@ require 'dentaku/type_expression'
 
 module Dentaku
   module TypeSyntax
-    def self.parse(string)
-      # p Token.tokenize(string).to_a
-      Parser.parse(Token.tokenize(string))
+    def self.parse_spec(string)
+      Parser.parse_spec(Token.tokenize(string))
+    end
+
+    def self.parse_type(string)
+      Parser.parse_type(Token.tokenize(string))
     end
 
     class Token
@@ -66,8 +69,12 @@ module Dentaku
     end
 
     class Parser
-      def self.parse(tokens)
-        new(tokens).parse
+      def self.parse_spec(tokens)
+        new(tokens).parse_spec
+      end
+
+      def self.parse_type(tokens)
+        new(tokens).parse_type
       end
 
       def initialize(tokens)
@@ -75,6 +82,24 @@ module Dentaku
         @head = @tokens.next
       end
 
+      def parse_type
+        result = parse_type_inner
+        expect(:EOF)
+        result
+      end
+
+      def parse_spec
+        function_name = expect!(:NAME)
+        expect!(:LPAREN)
+        arg_types = parse_types(:RPAREN)
+        expect!(:EQ)
+        return_type = parse_type_inner
+        expect(:EOF)
+
+        TypeSpec.new(function_name, arg_types, return_type)
+      end
+
+      private
       def next!
         @head = @tokens.next
       end
@@ -109,18 +134,7 @@ module Dentaku
         expect(toktype).tap { next! }
       end
 
-      def parse
-        function_name = expect!(:NAME)
-        expect!(:LPAREN)
-        arg_types = parse_types(:RPAREN)
-        expect!(:EQ)
-        return_type = parse_type
-        expect(:EOF)
-
-        TypeSpec.new(function_name, arg_types, return_type)
-      end
-
-      def parse_type
+      def parse_type_inner
         if (name = check_val!(:VAR))
           TypeExpression.var(name)
         elsif (param_name = check_val!(:PARAM))
@@ -128,10 +142,10 @@ module Dentaku
             member_types = parse_types(:RPAREN)
             TypeExpression.param(param_name.to_sym, member_types)
           else
-            TypeExpression.concrete(param_name)
+            TypeExpression.concrete(param_name.to_sym)
           end
         elsif check!(:LBRACE)
-          list_type = parse_type
+          list_type = parse_type_inner
           expect!(:RBRACE)
           TypeExpression.param(:list, [list_type])
         else
@@ -142,7 +156,7 @@ module Dentaku
       def parse_types(expected_end)
         arg_types = []
         until check(expected_end)
-          arg_types << parse_type
+          arg_types << parse_type_inner
         end
         expect!(expected_end)
 

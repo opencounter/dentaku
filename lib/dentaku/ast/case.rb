@@ -46,6 +46,34 @@ module Dentaku
           @conditions.flat_map { |condition| condition.dependencies(context) } +
           @else.dependencies(context)
       end
+
+      def generate_constraints(context)
+        var = TypeExpression.make_variable('case')
+        @switch.node.generate_constraints(context)
+
+        @conditions.each_with_index do |condition, index|
+          condition.when.node.generate_constraints(context)
+          case condition.when.node
+          when AST::Range
+            context.add_constraint!([:syntax, @switch.node], [:concrete, :numeric], [:case_when_range, self, index])
+          else
+            context.add_constraint!([:syntax, @switch.node], [:syntax, condition.when.node], [:case_when, self, index])
+          end
+
+          condition.then.node.generate_constraints(context)
+          context.add_constraint!([:syntax, condition.then.node], var, [:case_then, self, index])
+        end
+
+        if @else
+          @else.node.generate_constraints(context)
+          context.add_constraint!([:syntax, @else.node], var, [:case_else, self])
+        end
+        context.add_constraint!([:syntax, self], var, [:case_return, self])
+      end
+
+      def repr
+        "case TODO"
+      end
     end
   end
 end

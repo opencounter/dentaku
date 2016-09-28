@@ -1,6 +1,8 @@
 module Dentaku
   module AST
     class CaseWhen < Operation
+      attr_reader :node
+
       def self.arity
         1
       end

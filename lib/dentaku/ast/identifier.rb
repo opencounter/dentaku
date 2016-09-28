@@ -30,7 +30,7 @@ module Dentaku
         context.add_constraint!([:syntax, self], type, Reason.identifier(self))
       end
 
-      def pretty_print
+      def repr
         @identifier
       end
 

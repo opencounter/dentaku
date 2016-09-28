@@ -5,15 +5,6 @@ require 'bigdecimal/util'
 module Dentaku
   module AST
     class Arithmetic < Operation
-      def initialize(*args)
-        super
-        fail "#{ self.class } requires numeric operands" unless valid_node?(left) && valid_node?(right)
-      end
-
-      def type
-        :numeric
-      end
-
       def value(context={})
         l = cast(left.value(context))
         r = cast(right.value(context))
@@ -30,10 +21,6 @@ module Dentaku
         v = BigDecimal.new(value, Float::DIG+1)
         v = v.to_i if prefer_integer && v.frac.zero?
         v
-      end
-
-      def valid_node?(node)
-        node.dependencies.any? || node.type == :numeric
       end
     end
 

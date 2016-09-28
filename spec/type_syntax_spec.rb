@@ -19,10 +19,10 @@ describe Dentaku::TypeSyntax do
   end
 
   it 'parses' do
-    expr = Dentaku::TypeSyntax.parse('foo(:numeric) = :bool')
+    expr = Dentaku::TypeSyntax.parse_spec('foo(:numeric) = :bool')
     expect(expr.name).to eql('foo')
     expect(expr.arg_types.size).to be 1
-    expect(expr.arg_types[0].pretty_print).to eql(':numeric')
-    expect(expr.return_type.pretty_print).to eql(':bool')
+    expect(expr.arg_types[0].repr).to eql(':numeric')
+    expect(expr.return_type.repr).to eql(':bool')
   end
 end

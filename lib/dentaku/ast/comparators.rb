@@ -7,10 +7,6 @@ module Dentaku
         5
       end
 
-      def type
-        :logical
-      end
-
       def types
         [:numeric, :numeric, :bool]
       end

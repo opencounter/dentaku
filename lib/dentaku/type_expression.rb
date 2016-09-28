@@ -23,6 +23,14 @@ module Dentaku
       variable(name, uniq)
     end
 
+    def self.from_sexpr(sexpr)
+      if sexpr.is_a?(String)
+        TypeSyntax.parse_type(sexpr)
+      else
+        super
+      end
+    end
+
     def map(&blk)
       cases(
         param: ->(name, arguments) {
@@ -35,6 +43,39 @@ module Dentaku
       )
     end
 
+    def resolve(reverse_scope={})
+      cases(
+        param: ->(name, arguments) {
+          if name == :bool && arguments.empty?
+            Type.bool
+          elsif name == :numeric && arguments.empty?
+            Type.numeric
+          elsif name == :string && arguments.empty?
+            Type.string
+          elsif name == :range && arguments.empty?
+            Type.range
+          elsif name == :date && arguments.empty?
+            Type.date
+          elsif name == :list && arguments.size == 1
+            Type.list(arguments[0].resolve(reverse_scope))
+          else
+            raise RuntimeError, "Unresolvable type expression #{self.repr}"
+          end
+        },
+        variable: -> (name, uniq) {
+          var_name = reverse_scope[[name, uniq]]
+          next Type.abstract unless var_name
+          Type.bound(var_name)
+        },
+        dictionary: -> (keys, types) {
+          Type.dictionary(keys, types.map { |t| t.resolve(reverse_scope) })
+        },
+        other: ->() {
+          Type.abstract
+        }
+      )
+    end
+
     def resolve_vars(scope={})
       cases(
         var: ->(name) {
@@ -44,21 +85,33 @@ module Dentaku
       )
     end
 
-    def inspect
-      "<TypeExpression #{pretty_print}>"
+    def expression_hash
+      repr
     end
 
-    def pretty_print
+    def ==(other)
+      self.expression_hash == other.expression_hash
+    end
+
+    def inspect
+      "<TypeExpression #{repr}>"
+    end
+
+    def repr
       cases(
-        syntax: ->(ast) { "[#{ast.pretty_print}]" },
+        syntax: ->(ast) { "[#{ast.repr}]" },
         param: ->(name, arguments) {
           if arguments.empty?
             ":#{name}"
           else
-            ":#{name}(#{arguments.map(&:pretty_print).join(' ')})"
+            ":#{name}(#{arguments.map(&:repr).join(' ')})"
           end
         },
         variable: ->(name, uniq) { "%#{name}#{uniq}" },
+        var: -> (name) { "%%#{name}" },
+        dictionary: -> (keys, values) {
+          "{#{keys.zip(values).map { |(k, v)| "#{k}:#{v.repr}" }.join(', ')}}"
+        },
       )
     end
 
