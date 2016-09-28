@@ -12,6 +12,10 @@ module Dentaku
         :logical
       end
 
+      def types
+        [:bool, :bool, :bool]
+      end
+
       private
 
       def valid_node?(node)
@@ -23,11 +27,19 @@ module Dentaku
       def value(context={})
         left.value(context) && right.value(context)
       end
+
+      def pretty_print
+        "(#{left.pretty_print} AND #{right.pretty_print})"
+      end
     end
 
     class Or < Combinator
       def value(context={})
         left.value(context) || right.value(context)
+      end
+
+      def pretty_print
+        "(#{left.pretty_print} OR #{right.pretty_print})"
       end
     end
   end

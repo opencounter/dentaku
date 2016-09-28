@@ -1,6 +1,6 @@
 module Dentaku
   module AST
-    class Grouping
+    class Grouping < Node
       def initialize(node)
         @node = node
       end
@@ -15,6 +15,14 @@ module Dentaku
 
       def dependencies(context={})
         @node.dependencies(context)
+      end
+
+      def generate_constraints(context)
+        @node.generate_constraints(context)
+      end
+
+      def pretty_print
+        "(#{@node.pretty_print})"
       end
     end
   end

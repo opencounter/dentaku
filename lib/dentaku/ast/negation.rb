@@ -14,6 +14,16 @@ module Dentaku
         :numeric
       end
 
+      def generate_constraints(context)
+        context.add_constraint!([:syntax, self], [:concrete, :bool], [:operator, self, :return])
+        context.add_constraint!([:syntax, @node], [:concrete, :bool], [:operator, self, :left])
+        @node.generate_constraints(context)
+      end
+
+      def pretty_print
+        "(! #{@node.pretty_print})"
+      end
+
       def self.arity
         1
       end

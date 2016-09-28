@@ -20,18 +20,8 @@ module Dentaku
         l.public_send(operator, r)
       end
 
-      def generate_constraints(context)
-        context.add_constraint!([:syntax, self], [:concrete, :numeric], [:operator, self, :return])
-
-        context.add_constraint!([:syntax, left], [:concrete, :numeric], [:operator, self, :left])
-        context.add_constraint!([:syntax, right], [:concrete, :numeric], [:operator, self, :right])
-
-        left.generate_constraints(context)
-        right.generate_constraints(context)
-      end
-
-      def pretty_print
-        "#{left.pretty_print} #{operator} #{right.pretty_print}"
+      def types
+        [:numeric, :numeric, :numeric]
       end
 
       private

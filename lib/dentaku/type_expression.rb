@@ -5,7 +5,7 @@ module Dentaku
     variants(
       syntax: [:ast],
       param: [:name, :arguments],
-      object: [:members],
+      dictionary: [:keys, :types],
       variable: [:name, :uniq],
       var: [:name],
     )
@@ -27,6 +27,9 @@ module Dentaku
       cases(
         param: ->(name, arguments) {
           TypeExpression.param(name, arguments.map(&blk))
+        },
+        dictionary: ->(keys, types) {
+          TypeExpression.dictionary(keys, types.map(&blk))
         },
         other: self
       )
