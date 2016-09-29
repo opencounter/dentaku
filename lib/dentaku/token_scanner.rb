@@ -11,22 +11,26 @@ module Dentaku
     end
 
     def scan(string, last_token=nil)
-      if (m = @regexp.match(string)) && @condition.call(last_token)
-        value = raw = m.to_s
-        value = @converter.call(raw) if @converter
+      return false unless @condition.call(last_token) && string.scan(@regexp)
 
-        return Array(value).map do |v|
-          Token === v ? v : Token.new(@category, v, raw)
-        end
+      value = raw = string[0]
+      value = @converter.call(raw) if @converter
+
+      return Array(value).map do |v|
+        Token === v ? v : Token.new(@category, v, raw)
       end
+    end
 
-      false
+    # for tests
+    def scan_string(string, last_token=nil)
+      scan(StringScanner.new(string), last_token)
     end
 
     class << self
       def available_scanners
         [
           :whitespace,
+          :comment,
           :range,
           :numeric,
           :double_quoted_string,
@@ -72,6 +76,10 @@ module Dentaku
         new(:whitespace, '\s+')
       end
 
+      def comment
+        new(:comment, /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//)
+      end
+
       def numeric
         new(:numeric, '(\d+(\.\d+)?|\.\d+)\b', lambda { |raw| raw =~ /\./ ? BigDecimal.new(raw) : raw.to_i })
       end
@@ -104,6 +112,7 @@ module Dentaku
       end
 
       def operator
+        p :operator
         names = { pow: '^', add: '+', subtract: '-', multiply: '*', divide: '/', mod: '%' }.invert
         new(:operator, '\^|\+|-|\*|\/|%', lambda { |raw| names[raw] })
       end

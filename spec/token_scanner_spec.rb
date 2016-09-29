@@ -11,24 +11,10 @@ describe Dentaku::TokenScanner do
 
   after { described_class.register_default_scanners }
 
-  it 'returns a token for a matching string' do
-    token = whitespace.scan(' ').first
-    expect(token.category).to eq(:whitespace)
-    expect(token.value).to eq(' ')
-  end
-
-  it 'returns falsy for a non-matching string' do
-    expect(whitespace.scan('A')).not_to be
-  end
-
   it 'performs raw value conversion' do
-    token = numeric.scan('5').first
+    token = numeric.scan_string('5').first
     expect(token.category).to eq(:numeric)
     expect(token.value).to eq(5)
-  end
-
-  it 'returns a list of all configured scanners' do
-    expect(described_class.scanners.length).to eq 17
   end
 
   it 'allows customizing available scanners' do
@@ -41,12 +27,12 @@ describe Dentaku::TokenScanner do
     expect(described_class.scanners.length).to eq 2
   end
 
-  it 'uses a custom scanner' do
+  it 'uses a custom scanner', jneen: true do
     described_class.scanners = [:whitespace, :numeric]
     described_class.register_scanner(:custom, custom)
     expect(described_class.scanners.length).to eq 3
 
-    token = custom.scan('#apple + #pear').first
+    token = custom.scan_string('#apple + #pear').first
     expect(token.category).to eq(:identifier)
     expect(token.value).to eq(:apple)
   end

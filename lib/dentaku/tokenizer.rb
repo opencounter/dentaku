@@ -2,6 +2,9 @@ require 'dentaku/token'
 require 'dentaku/token_matcher'
 require 'dentaku/token_scanner'
 
+# stdlib
+require 'strscan'
+
 module Dentaku
   class Tokenizer
     LPAREN = TokenMatcher.new(:grouping, :open)
@@ -10,12 +13,11 @@ module Dentaku
     def tokenize(string)
       @nesting = 0
       @tokens  = []
-      input    = strip_comments(string.to_s.dup)
+      input    = StringScanner.new(string.to_s)
 
-      until input.empty?
+      until input.eos?
         raise "parse error at: '#{ input }'" unless TokenScanner.scanners.any? do |scanner|
-          scanned, input = scan(input, scanner)
-          scanned
+          scan(input, scanner)
         end
       end
 
@@ -28,27 +30,21 @@ module Dentaku
       @tokens.last
     end
 
-    def scan(string, scanner)
-      if tokens = scanner.scan(string, last_token)
-        tokens.each do |token|
-          raise "unexpected zero-width match (:#{ token.category }) at '#{ string }'" if token.length == 0
+    def scan(input, scanner)
+      tokens = scanner.scan(input, last_token)
+      return false unless tokens
 
-          @nesting += 1 if LPAREN == token
-          @nesting -= 1 if RPAREN == token
-          raise "too many closing parentheses" if @nesting < 0
+      tokens.each do |token|
+        raise "unexpected zero-width match (:#{ token.category }) at '#{ string }'" if token.length == 0
 
-          @tokens << token unless token.is?(:whitespace)
-        end
+        @nesting += 1 if LPAREN == token
+        @nesting -= 1 if RPAREN == token
+        raise "too many closing parentheses" if @nesting < 0
 
-        match_length = tokens.map(&:length).reduce(:+)
-        [true, string[match_length..-1]]
-      else
-        [false, string]
+        @tokens << token unless token.is?(:whitespace) || token.is?(:comment)
       end
-    end
 
-    def strip_comments(input)
-      input.gsub(/\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//, '')
+      true
     end
   end
 end
