@@ -6,8 +6,8 @@ module Dentaku
   module AST
     class Arithmetic < Operation
       def value
-        l = cast(left.value)
-        r = cast(right.value)
+        l = cast(left.evaluate)
+        r = cast(right.evaluate)
         l.public_send(operator, r)
       end
 
@@ -56,10 +56,10 @@ module Dentaku
 
     class Division < Arithmetic
       def value
-        r = cast(right.value, false)
+        r = cast(right.evaluate, false)
         raise ZeroDivisionError if r.zero?
 
-        cast(cast(left.value) / r)
+        cast(cast(left.evaluate) / r)
       end
 
       def self.precedence

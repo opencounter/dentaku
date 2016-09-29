@@ -13,7 +13,7 @@ module Dentaku
       end
 
       def value
-        Hash[@dictionary.map {|k,v| [k, v.value]}]
+        Hash[@dictionary.map {|k,v| [k, v.evaluate]}]
       end
 
       def dependencies(context={})

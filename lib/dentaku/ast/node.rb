@@ -33,6 +33,17 @@ module Dentaku
       def inspect
         "<AST #{repr}>"
       end
+
+      def evaluate
+        value
+      end
+
+      protected
+
+      def value
+        raise 'abstract'
+      end
+
     end
   end
 end

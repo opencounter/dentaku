@@ -36,7 +36,7 @@ module Dentaku
       def self.register(type_syntax, implementation)
         function = Class.new(self) do
           def value
-            args = @args.map { |a| a.value }
+            args = @args.map { |a| a.evaluate }
             self.class.implementation.call(*args)
           end
 

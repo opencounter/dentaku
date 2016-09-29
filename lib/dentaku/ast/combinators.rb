@@ -10,7 +10,7 @@ module Dentaku
 
     class And < Combinator
       def value
-        left.value && right.value
+        left.evaluate && right.evaluate
       end
 
       def repr
@@ -20,7 +20,7 @@ module Dentaku
 
     class Or < Combinator
       def value
-        left.value || right.value
+        left.evaluate || right.evaluate
       end
 
       def repr

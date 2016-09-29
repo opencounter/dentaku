@@ -14,7 +14,7 @@ module Dentaku
 
     class LessThan < Comparator
       def value
-        left.value < right.value
+        left.evaluate < right.evaluate
       end
 
       def operator
@@ -24,7 +24,7 @@ module Dentaku
 
     class LessThanOrEqual < Comparator
       def value
-        left.value <= right.value
+        left.evaluate <= right.evaluate
       end
 
       def operator
@@ -34,7 +34,7 @@ module Dentaku
 
     class GreaterThan < Comparator
       def value
-        left.value > right.value
+        left.evaluate > right.evaluate
       end
 
       def operator
@@ -44,7 +44,7 @@ module Dentaku
 
     class GreaterThanOrEqual < Comparator
       def value
-        left.value >= right.value
+        left.evaluate >= right.evaluate
       end
 
       def operator
@@ -54,7 +54,7 @@ module Dentaku
 
     class NotEqual < Comparator
       def value
-        left.value != right.value
+        left.evaluate != right.evaluate
       end
 
       def operator
@@ -64,7 +64,7 @@ module Dentaku
 
     class Equal < Comparator
       def value
-        left.value === right.value
+        left.evaluate === right.evaluate
       end
 
       def operator

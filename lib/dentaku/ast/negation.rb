@@ -6,7 +6,7 @@ module Dentaku
       end
 
       def value
-        @node.value * -1
+        @node.evaluate * -1
       end
 
       def generate_constraints(context)

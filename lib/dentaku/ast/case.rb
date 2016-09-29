@@ -26,15 +26,15 @@ module Dentaku
       end
 
       def value
-        switch_value = @switch.value
+        switch_value = @switch.evaluate
         @conditions.each do |condition|
-          if condition.when.value === switch_value
-            return condition.then.value
+          if condition.when.evaluate === switch_value
+            return condition.then.evaluate
           end
         end
 
         if @else
-          return @else.value
+          return @else.evaluate
         else
           raise "No block matched the switch value '#{switch_value}'"
         end

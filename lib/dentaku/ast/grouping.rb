@@ -6,7 +6,7 @@ module Dentaku
       end
 
       def value
-        @node.value
+        @node.evaluate
       end
 
       def dependencies(context={})

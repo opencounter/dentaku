@@ -1,6 +1,6 @@
 module Dentaku
   module AST
-    class List
+    class List < Node
       def self.arity
         nil
       end
@@ -10,7 +10,7 @@ module Dentaku
       end
 
       def value
-        @elements.map { |el| el.value }
+        @elements.map { |el| el.evaluate }
       end
 
       def dependencies(context={})

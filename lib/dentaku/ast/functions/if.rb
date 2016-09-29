@@ -17,7 +17,7 @@ module Dentaku
       end
 
       def value
-        predicate.value ? left.value : right.value
+        predicate.evaluate ? left.evaluate : right.evaluate
       end
 
       def dependencies(context={})
