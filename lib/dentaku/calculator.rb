@@ -35,7 +35,7 @@ module Dentaku
     end
 
     def self.current
-      Thread.current[THREAD_KEY]
+      Thread.current[THREAD_KEY] or raise "no calculator defined, use evaluate"
     end
 
     def add_function(type, body)

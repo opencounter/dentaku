@@ -9,9 +9,11 @@ describe Dentaku::AST::Addition do
 
   let(:t)    { Dentaku::AST::Numeric.new Dentaku::Token.new(:logical, true) }
 
+  let(:calculator) { Dentaku::Calculator.new }
+
   it 'performs addition' do
     node = described_class.new(five, six)
-    expect(node.value).to eq 11
+    expect(calculator.evaluate!(node)).to eq 11
   end
 
 #   it 'requires numeric operands' do

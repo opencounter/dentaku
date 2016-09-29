@@ -12,8 +12,8 @@ describe Dentaku::Tracer do
     FORMULA
       # expect(calculator.evaluate(formula, quantity: 3, fruit: 'apple')).to eq(3)
     result, trace = Dentaku::Calculator.new.evaluate_with_trace(expr, quantity: 3, fruit: 'apple')
-    binding.pry
-    1
+    # binding.pry
+    # 1
 
   end
 end

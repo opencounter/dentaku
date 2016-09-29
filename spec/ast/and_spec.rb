@@ -9,9 +9,11 @@ describe Dentaku::AST::And do
 
   let(:five) { Dentaku::AST::Numeric.new Dentaku::Token.new(:numeric, 5) }
 
+  let(:calculator) { Dentaku::Calculator.new }
+
   it 'performs logical AND' do
     node = described_class.new(t, f)
-    expect(node.value).to eq false
+    expect(calculator.evaluate!(node)).to eq false
   end
 
   # it 'requires logical operands' do

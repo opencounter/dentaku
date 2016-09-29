@@ -9,9 +9,11 @@ describe Dentaku::AST::Division do
 
   let(:t)    { Dentaku::AST::Numeric.new Dentaku::Token.new(:logical, true) }
 
+  let(:calculator) { Dentaku::Calculator.new }
+
   it 'performs division' do
     node = described_class.new(five, six)
-    expect(node.value.round(4)).to eq 0.8333
+    expect(calculator.evaluate!(node).round(4)).to eq 0.8333
   end
 
   # it 'requires numeric operands' do

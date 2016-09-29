@@ -1,6 +1,6 @@
 module Dentaku
   module AST
-    class Dictionary
+    class Dictionary < Node
       def self.arity
         nil
       end
