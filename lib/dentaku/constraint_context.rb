@@ -83,7 +83,7 @@ module Dentaku
 
       add_constraint!([:syntax, ast], type_spec.return_type.resolve_vars(@scope), [:definition_retval, type_spec, @scope])
 
-      solutions = Solver.solve(@constraints, options)
+      solutions = Solver.solve(@constraints.reverse, options.merge(free_vars: @scope.values))
 
       reverse_scope = {}
       @scope.each do |name, texpr|

@@ -9,8 +9,8 @@ module Dentaku
         @elements = elements
       end
 
-      def value(context={})
-        @elements.map { |el| el.value(context) }
+      def value
+        @elements.map { |el| el.value }
       end
 
       def dependencies(context={})

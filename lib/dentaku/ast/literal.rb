@@ -8,7 +8,7 @@ module Dentaku
         @type  = token.category
       end
 
-      def value(*)
+      def value
         @value
       end
 

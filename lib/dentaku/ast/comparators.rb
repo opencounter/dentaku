@@ -13,8 +13,8 @@ module Dentaku
     end
 
     class LessThan < Comparator
-      def value(context={})
-        left.value(context) < right.value(context)
+      def value
+        left.value < right.value
       end
 
       def operator
@@ -23,8 +23,8 @@ module Dentaku
     end
 
     class LessThanOrEqual < Comparator
-      def value(context={})
-        left.value(context) <= right.value(context)
+      def value
+        left.value <= right.value
       end
 
       def operator
@@ -33,8 +33,8 @@ module Dentaku
     end
 
     class GreaterThan < Comparator
-      def value(context={})
-        left.value(context) > right.value(context)
+      def value
+        left.value > right.value
       end
 
       def operator
@@ -43,8 +43,8 @@ module Dentaku
     end
 
     class GreaterThanOrEqual < Comparator
-      def value(context={})
-        left.value(context) >= right.value(context)
+      def value
+        left.value >= right.value
       end
 
       def operator
@@ -53,8 +53,8 @@ module Dentaku
     end
 
     class NotEqual < Comparator
-      def value(context={})
-        left.value(context) != right.value(context)
+      def value
+        left.value != right.value
       end
 
       def operator
@@ -63,8 +63,8 @@ module Dentaku
     end
 
     class Equal < Comparator
-      def value(context={})
-        left.value(context) === right.value(context)
+      def value
+        left.value === right.value
       end
 
       def operator

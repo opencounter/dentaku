@@ -9,8 +9,8 @@ module Dentaku
     end
 
     class And < Combinator
-      def value(context={})
-        left.value(context) && right.value(context)
+      def value
+        left.value && right.value
       end
 
       def repr
@@ -19,8 +19,8 @@ module Dentaku
     end
 
     class Or < Combinator
-      def value(context={})
-        left.value(context) || right.value(context)
+      def value
+        left.value || right.value
       end
 
       def repr

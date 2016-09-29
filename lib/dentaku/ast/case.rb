@@ -25,16 +25,16 @@ module Dentaku
         end
       end
 
-      def value(context={})
-        switch_value = @switch.value(context)
+      def value
+        switch_value = @switch.value
         @conditions.each do |condition|
-          if condition.when.value(context) === switch_value
-            return condition.then.value(context)
+          if condition.when.value === switch_value
+            return condition.then.value
           end
         end
 
         if @else
-          return @else.value(context)
+          return @else.value
         else
           raise "No block matched the switch value '#{switch_value}'"
         end

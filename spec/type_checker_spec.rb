@@ -47,7 +47,7 @@ describe 'Type Checker' do
     scope, solutions = context.check!(ast, debug: 1)
   end
 
-  it 'checks cases', focus: true do
+  it 'checks cases' do
     expr = "
       CASE 1
       WHEN 1..3 THEN '5'

@@ -35,8 +35,8 @@ module Dentaku
 
       def self.register(type_syntax, implementation)
         function = Class.new(self) do
-          def value(context={})
-            args = @args.map { |a| a.value(context) }
+          def value
+            args = @args.map { |a| a.value }
             self.class.implementation.call(*args)
           end
 
@@ -67,11 +67,11 @@ module Dentaku
 
       def generate_constraints(context)
         @scope = {}
-        type_spec.arg_types.zip(args).each_with_index do |(type, arg), i|
-          arg.generate_constraints(context)
-          context.add_constraint!([:syntax, arg], type.resolve_vars(@scope), [:arg, self, i])
-        end
         context.add_constraint!([:syntax, self], type_spec.return_type.resolve_vars(@scope), [:retval, self])
+        type_spec.arg_types.zip(args).each_with_index do |(type, arg), i|
+          context.add_constraint!([:syntax, arg], type.resolve_vars(@scope), [:arg, self, i])
+          arg.generate_constraints(context)
+        end
       end
 
       private

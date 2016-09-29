@@ -11,8 +11,8 @@ module Dentaku
         @node = node
       end
 
-      def value(context={})
-        @node.value(context)
+      def value
+        @node.value
       end
 
       def dependencies(context={})

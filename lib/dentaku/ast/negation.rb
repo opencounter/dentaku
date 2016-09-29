@@ -5,8 +5,8 @@ module Dentaku
         @node = node
       end
 
-      def value(context={})
-        @node.value(context) * -1
+      def value
+        @node.value * -1
       end
 
       def generate_constraints(context)

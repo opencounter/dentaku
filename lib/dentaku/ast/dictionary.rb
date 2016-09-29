@@ -12,8 +12,8 @@ module Dentaku
         end
       end
 
-      def value(context={})
-        Hash[@dictionary.map {|k,v| [k, v.value(context)]}]
+      def value
+        Hash[@dictionary.map {|k,v| [k, v.value]}]
       end
 
       def dependencies(context={})

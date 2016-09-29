@@ -6,14 +6,17 @@ module Dentaku
       attr_reader :identifier
 
       def initialize(token)
-        @identifier = token.value.downcase
+        @identifier = token.value.to_s.downcase
       end
 
-      def value(context={})
+      def value
+        context = Calculator.current.memory
+        p :context => context,
+          :identifier => identifier
         v = context[identifier]
         case v
         when Node
-          v.value(context)
+          v.value
         when NilClass
           raise UnboundVariableError.new([identifier])
         else

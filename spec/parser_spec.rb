@@ -3,10 +3,12 @@ require 'dentaku/token'
 require 'dentaku/parser'
 
 describe Dentaku::Parser do
+  let(:calculator) { Dentaku::Calculator.new }
+
   it 'is constructed from a token' do
     token = Dentaku::Token.new(:numeric, 5)
     node  = described_class.new([token]).parse
-    expect(node.value).to eq 5
+    expect(calculator.evaluate!(node)).to eq 5
   end
 
   it 'performs simple addition' do
@@ -15,7 +17,7 @@ describe Dentaku::Parser do
     four = Dentaku::Token.new(:numeric, 4)
 
     node  = described_class.new([five, plus, four]).parse
-    expect(node.value).to eq 9
+    expect(calculator.evaluate!(node)).to eq 9
   end
 
   it 'compares two numbers' do
@@ -24,7 +26,7 @@ describe Dentaku::Parser do
     four = Dentaku::Token.new(:numeric, 4)
 
     node  = described_class.new([five, lt, four]).parse
-    expect(node.value).to eq false
+    expect(calculator.evaluate!(node)).to eq false
   end
 
   it 'performs multiple operations in one stream' do
@@ -35,7 +37,7 @@ describe Dentaku::Parser do
     three = Dentaku::Token.new(:numeric, 3)
 
     node  = described_class.new([five, plus, four, times, three]).parse
-    expect(node.value).to eq 17
+    expect(calculator.evaluate!(node)).to eq 17
   end
 
   it 'respects order of operations' do
@@ -46,7 +48,7 @@ describe Dentaku::Parser do
     three = Dentaku::Token.new(:numeric, 3)
 
     node  = described_class.new([five, times, four, plus, three]).parse
-    expect(node.value).to eq 23
+    expect(calculator.evaluate!(node)).to eq 23
   end
 
   it 'respects grouping by parenthesis' do
@@ -59,7 +61,7 @@ describe Dentaku::Parser do
     three = Dentaku::Token.new(:numeric, 3)
 
     node  = described_class.new([lpar, five, plus, four, rpar, times, three]).parse
-    expect(node.value).to eq 27
+    expect(calculator.evaluate!(node)).to eq 27
   end
 
   it 'evaluates functions' do
@@ -74,7 +76,7 @@ describe Dentaku::Parser do
     rpar  = Dentaku::Token.new(:grouping, :close)
 
     node  = described_class.new([fn, fopen, five, lt, four, comma, three, comma, two, rpar]).parse
-    expect(node.value).to eq 2
+    expect(calculator.evaluate!(node)).to eq 2
   end
 
   it 'represents formulas with variables' do
@@ -83,8 +85,8 @@ describe Dentaku::Parser do
     x     = Dentaku::Token.new(:identifier, :x)
 
     node  = described_class.new([five, times, x]).parse
-    expect { node.value }.to raise_error(Dentaku::UnboundVariableError)
-    expect(node.value(x: 3)).to eq 15
+    expect { calculator.evaluate!(node) }.to raise_error(Dentaku::UnboundVariableError)
+    expect(calculator.evaluate!(node, x: 3)).to eq 15
   end
 
   it 'evaluates boolean expressions' do
@@ -93,7 +95,7 @@ describe Dentaku::Parser do
     d_false = Dentaku::Token.new(:logical, false)
 
     node  = described_class.new([d_true, d_and, d_false]).parse
-    expect(node.value).to eq false
+    expect(calculator.evaluate!(node)).to eq false
   end
 
   it 'evaluates a case statement' do
@@ -121,6 +123,7 @@ describe Dentaku::Parser do
        case_then2,
        four,
        case_close]).parse
-    expect(node.value(x: 3)).to eq(4)
+
+    expect(calculator.evaluate!(node, x: 3)).to eq(4)
   end
 end

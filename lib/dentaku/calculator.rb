@@ -25,6 +25,18 @@ module Dentaku
       @ast_cache = ast_cache
     end
 
+    THREAD_KEY = :dentaku_current_calculator
+    def with_dynamic
+      Thread.current[THREAD_KEY], old = self, Thread.current[THREAD_KEY]
+      yield
+    ensure
+      Thread.current[THREAD_KEY] = old
+    end
+
+    def self.current
+      Thread.current[THREAD_KEY]
+    end
+
     def add_function(type, body)
       Dentaku::AST::Function.register(type, body)
       self
@@ -42,10 +54,14 @@ module Dentaku
     end
 
     def evaluate!(expression, data={})
-      store(data) do
-        node = expression
-        node = ast(node) unless node.is_a?(AST::Node)
-        node.value(memory)
+      with_dynamic do
+        store(data) do
+          node = expression
+          node = ast(node) unless node.is_a?(AST::Node)
+          p :memory => memory
+
+          node.value
+        end
       end
     end
 
@@ -82,12 +98,9 @@ module Dentaku
 
       if block_given?
         begin
-          result = yield
+          return yield
+        ensure
           @memory = restore
-          return result
-        rescue => e
-          @memory = restore
-          raise e
         end
       end
 

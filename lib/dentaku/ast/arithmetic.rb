@@ -5,9 +5,9 @@ require 'bigdecimal/util'
 module Dentaku
   module AST
     class Arithmetic < Operation
-      def value(context={})
-        l = cast(left.value(context))
-        r = cast(right.value(context))
+      def value
+        l = cast(left.value)
+        r = cast(right.value)
         l.public_send(operator, r)
       end
 
@@ -55,11 +55,11 @@ module Dentaku
     end
 
     class Division < Arithmetic
-      def value(context={})
-        r = cast(right.value(context), false)
+      def value
+        r = cast(right.value, false)
         raise ZeroDivisionError if r.zero?
 
-        cast(cast(left.value(context)) / r)
+        cast(cast(left.value) / r)
       end
 
       def self.precedence

@@ -1,7 +1,7 @@
 module Dentaku
   module AST
     class Nil < Node
-      def value(*)
+      def value
         nil
       end
     end

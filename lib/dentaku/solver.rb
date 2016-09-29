@@ -15,6 +15,8 @@ module Dentaku
       @solution_set = SolutionSet.new
       @errors = []
       @debug = options[:debug]
+      @free_vars = options[:free_vars] || []
+      @free_vars_set = Set.new(@free_vars.map(&:expression_hash))
     end
 
     def self.solve(constraints, options={})
@@ -23,6 +25,7 @@ module Dentaku
 
     def solve
       if @debug
+        @free_vars.each { |v| puts "free #{v.repr}" }
         @constraints.each { |c| puts "-> #{c.repr}" }
       end
 
@@ -42,6 +45,12 @@ module Dentaku
 
     private
 
+    def solve_for?(expression)
+      return true if expression.syntax?
+      return true if expression.variable? && !@free_vars_set.include?(expression.expression_hash)
+      return false
+    end
+
     def process_constraint(constraint)
       return if constraint.lhs == constraint.rhs
 
@@ -49,9 +58,9 @@ module Dentaku
         puts ">> #{constraint.repr}"
       end
 
-      if constraint.lhs.syntax? || constraint.lhs.variable?
+      if solve_for?(constraint.lhs)
         solve_for(constraint)
-      elsif constraint.rhs.syntax? || constraint.rhs.variable?
+      elsif solve_for?(constraint.rhs)
         solve_for(constraint.swap)
       else
         constraint.lhs.cases(
