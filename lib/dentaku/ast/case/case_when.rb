@@ -18,6 +18,10 @@ module Dentaku
       def dependencies(context={})
         @node.dependencies(context)
       end
+
+      def repr
+        "WHEN #{node.repr}"
+      end
     end
   end
 end

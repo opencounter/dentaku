@@ -27,7 +27,7 @@ module Dentaku
       end
 
       def repr
-        raise "Abstract #{self.class.name}"
+        "(TODO #{self.class.name})"
       end
 
       def inspect
@@ -35,7 +35,9 @@ module Dentaku
       end
 
       def evaluate
-        value
+        Calculator.current.trace(self) do
+          value
+        end
       end
 
       protected

@@ -14,6 +14,7 @@ require 'dentaku/parser'
 require 'dentaku/solution_set'
 require 'dentaku/solver'
 require 'dentaku/type'
+require 'dentaku/tracer'
 
 module Dentaku
   class Calculator
@@ -53,6 +54,11 @@ module Dentaku
       yield expression if block_given?
     end
 
+    def evaluate_with_trace(expression, data={})
+      @tracer = Tracer.new
+      [evaluate!(expression, data), @tracer]
+    end
+
     def evaluate!(expression, data={})
       with_dynamic do
         store(data) do
@@ -60,9 +66,15 @@ module Dentaku
           node = ast(node) unless node.is_a?(AST::Node)
           p :memory => memory
 
-          node.value
+          node.evaluate
         end
       end
+    end
+
+    def trace(node, &blk)
+      return yield if @tracer.nil?
+
+      @tracer.trace(node, &blk)
     end
 
     def solve!(expression_hash)
