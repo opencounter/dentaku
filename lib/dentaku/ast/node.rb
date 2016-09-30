@@ -24,6 +24,10 @@ module Dentaku
         context.constraints
       end
 
+      def loc_range
+        [begin_token.begin_location, end_token.end_location]
+      end
+
       def generate_constraints(context)
         raise "Abstract #{self.class.name}"
       end

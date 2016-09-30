@@ -1,6 +1,7 @@
 module Dentaku
   class TracePoint
-    attr_reader :children, :node
+    attr_reader :children, :node, :value
+    attr_writer :value
 
     def initialize(node)
       @node = node
@@ -39,6 +40,8 @@ module Dentaku
       end
 
       result = yield
+
+      @last_point.value = result
 
       case node
       when AST::Identifier, AST::Function

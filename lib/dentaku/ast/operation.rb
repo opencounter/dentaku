@@ -26,7 +26,7 @@ module Dentaku
       end
 
       def operator
-        raise 'Abstract'
+        raise "Abstract #{self.class.name}"
       end
 
       def repr

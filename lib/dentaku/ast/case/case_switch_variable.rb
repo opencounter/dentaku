@@ -3,6 +3,10 @@ module Dentaku
     class CaseSwitchVariable < Node
       attr_reader :node
 
+      def repr
+        "CASE #{@node.repr}"
+      end
+
       def initialize(node)
         @node = node
       end

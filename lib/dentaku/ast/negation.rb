@@ -1,6 +1,8 @@
 module Dentaku
   module AST
     class Negation < Operation
+      attr_accessor :begin_token
+
       def initialize(node)
         @node = node
       end
@@ -16,7 +18,7 @@ module Dentaku
       end
 
       def repr
-        "(! #{@node.repr})"
+        "(- #{@node.repr})"
       end
 
       def self.arity

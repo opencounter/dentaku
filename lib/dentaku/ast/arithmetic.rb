@@ -55,6 +55,10 @@ module Dentaku
     end
 
     class Division < Arithmetic
+      def operator
+        :/
+      end
+
       def value
         r = cast(right.evaluate, false)
         raise ZeroDivisionError if r.zero?

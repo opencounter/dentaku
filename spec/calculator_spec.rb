@@ -266,8 +266,11 @@ describe Dentaku::Calculator do
     end
 
     it 'concats lists' do
-      result = calculator.evaluate('concat([2], [1])')
-      expect(result).to eq([2, 1])
+      ast = calculator.ast('concat([2, 3 + 2, 4 - 1], [1, 7 * 2 + 3, 4])')
+      type_checker = Dentaku::StaticConstraintContext.new({})
+      type_checker.check!(ast)
+      result = calculator.evaluate!(ast)
+      expect(result).to eq([2, 5, 3, 1, 17, 4])
     end
   end
 
@@ -278,7 +281,7 @@ describe Dentaku::Calculator do
       WHEN 'apple'
         THEN (1 * quantity)
       WHEN 'banana'
-        THEN (2 * quantity)
+        THEN 2 * quantity
       END
       FORMULA
       expect(calculator.evaluate(formula, quantity: 3, fruit: 'apple')).to eq(3)
@@ -288,7 +291,7 @@ describe Dentaku::Calculator do
     it 'handles complex when statements' do
       formula = <<-FORMULA
       CASE number
-      WHEN (2 * 2)
+      WHEN 2 * 2
         THEN 1
       WHEN 5..6
         THEN 2
@@ -336,6 +339,7 @@ describe Dentaku::Calculator do
         WHEN 10 THEN
           CASE type
           WHEN 'organic' THEN 5
+          ELSE 23
           END
         END
       END

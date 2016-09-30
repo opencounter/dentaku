@@ -19,7 +19,7 @@ module Dentaku
 
       def generate_constraints(context)
         element_type = TypeExpression.make_variable('el')
-        context.add_constraint!([:syntax, self], [:param, :list, element_type], [:literal, self])
+        context.add_constraint!([:syntax, self], [:param, :list, [element_type]], [:literal, self])
         @elements.each_with_index do |el, i|
           el.generate_constraints(context)
           context.add_constraint!([:syntax, el], element_type, [:list_member, self, i])

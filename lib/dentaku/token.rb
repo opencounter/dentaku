@@ -17,6 +17,14 @@ module Dentaku
       "<Token :#{category}/#{value}#{loc_range && loc_range.inspect}>"
     end
 
+    def begin_location
+      @loc_range[0]
+    end
+
+    def end_location
+      @loc_range[1]
+    end
+
     def to_s
       raw_value || value
     end

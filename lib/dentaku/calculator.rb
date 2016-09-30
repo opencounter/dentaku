@@ -64,8 +64,6 @@ module Dentaku
         store(data) do
           node = expression
           node = ast(node) unless node.is_a?(AST::Node)
-          p :memory => memory
-
           node.evaluate
         end
       end

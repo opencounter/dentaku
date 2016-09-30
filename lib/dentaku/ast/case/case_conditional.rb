@@ -4,6 +4,13 @@ module Dentaku
       attr_reader :when,
                   :then
 
+      def begin_token=(*)
+      end
+
+      def begin_token
+        @when.begin_token
+      end
+
       def initialize(when_statement, then_statement)
         @when = when_statement
         unless @when.is_a?(AST::CaseWhen)
@@ -13,6 +20,10 @@ module Dentaku
         unless @then.is_a?(AST::CaseThen)
           raise "Expected second argument to be a CaseThen, was (#{then_statement.repr})"
         end
+      end
+
+      def repr
+        "(#{@when.repr} #{@then.repr})"
       end
 
       def dependencies(context={})

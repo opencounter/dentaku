@@ -27,6 +27,7 @@ module Dentaku
     end
 
     def consume_infix(end_token)
+      consume(end_token) while check_op(AST::Operation)
     end
 
     def consume(end_token, count=2)
@@ -48,20 +49,21 @@ module Dentaku
       return AST::Nil.new if input.empty?
 
       while true
-
-
         token, last_token = input.shift, token
         break unless token
 
-        # puts 'operations:'
-        # operations.reverse.each { |o| p o }
+        puts 'operations:'
+        operations.reverse.each { |o| p o }
 
-        # puts 'output:'
-        # output.reverse.each { |o| p o }
+        puts 'output:'
+        output.reverse.each { |o| p o }
 
-        # puts '======='
-        # puts 'next:'
-        # p token
+        puts 'arities:'
+        arities.reverse.each { |a| p a }
+
+        puts '======='
+        puts 'next:'
+        p token
 
         case token.category
         when :numeric
@@ -102,78 +104,56 @@ module Dentaku
         when :case
           case token.value
           when :open
-            # special handling for case nesting: strip out inner case
-            # statements and parse their AST segments recursively
-            if operations.map { |x| x[0] }.include?(AST::Case)
-              open_cases = 0
-              case_end_index = nil
-
-              input.each_with_index do |token, index|
-                if token.category == :case && token.value == :open
-                  open_cases += 1
-                end
-
-                if token.category == :case && token.value == :close
-                  if open_cases > 0
-                    open_cases -= 1
-                  else
-                    case_end_index = index
-                    break
-                  end
-                end
-              end
-              inner_case_inputs = input.slice!(0..case_end_index)
-              subparser = Parser.new(
-                inner_case_inputs,
-                operations: [[AST::Case, token]],
-                arities: [0]
-              )
-              subparser.parse
-              output.concat(subparser.output)
-            else
-              operations.push [AST::Case, token]
-              arities.push(0)
-            end
+            operations.push [AST::Case, token]
+            arities.push(0)
           when :close
-            if check_op(AST::CaseThen, 1)
-              consume(last_token) until check_op(AST::Case)
+            consume_infix(last_token)
 
-              operations.push([AST::CaseConditional, token])
+            if check_op(AST::CaseThen)
+              consume(last_token)
+
+              operations.push([AST::CaseConditional, nil])
               consume(last_token, 2)
               arities[-1] += 1
-            elsif check_op(AST::CaseElse, 1)
-              consume(last_token) until check_op(AST::Case)
+            elsif check_op(AST::CaseElse)
+              consume(last_token)
 
               arities[-1] += 1
             end
 
-            unless operations.count == 1 && check_op(AST::Case)
+            unless check_op(AST::Case)
               fail "Unprocessed token #{ token.value }"
             end
             consume(token, arities.pop + 1)
           when :when
-            if check_op(AST::CaseThen, 1)
-              consume(last_token) until check_op(AST::CaseWhen) || check_op(AST::Case)
+            consume_infix(last_token)
 
-              operations.push([AST::CaseConditional, token])
+            if check_op(AST::CaseThen)
+              consume(last_token)
+
+              operations.push([AST::CaseConditional, nil])
               consume(last_token, 2)
               arities[-1] += 1
             elsif check_op(AST::Case)
-              operations.push([AST::CaseSwitchVariable, token])
+              operations.push([AST::CaseSwitchVariable, operations.last[1]])
               consume(last_token)
             end
 
             operations.push([AST::CaseWhen, token])
           when :then
-            if check_op(AST::CaseWhen, 1)
-              consume(last_token) until check_op(AST::CaseThen) || check_op(AST::Case)
+            consume_infix(last_token)
+
+            if check_op(AST::CaseWhen)
+              consume(last_token)
             end
             operations.push([AST::CaseThen, token])
           when :else
-            if check_op(AST::CaseThen, 1)
-              consume(last_token) until check_op(AST::Case)
+            consume_infix(last_token)
 
-              operations.push([AST::CaseConditional, token])
+            if check_op(AST::CaseThen)
+              consume(last_token)
+
+              operations.push([AST::CaseConditional, nil])
               consume(last_token, 2)
               arities[-1] += 1
             end
@@ -193,7 +173,7 @@ module Dentaku
             end
 
           when :close
-            consume(last_token) until check_op(AST::Grouping)
+            consume_infix(last_token)
 
             grouping, lparen = operations.pop
             fail "Unbalanced parenthesis" unless grouping == AST::Grouping
@@ -204,7 +184,7 @@ module Dentaku
 
           when :comma
             arities[-1] += 1
-            consume(last_token) until check_op(AST::Grouping)
+            consume_infix(last_token)
 
           else
             fail "Unknown grouping token #{ token.value }"
@@ -216,11 +196,11 @@ module Dentaku
             operations.push [AST::Dictionary, token]
 
           when :close
-            consume(last_token) until check_op(AST::Dictionary)
+            consume_infix(last_token)
             consume(token, output.length)
 
           when :comma
-            consume(last_token) until check_op(AST::Dictionary)
+            consume_infix(last_token)
 
           else
             fail "Unknown dictionary token #{ token.value }"
@@ -229,16 +209,20 @@ module Dentaku
           case token.value
           when :open
             operations.push [AST::List, token]
-            arities.push 0
+            if input.first && input.first.category == :list && input.first.value == :close
+              consume(input.shift, 0)
+            else
+              arities.push 1
+            end
 
           when :close
-            consume(last_token) until check_op(AST::List)
+            consume_infix(last_token)
             consume(token, arities.pop)
 
           when :comma
             arities[-1] += 1 unless arities.empty?
 
-            consume(last_token) until check_op(AST::List)
+            consume_infix(last_token)
           else
             fail "Unknown list token #{ token.value }"
           end

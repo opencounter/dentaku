@@ -15,8 +15,8 @@ module Dentaku
     end
 
     def self.uniq
-      @uniq_counter ||= 0
-      @uniq_counter += 1
+      Thread.current[:dentaku_type_uniq_counter] ||= 0
+      Thread.current[:dentaku_type_uniq_counter] += 1
     end
 
     def self.make_variable(name)
@@ -86,7 +86,12 @@ module Dentaku
     end
 
     def expression_hash
-      repr
+      cases(
+        syntax: ->(ast) {
+          ast.loc_range.inspect + ast.repr
+        },
+        other: ->(*) { repr }
+      )
     end
 
     def ==(other)
@@ -105,7 +110,7 @@ module Dentaku
             ":#{name}"
           else
             ":#{name}(#{arguments.map(&:repr).join(' ')})"
-          end
+          end rescue (binding.pry; 1)
         },
         variable: ->(name, uniq) { "%#{name}#{uniq}" },
         var: -> (name) { "%%#{name}" },
