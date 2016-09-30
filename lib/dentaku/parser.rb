@@ -15,61 +15,96 @@ module Dentaku
       Array.new(count) { output.pop }.reverse
     end
 
-    def consume(count=2)
-      operator = operations.pop
-      output.push operator.new(*get_args(operator.arity || count))
+    def get_op(index=-1)
+      el = operations[index]
+      return nil unless el
+      el[0]
+    end
+
+    def check_op(klass, index=-1)
+      op = get_op(index)
+      op && op <= klass
+    end
+
+    def consume_infix(end_token)
+    end
+
+    def consume(end_token, count=2)
+      operator_class, begin_token = operations.pop
+      operator = operator_class.new(*get_args(operator_class.arity || count))
+      operator.begin_token = begin_token
+      operator.end_token = end_token
+      output.push operator
+    end
+
+    def push_output(klass, token)
+      output.push klass.new(token).tap { |ast|
+        ast.begin_token = token
+        ast.end_token = token
+      }
     end
 
     def parse
       return AST::Nil.new if input.empty?
 
-      while token = input.shift
+      while true
+
+
+        token, last_token = input.shift, token
+        break unless token
+
+        # puts 'operations:'
+        # operations.reverse.each { |o| p o }
+
+        # puts 'output:'
+        # output.reverse.each { |o| p o }
+
+        # puts '======='
+        # puts 'next:'
+        # p token
+
         case token.category
         when :numeric
-          output.push AST::Numeric.new(token)
+          push_output(AST::Numeric, token)
 
         when :range
-          output.push AST::Range.new(token)
+          push_output(AST::Range, token)
 
         when :logical
-          output.push AST::Logical.new(token)
+          push_output(AST::Logical, token)
 
         when :string
-          output.push AST::String.new(token)
+          push_output(AST::String, token)
 
         when :identifier
-          output.push AST::Identifier.new(token)
+          push_output(AST::Identifier, token)
 
         when :key
-          output.push AST::Key.new(token)
+          push_output(AST::Key, token)
 
         when :operator, :comparator, :combinator
           op_class = operation(token)
 
-          if op_class.right_associative?
-            while operations.last && operations.last < AST::Operation && op_class.precedence < operations.last.precedence
-              consume
-            end
+          while true
+            break if !get_op || check_op(AST::Grouping)
+            break if get_op.precedence < op_class.precedence
+            break if op_class.right_associative? && op_class.precedence == get_op.precedence
 
-            operations.push op_class
-          else
-            while operations.last && operations.last < AST::Operation && op_class.precedence <= operations.last.precedence
-              consume
-            end
-
-            operations.push op_class
+            consume(last_token)
           end
+
+          operations.push [op_class, token]
 
         when :function
           arities.push 0
-          operations.push function(token)
+          operations.push [function(token), token]
 
         when :case
           case token.value
           when :open
             # special handling for case nesting: strip out inner case
             # statements and parse their AST segments recursively
-            if operations.include?(AST::Case)
+            if operations.map { |x| x[0] }.include?(AST::Case)
               open_cases = 0
               case_end_index = nil
 
@@ -90,69 +125,60 @@ module Dentaku
               inner_case_inputs = input.slice!(0..case_end_index)
               subparser = Parser.new(
                 inner_case_inputs,
-                operations: [AST::Case],
+                operations: [[AST::Case, token]],
                 arities: [0]
               )
               subparser.parse
               output.concat(subparser.output)
             else
-              operations.push AST::Case
+              operations.push [AST::Case, token]
               arities.push(0)
             end
           when :close
-            if operations[1] == AST::CaseThen
-              while operations.last != AST::Case
-                consume
-              end
+            if check_op(AST::CaseThen, 1)
+              consume(last_token) until check_op(AST::Case)
 
-              operations.push(AST::CaseConditional)
-              consume(2)
+              operations.push([AST::CaseConditional, token])
+              consume(last_token, 2)
               arities[-1] += 1
-            elsif operations[1] == AST::CaseElse
-              while operations.last != AST::Case
-                consume
-              end
+            elsif check_op(AST::CaseElse, 1)
+              consume(last_token) until check_op(AST::Case)
 
               arities[-1] += 1
             end
 
-            unless operations.count == 1 && operations.last == AST::Case
+            unless operations.count == 1 && check_op(AST::Case)
               fail "Unprocessed token #{ token.value }"
             end
-            consume(arities.pop.succ)
+            consume(token, arities.pop + 1)
           when :when
-            if operations[1] == AST::CaseThen
-              while ![AST::CaseWhen, AST::Case].include?(operations.last)
-                consume
-              end
-              operations.push(AST::CaseConditional)
-              consume(2)
+            if check_op(AST::CaseThen, 1)
+              consume(last_token) until check_op(AST::CaseWhen) || check_op(AST::Case)
+
+              operations.push([AST::CaseConditional, token])
+              consume(last_token, 2)
               arities[-1] += 1
-            elsif operations.last == AST::Case
-              operations.push(AST::CaseSwitchVariable)
-              consume
+            elsif check_op(AST::Case)
+              operations.push([AST::CaseSwitchVariable, token])
+              consume(last_token)
             end
 
-            operations.push(AST::CaseWhen)
+            operations.push([AST::CaseWhen, token])
           when :then
-            if operations[1] == AST::CaseWhen
-              while ![AST::CaseThen, AST::Case].include?(operations.last)
-                consume
-              end
+            if check_op(AST::CaseWhen, 1)
+              consume(last_token) until check_op(AST::CaseThen) || check_op(AST::Case)
             end
-            operations.push(AST::CaseThen)
+            operations.push([AST::CaseThen, token])
           when :else
-            if operations[1] == AST::CaseThen
-              while operations.last != AST::Case
-                consume
-              end
+            if check_op(AST::CaseThen, 1)
+              consume(last_token) until check_op(AST::Case)
 
-              operations.push(AST::CaseConditional)
-              consume(2)
+              operations.push([AST::CaseConditional, token])
+              consume(last_token, 2)
               arities[-1] += 1
             end
 
-            operations.push(AST::CaseElse)
+            operations.push([AST::CaseElse, token])
           else
             fail "Unknown case token #{ token.value }"
           end
@@ -161,29 +187,24 @@ module Dentaku
           case token.value
           when :open
             if input.first && input.first.value == :close
-              input.shift
-              consume(0)
+              consume(input.shift, 0)
             else
-              operations.push AST::Grouping
+              operations.push [AST::Grouping, token]
             end
 
           when :close
-            while operations.any? && operations.last != AST::Grouping
-              consume
-            end
+            consume(last_token) until check_op(AST::Grouping)
 
-            lparen = operations.pop
-            fail "Unbalanced parenthesis" unless lparen == AST::Grouping
+            grouping, lparen = operations.pop
+            fail "Unbalanced parenthesis" unless grouping == AST::Grouping
 
-            if operations.last && operations.last < AST::Function
-              consume(arities.pop.succ)
+            if check_op(AST::Function)
+              consume(token, arities.pop.succ)
             end
 
           when :comma
             arities[-1] += 1
-            while operations.any? && operations.last != AST::Grouping
-              consume
-            end
+            consume(last_token) until check_op(AST::Grouping)
 
           else
             fail "Unknown grouping token #{ token.value }"
@@ -192,39 +213,32 @@ module Dentaku
         when :dictionary
           case token.value
           when :open
-            operations.push AST::Dictionary
+            operations.push [AST::Dictionary, token]
 
           when :close
-            while operations.any? && operations.last != AST::Dictionary
-              consume
-            end
-            consume(output.length)
+            consume(last_token) until check_op(AST::Dictionary)
+            consume(token, output.length)
 
           when :comma
-            while operations.any? && operations.last != AST::Dictionary
-              consume
-            end
+            consume(last_token) until check_op(AST::Dictionary)
+
           else
             fail "Unknown dictionary token #{ token.value }"
           end
         when :list
           case token.value
           when :open
-            operations.push AST::List
+            operations.push [AST::List, token]
+            arities.push 0
 
           when :close
-            while operations.any? && operations.last != AST::List
-              consume
-            end
-            consume_count = arities.empty? ? output.length : arities.length
-            consume(consume_count)
+            consume(last_token) until check_op(AST::List)
+            consume(token, arities.pop)
 
           when :comma
             arities[-1] += 1 unless arities.empty?
 
-            while operations.any? && operations.last != AST::List
-              consume
-            end
+            consume(last_token) until check_op(AST::List)
           else
             fail "Unknown list token #{ token.value }"
           end
@@ -234,7 +248,7 @@ module Dentaku
       end
 
       while operations.any?
-        consume
+        consume(last_token)
       end
 
       unless output.count == 1

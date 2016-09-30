@@ -11,13 +11,14 @@ module Dentaku
     end
 
     def scan(string, last_token=nil)
+      start = string.pos
       return false unless @condition.call(last_token) && string.scan(@regexp)
 
       value = raw = string[0]
       value = @converter.call(raw) if @converter
 
       return Array(value).map do |v|
-        Token === v ? v : Token.new(@category, v, raw)
+        Token === v ? v : Token.new(@category, v, [start, string.pos], raw)
       end
     end
 
@@ -156,10 +157,7 @@ module Dentaku
       end
 
       def function
-        new(:function, '\w+\s*\(', lambda do |raw|
-          function_name = raw.gsub('(', '')
-          [Token.new(:function, function_name.strip.downcase.to_sym, function_name), Token.new(:grouping, :open, '(')]
-        end)
+        new(:function, '\w+(?=\s*[(])', lambda { |raw| raw.downcase.to_sym })
       end
 
       def identifier

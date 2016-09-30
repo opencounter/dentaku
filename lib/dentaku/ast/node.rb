@@ -4,6 +4,8 @@ module Dentaku
       # type annotation to be added later
       # by the type checker
       attr_accessor :type
+      attr_accessor :begin_token
+      attr_accessor :end_token
 
       def self.precedence
         0

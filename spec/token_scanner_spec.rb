@@ -27,7 +27,7 @@ describe Dentaku::TokenScanner do
     expect(described_class.scanners.length).to eq 2
   end
 
-  it 'uses a custom scanner', jneen: true do
+  it 'uses a custom scanner' do
     described_class.scanners = [:whitespace, :numeric]
     described_class.register_scanner(:custom, custom)
     expect(described_class.scanners.length).to eq 3

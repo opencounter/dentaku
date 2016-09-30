@@ -10,6 +10,13 @@ module Dentaku
         @right = right
       end
 
+      def begin_token=(*)
+      end
+
+      def begin_token
+        @left.begin_token
+      end
+
       def dependencies(context={})
         (left.dependencies(context) + right.dependencies(context)).uniq
       end

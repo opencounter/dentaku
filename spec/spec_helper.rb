@@ -3,9 +3,9 @@ require 'dentaku'
 
 # automatically create a token stream from bare values
 def token_stream(*args)
-  args.map do |value|
+  args.map.with_index do |value, index|
     type = type_for(value)
-    Dentaku::Token.new(type, value)
+    Dentaku::Token.new(type, value, [index, index + 1])
   end
 end
 
