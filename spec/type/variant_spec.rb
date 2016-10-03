@@ -13,16 +13,33 @@ describe Dentaku::Type::Variant do
         right: ->(val) { val - 1 },
       )
     end
-
   end
 
-  it "runs" do
-    left = Either.left(1)
-    expect(left.left_val).to be(1)
-    expect(left.compute).to be(2)
+  let(:left) { Either.left(1) }
+  let(:right) { Either.right(2) }
 
-    right = Either.right(4)
-    expect(right.right_val).to be(4)
-    expect(right.compute).to be(3)
+  it "creates predicates" do
+    expect(left.left?).to be(true)
+    expect(left.right?).to be(false)
+
+    expect(right.left?).to be(false)
+    expect(right.right?).to be(true)
+  end
+
+  it "creates readers" do
+    expect(left.left_val).to be(1)
+    expect(right.right_val).to be(2)
+  end
+
+  it "dispatches on case" do
+    expect(left.compute).to be(2)
+    expect(right.compute).to be(1)
+  end
+
+  it "creates from sexpr" do
+    either = Either.from_sexpr([:left, [:right, 4]])
+    expect(either.left?).to be(true)
+    expect(either.left_val.right?).to be(true)
+    expect(either.left_val.right_val).to be(4)
   end
 end
