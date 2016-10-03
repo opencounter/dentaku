@@ -1,6 +1,6 @@
 module Dentaku
   module Type
-    class ConstraintContext
+    class Checker
       class UnboundIdentifier < StandardError
         def initialize(identifier)
           @identifier = identifier
@@ -51,7 +51,7 @@ module Dentaku
       end
     end
 
-    class FunctionConstraintContext < ConstraintContext
+    class FunctionChecker < Checker
       attr_reader :scope, :type_spec
       def initialize(type_spec, &resolver)
         resolver ||= lambda {|*|}
@@ -99,7 +99,7 @@ module Dentaku
       end
     end
 
-    class StaticConstraintContext < ConstraintContext
+    class StaticChecker < Checker
       def initialize(map={})
         string_map = {}
         map.each { |k, v| string_map[k.to_s] = v }

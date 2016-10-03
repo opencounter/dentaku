@@ -1,6 +1,6 @@
 require "dentaku/type/variant"
+require 'dentaku/type/checker'
 require 'dentaku/type/constraint'
-require 'dentaku/type/constraint_context'
 require 'dentaku/type/reason'
 require 'dentaku/type/solution_set'
 require 'dentaku/type/solver'
