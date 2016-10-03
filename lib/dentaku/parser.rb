@@ -52,18 +52,18 @@ module Dentaku
         token, last_token = input.shift, token
         break unless token
 
-        puts 'operations:'
-        operations.reverse.each { |o| p o }
+        # puts 'operations:'
+        # operations.reverse.each { |o| p o }
 
-        puts 'output:'
-        output.reverse.each { |o| p o }
+        # puts 'output:'
+        # output.reverse.each { |o| p o }
 
-        puts 'arities:'
-        arities.reverse.each { |a| p a }
+        # puts 'arities:'
+        # arities.reverse.each { |a| p a }
 
-        puts '======='
-        puts 'next:'
-        p token
+        # puts '======='
+        # puts 'next:'
+        # p token
 
         case token.category
         when :numeric

@@ -11,8 +11,6 @@ module Dentaku
 
       def value
         context = Calculator.current.memory
-        p :context => context,
-          :identifier => identifier
         v = context[identifier]
         case v
         when Node

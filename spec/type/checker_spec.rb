@@ -1,37 +1,83 @@
 require 'dentaku/calculator'
 
 describe 'Type Checker' do
-  it 'works' do
-    context = Dentaku::Type::StaticChecker.new(
-      foo: [:concrete, :string],
-      bar: [:concrete, :numeric],
-      baz: [:concrete, :numeric],
-    )
+  def self.process_expression(expression)
+    if expression.is_a?(Array)
+      expression, types = *expression
+    else
+      types = {}
+    end
 
-    expression = "if(foo, bar, 3)"
+    checker = Dentaku::Type::StaticChecker.new(types)
     ast = Dentaku::Calculator.new.ast(expression)
-    context.check!(ast)
-
-    expression = "concat(foo, concat(bar, 3))"
-    ast = Dentaku::Calculator.new.ast(expression)
-
-
-    expression = "bar + baz"
-    ast = Dentaku::Calculator.new.ast(expression)
-    solutions = context.check!(ast)
-    # binding.pry
-    # puts
+    return [ast, checker]
   end
 
-  it 'checks lists' do
-    context = Dentaku::Type::StaticChecker.new(
-      foo: "[:numeric]",
-      bar: "[:numeric]",
-    )
-    expression = "concat(foo, bar)"
-    ast = Dentaku::Calculator.new.ast(expression)
-    solved = context.check!(ast)
+  def self.should_type_check(*expressions)
+    describe "checking" do
+      expressions.each do |expression|
+        ast, checker = process_expression(expression)
+
+        describe "expression(#{expression})" do
+          it "checks" do
+            expect{checker.check!(ast)}.to_not raise_error
+          end
+        end
+      end
+    end
   end
+
+  def self.should_not_type_check(*expressions)
+    describe "checking" do
+      expressions.each do |expression|
+        ast, checker = process_expression(expression)
+
+        describe "expression(#{expression})" do
+          it "fails check" do
+            expect{checker.check!(ast)}.to raise_error(Dentaku::Type::TypeCheckError)
+          end
+        end
+      end
+    end
+  end
+
+  should_type_check(
+    "1 + 5 + 10",
+    "[1,2,3]",
+    ["foo + bar - 10", { foo: ":numeric", bar: ":numeric" }],
+    ["if(foo, 1, bar)", { foo: ":bool", bar: ":numeric" }],
+    ['concat(concat(foo, ["baz"]), ["bar"])', { foo: "[:string]" }],
+    [
+      'CASE foo
+         WHEN 1..5 THEN 2
+         WHEN 6 THEN 23
+         ELSE 3
+       END', { foo: ":numeric" }
+    ]
+  )
+
+  should_not_type_check(
+    "1 + 'foo'",
+    "[1,2,'3']",
+    ["1 + foo", { foo: ":string" }],
+    ["1 + (5*foo)", { foo: ":bool" }],
+    ['if(foo, 1, "bar")', { foo: ":bool" }],
+    ['if(foo, 1, 2)', { foo: ":string" }],
+    ['concat(foo, [3])', { foo: "[:string]" }],
+    ['concat(concat(foo, [3]), ["3"])', { foo: "[:string]" }],
+    [
+      'CASE foo
+         WHEN 5 THEN 2
+         ELSE "3"
+       END', { foo: ":numeric" }
+    ],
+    [
+      'CASE foo
+         WHEN 5 THEN 2
+         ELSE 3
+       END', { foo: ":string" }
+    ]
+  )
 
   it 'checks functions' do
     func_type = 'c([%a], [%a]) = [%a]'
@@ -41,19 +87,17 @@ describe 'Type Checker' do
 
     context = Dentaku::Type::FunctionChecker.new(func_type)
 
-    scope, solutions = context.check!(ast, debug: 1)
+    expect{context.check!(ast)}.not_to raise_error
   end
 
-  it 'checks cases' do
-    expr = "
-      CASE 1
-      WHEN 1..3 THEN '5'
-      WHEN 4 THEN '6'
-      ELSE '7'
-      END
-    "
-    ast = Dentaku::Calculator.new.ast(expr)
-    context = Dentaku::Type::StaticChecker.new
-    context.check!(ast, debug: true)
+  it 'fails check for bad function', focus: true do
+    func_type = 'c([%a], [%a]) = [%a]'
+    func_impl = 'concat(arg:1, [1])'
+
+    ast = Dentaku::Calculator.new.ast(func_impl)
+
+    context = Dentaku::Type::FunctionChecker.new(func_type)
+
+    expect{context.check!(ast)}.to raise_error(Dentaku::Type::TypeCheckError)
   end
 end

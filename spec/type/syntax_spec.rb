@@ -26,9 +26,17 @@ describe Dentaku::Type::Syntax do
   end
 
   it 'parses type' do
-    expr = Dentaku::Type::Syntax.parse_type('[:numeric]')
+    expr = Dentaku::Type::Syntax.parse_type(':numeric')
+    expect(expr.name).to eql(:numeric)
+  end
+
+  it 'parses nested type' do
+    expr = Dentaku::Type::Syntax.parse_type('[[:numeric]]')
     expect(expr.name).to eql(:list)
     expect(expr.arguments.length).to be 1
-    expect(expr.arguments[0].name).to eql(:numeric)
+    expect(expr.arguments[0].name).to eql(:list)
+
+    expect(expr.arguments[0].arguments.length).to be 1
+    expect(expr.arguments[0].arguments[0].name).to eql(:numeric)
   end
 end

@@ -113,7 +113,6 @@ module Dentaku
       end
 
       def operator
-        p :operator
         names = { pow: '^', add: '+', subtract: '-', multiply: '*', divide: '/', mod: '%' }.invert
         new(:operator, '\^|\+|-|\*|\/|%', lambda { |raw| names[raw] })
       end
