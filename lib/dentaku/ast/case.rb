@@ -48,7 +48,7 @@ module Dentaku
       end
 
       def generate_constraints(context)
-        var = TypeExpression.make_variable('case')
+        var = Type::Expression.make_variable('case')
         @switch.node.generate_constraints(context)
 
         @conditions.each_with_index do |condition, index|

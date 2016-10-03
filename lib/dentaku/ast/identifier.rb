@@ -30,7 +30,7 @@ module Dentaku
 
       def generate_constraints(context)
         type = context.resolve_identifier(self)
-        context.add_constraint!([:syntax, self], type, Reason.identifier(self))
+        context.add_constraint!([:syntax, self], type, Type::Reason.identifier(self))
       end
 
       def repr

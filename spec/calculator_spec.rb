@@ -267,7 +267,7 @@ describe Dentaku::Calculator do
 
     it 'concats lists' do
       ast = calculator.ast('concat([2, 3 + 2, 4 - 1], [1, 7 * 2 + 3, 4])')
-      type_checker = Dentaku::StaticConstraintContext.new({})
+      type_checker = Dentaku::Type::StaticConstraintContext.new({})
       type_checker.check!(ast)
       result = calculator.evaluate!(ast)
       expect(result).to eq([2, 5, 3, 1, 17, 4])

@@ -1,9 +1,14 @@
-require "dentaku/variant"
-require 'dentaku/type_syntax'
-require 'dentaku/reason'
-require 'dentaku/constraint'
-require 'dentaku/constraint_context'
-require 'dentaku/type_expression'
+require "dentaku/type/variant"
+require 'dentaku/type/constraint'
+require 'dentaku/type/constraint_context'
+require 'dentaku/type/reason'
+require 'dentaku/type/solution_set'
+require 'dentaku/type/solver'
+require 'dentaku/type/type'
+require 'dentaku/type/syntax'
+require 'dentaku/type/expression'
+
+require 'dentaku/tracer'
 
 require 'dentaku'
 require 'dentaku/bulk_expression_solver'
@@ -11,10 +16,6 @@ require 'dentaku/exceptions'
 require 'dentaku/token'
 require 'dentaku/dependency_resolver'
 require 'dentaku/parser'
-require 'dentaku/solution_set'
-require 'dentaku/solver'
-require 'dentaku/type'
-require 'dentaku/tracer'
 
 module Dentaku
   class Calculator

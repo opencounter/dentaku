@@ -1,7 +1,7 @@
-require 'dentaku/variant'
+require 'spec_helper'
 
-describe Dentaku::Variant do
-  class Either < Dentaku::Variant
+describe Dentaku::Type::Variant do
+  class Either < Dentaku::Type::Variant
     variants(
       left: [:left_val],
       right: [:right_val],

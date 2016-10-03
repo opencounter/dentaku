@@ -1,9 +1,8 @@
-require 'dentaku/type_syntax'
-require 'pry'
+require 'spec_helper'
 
-describe Dentaku::TypeSyntax do
+describe Dentaku::Type::Syntax do
   it 'tokenizes' do
-    tokens = Dentaku::TypeSyntax::Token.tokenize('foo bar :baz()').to_a
+    tokens = Dentaku::Type::Syntax::Token.tokenize('foo bar :baz()').to_a
 
     expect(tokens[0].name).to eql(:NAME)
     expect(tokens[0].value).to eql('foo')
@@ -19,7 +18,7 @@ describe Dentaku::TypeSyntax do
   end
 
   it 'parses' do
-    expr = Dentaku::TypeSyntax.parse_spec('foo(:numeric) = :bool')
+    expr = Dentaku::Type::Syntax.parse_spec('foo(:numeric) = :bool')
     expect(expr.name).to eql('foo')
     expect(expr.arg_types.size).to be 1
     expect(expr.arg_types[0].repr).to eql(':numeric')

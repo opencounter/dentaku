@@ -23,7 +23,7 @@ module Dentaku
       def generate_constraints(context)
         keys = @dictionary.keys.sort
         key_vars = keys.map do |key|
-          TypeExpression.make_variable(key.to_sym)
+          Type::Expression.make_variable(key.to_sym)
         end
 
         context.add_constraint!([:syntax, self], [:dictionary, keys, key_vars], [:literal, self])

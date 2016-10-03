@@ -1,11 +1,8 @@
 require 'dentaku/calculator'
-require 'dentaku/constraint_context'
-require 'dentaku/constraint'
-require 'dentaku/reason'
 
 describe 'Type Checker' do
   it 'works' do
-    context = Dentaku::StaticConstraintContext.new(
+    context = Dentaku::Type::StaticConstraintContext.new(
       foo: [:concrete, :string],
       bar: [:concrete, :numeric],
       baz: [:concrete, :numeric],
@@ -27,7 +24,7 @@ describe 'Type Checker' do
   end
 
   it 'checks lists' do
-    context = Dentaku::StaticConstraintContext.new(
+    context = Dentaku::Type::StaticConstraintContext.new(
       foo: "[:numeric]",
       bar: "[:numeric]",
     )
@@ -42,7 +39,7 @@ describe 'Type Checker' do
 
     ast = Dentaku::Calculator.new.ast(func_impl)
 
-    context = Dentaku::FunctionConstraintContext.new(func_type)
+    context = Dentaku::Type::FunctionConstraintContext.new(func_type)
 
     scope, solutions = context.check!(ast, debug: 1)
   end
@@ -56,7 +53,7 @@ describe 'Type Checker' do
       END
     "
     ast = Dentaku::Calculator.new.ast(expr)
-    context = Dentaku::StaticConstraintContext.new
+    context = Dentaku::Type::StaticConstraintContext.new
     context.check!(ast, debug: true)
   end
 end

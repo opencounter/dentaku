@@ -30,7 +30,7 @@ module Dentaku
       end
 
       def self.type_spec
-        @type_spec ||= TypeSyntax.parse_spec(type_syntax)
+        @type_spec ||= Type::Syntax.parse_spec(type_syntax)
       end
 
       def self.register(type_syntax, implementation)
