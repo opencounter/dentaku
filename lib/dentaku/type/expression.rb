@@ -23,7 +23,7 @@ module Dentaku
       end
 
       def self.from_sexpr(sexpr)
-        if sexpr.is_a?(String)
+        if sexpr.is_a?(String) || sexpr.is_a?(Symbol)
           Syntax.parse_type(sexpr)
         else
           super

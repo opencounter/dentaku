@@ -29,6 +29,8 @@ module Dentaku
         def self.tokenize(string, &b)
           return enum_for(:tokenize, string) unless block_given?
 
+          string = ":#{string}" if string.is_a?(Symbol)
+
           scanner = StringScanner.new(string)
 
           until scanner.eos?

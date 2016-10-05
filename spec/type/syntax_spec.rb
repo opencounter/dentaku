@@ -30,6 +30,11 @@ describe Dentaku::Type::Syntax do
     expect(expr.name).to eql(:numeric)
   end
 
+  it 'parses type as sym' do
+    expr = Dentaku::Type::Syntax.parse_type(:numeric)
+    expect(expr.name).to eql(:numeric)
+  end
+
   it 'parses nested type' do
     expr = Dentaku::Type::Syntax.parse_type('[[:numeric]]')
     expect(expr.name).to eql(:list)
