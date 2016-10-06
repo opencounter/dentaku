@@ -20,6 +20,13 @@ module Dentaku
         case_else: [:ast],
         case_return: [:ast],
       )
+      def repr
+        cases(
+          conjunction: ->(left, right) { "#{left.repr} => #{right.repr}" },
+          literal: ->(ast) { "LIT: #{ast.repr}" },
+          other: ->(*) { "#{_name}:#{inspect}" }
+        )
+      end
     end
   end
 end

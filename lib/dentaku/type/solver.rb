@@ -1,3 +1,5 @@
+require 'set'
+
 module Dentaku
   module Type
     class TypeCheckError < StandardError
@@ -6,7 +8,9 @@ module Dentaku
       end
 
       def message
-        @errors.map(&:repr).join("\n")
+        @errors.map { |error|
+          "Expected #{error.lhs.repr} but got #{error.rhs.repr} #{error.reason.repr}"
+        }.join("\n")
       end
     end
 
@@ -117,6 +121,7 @@ module Dentaku
 
       def error!(constraint)
         if @debug
+          # binding.pry
           puts "!> #{constraint.repr}"
         end
 

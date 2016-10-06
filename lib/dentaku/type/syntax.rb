@@ -128,7 +128,7 @@ module Dentaku
           if check(toktype)
             @head.value
           else
-            binding.pry # raise "parse error: expected #{toktype.inspect}, got #{@head.inspect}"
+            raise "parse error: expected #{toktype.inspect}, got #{@head.inspect}"
           end
         end
 

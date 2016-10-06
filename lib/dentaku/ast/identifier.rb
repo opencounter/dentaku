@@ -9,10 +9,6 @@ module Dentaku
         @identifier = token.value.to_s.downcase
       end
 
-      def name
-        identifier
-      end
-
       def value
         context = Calculator.current.memory
         v = context[identifier]
