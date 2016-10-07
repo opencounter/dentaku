@@ -30,6 +30,10 @@ module Dentaku
       end
 
       def add_constraint!(lhs, rhs, reason)
+        #TODO: why does this happen (occurs in OC expression spec)
+        lhs = ":#{lhs}" if lhs.is_a?(Symbol)
+        rhs = ":#{rhs}" if rhs.is_a?(Symbol)
+
         @constraints << Constraint.new(
           Expression.from_sexpr(lhs),
           Expression.from_sexpr(rhs),
