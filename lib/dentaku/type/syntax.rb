@@ -68,6 +68,10 @@ module Dentaku
           @arg_types = arg_types
           @return_type = return_type
         end
+
+        def arity
+          arg_types.length
+        end
       end
 
       class Parser

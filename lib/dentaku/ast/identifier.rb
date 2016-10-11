@@ -5,6 +5,10 @@ module Dentaku
     class Identifier < Node
       attr_reader :identifier
 
+      def self.valid?(token)
+        !Function.registry.keys.include?(token.value)
+      end
+
       def initialize(token)
         @identifier = token.value.to_s.downcase
       end

@@ -3,6 +3,13 @@ require 'dentaku/token'
 require 'dentaku/parser'
 
 describe Dentaku::Parser do
+  def parse_expression(expression)
+    Dentaku::Parser.new(Dentaku::Tokenizer.new.tokenize(expression)).parse
+  rescue => e
+    # binding.pry
+    raise e
+  end
+
   let(:calculator) { Dentaku::Calculator.new }
 
   it 'is constructed from a token' do
@@ -125,5 +132,86 @@ describe Dentaku::Parser do
        case_close]).parse
 
     expect(calculator.evaluate!(node, x: 3)).to eq(4)
+  end
+
+  describe "ParseError" do
+    it 'checks case end' do
+      expression = "
+      CASE foo
+      WHEN baz THEN 3
+      WHEN faz THEN 1
+      "
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+    end
+
+    it 'checks case switch' do
+      expression = "
+      CASE
+      WHEN baz THEN
+        CASE
+        WHEN 1 THEN 2
+        END
+      WHEN faz THEN 1
+      END
+      "
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+    end
+
+    it 'checks case thens' do
+      expression = "
+      CASE foo
+      WHEN baz THEN 3
+      WHEN faz
+      END
+      "
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+    end
+
+    it 'checks function arity' do
+      expression = "if(foo, 1)"
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+    end
+
+    it 'checks user function arity' do
+      Dentaku::AST::Function.register("add3(:numeric, :numeric, :numeric) = :numeric", ->(n1,n2,n3) { n1 + n2 + n3 })
+      expression = "add3(2, 1)"
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+
+      expression = "add3(2, 1, 5, 6)"
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+    end
+
+    it "doesn't allow using function names as identifiers" do
+      expression = "1 + if"
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+    end
+
+    it "doesn't allow unbalanced parens" do
+      expression = "(1 + 2 * 5"
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+    end
+
+    it "doesn't allow unbalanced quotes" do
+      expression = '"foo'
+      expect {
+        parse_expression(expression)
+      }.to raise_error(Dentaku::ParseError)
+    end
   end
 end

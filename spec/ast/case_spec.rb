@@ -33,12 +33,12 @@ describe Dentaku::AST::Case do
   describe '#value' do
     it 'raises an exception if there is no switch variable' do
       expect { described_class.new(conditional1, conditional2) }
-        .to raise_error('Case missing switch variable')
+        .to raise_error(Dentaku::ParseError)
     end
 
     it 'raises an exception if a non-conditional is passed' do
       expect { described_class.new(switch, conditional1, when2) }
-        .to raise_error(/is not a CaseConditional/)
+        .to raise_error(Dentaku::ParseError)
     end
 
     it 'tests each conditional against the switch variable', focus: true do

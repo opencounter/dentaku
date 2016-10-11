@@ -43,6 +43,7 @@ module Dentaku
           singleton_class.class_eval do
             define_method(:type_syntax) { type_syntax }
             define_method(:implementation) { implementation }
+            define_method(:arity) { type_spec.arity }
           end
         end
 

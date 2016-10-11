@@ -29,6 +29,10 @@ module Dentaku
         Constraint.new(@rhs, @lhs, @reason)
       end
 
+      def ast_nodes
+        reason.ast_nodes
+      end
+
       def inspect
         "<Constraint #{repr}>"
       end

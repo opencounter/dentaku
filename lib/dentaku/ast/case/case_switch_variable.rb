@@ -4,7 +4,7 @@ module Dentaku
       attr_reader :node
 
       def repr
-        "CASE #{@node.repr}"
+        "CASE SWITCH(#{@node.repr})"
       end
 
       def initialize(node)

@@ -3,6 +3,8 @@ require 'set'
 module Dentaku
   module Type
     class TypeCheckError < StandardError
+      attr_reader :errors
+
       def initialize(errors)
         @errors = errors
       end

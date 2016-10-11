@@ -25,7 +25,7 @@ module Dentaku
         type = @resolver.call(identifier)
         type or raise UnboundIdentifier.new(identifier)
         Expression.from_sexpr(type).tap do |exp|
-          puts "RESOLVED IDENT: #{identifier.identifier} => #{exp}"
+          # puts "RESOLVED IDENT: #{identifier.identifier} => #{exp}"
         end
       end
 

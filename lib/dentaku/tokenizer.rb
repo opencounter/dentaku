@@ -16,12 +16,12 @@ module Dentaku
       input    = StringScanner.new(string.to_s)
 
       until input.eos?
-        raise "parse error at: '#{ input }'" unless TokenScanner.scanners.any? do |scanner|
-          scan(input, scanner)
+        unless TokenScanner.scanners.any? { |scanner| scan(input, scanner) }
+          raise ParseError, "parse error at: '#{ input }'"
         end
       end
 
-      raise "too many opening parentheses" if @nesting > 0
+      raise ParseError, "too many opening parentheses" if @nesting > 0
 
       @tokens
     end
@@ -39,7 +39,7 @@ module Dentaku
 
         @nesting += 1 if LPAREN == token
         @nesting -= 1 if RPAREN == token
-        raise "too many closing parentheses" if @nesting < 0
+        raise ParseError, "too many closing parentheses" if @nesting < 0
 
         @tokens << token unless token.is?(:whitespace) || token.is?(:comment)
       end

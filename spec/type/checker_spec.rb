@@ -38,7 +38,11 @@ describe 'Type Checker' do
               begin
               checker.check!(ast)
               rescue => e
+                puts
+                # binding.pry
+                puts expression
                 puts e.message
+                puts
                 raise e
               end
             }.to raise_error(Dentaku::Type::TypeCheckError)

@@ -274,6 +274,17 @@ describe Dentaku::Calculator do
     end
   end
 
+  it 'handles multiline if statements' do
+    formula = <<-FORMULA
+      if
+        (fruit='apple',
+        (1 * quantity),
+        (2 * quantity))
+    FORMULA
+    expect(calculator.evaluate(formula, quantity: 3, fruit: 'apple')).to eq(3)
+    expect(calculator.evaluate(formula, quantity: 3, fruit: 'banana')).to eq(6)
+  end
+
   describe 'case statements' do
     it 'handles complex then statements' do
       formula = <<-FORMULA

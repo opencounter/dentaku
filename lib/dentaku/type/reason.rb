@@ -20,11 +20,31 @@ module Dentaku
         case_else: [:ast],
         case_return: [:ast],
       )
+
       def repr
         cases(
-          conjunction: ->(left, right) { "#{left.repr} => #{right.repr}" },
+          conjunction: ->(left, right) { "TypeMismatch(#{left.repr},#{right.repr})" },
           literal: ->(ast) { "LIT: #{ast.repr}" },
           other: ->(*) { "#{_name}:#{inspect}" }
+        )
+      end
+
+      def ast_nodes
+        cases(
+          literal: ->(ast) { [ast] },
+          retval: ->(ast) { [ast] },
+          operator: ->(ast, *) { [ast] },
+          identifier: ->(ast) { [ast] },
+          destructure: ->(constraint, *) { constraint.ast_nodes },
+          dictionary_key: ->(ast, *) { [ast] },
+          list_member: ->(ast, *) { [ast] },
+          case_when: ->(ast, *) { [ast] },
+          case_then: ->(ast, *) { [ast] },
+          case_when_range: ->(ast, *) { [ast] },
+          case_else: ->(ast) { [ast] },
+          case_return: ->(ast) { [ast] },
+          conjunction: ->(left, right) { left.ast_nodes + right.ast_nodes },
+          other: []
         )
       end
     end

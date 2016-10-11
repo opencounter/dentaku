@@ -11,15 +11,27 @@ module Dentaku
     end
 
     def scan(string, last_token=nil)
-      start = string.pos
+      start = location(string)
+
       return false unless @condition.call(last_token) && string.scan(@regexp)
 
       value = raw = string[0]
       value = @converter.call(raw) if @converter
 
       return Array(value).map do |v|
-        Token === v ? v : Token.new(@category, v, [start, string.pos], raw)
+        Token === v ? v : Token.new(@category, v, [start, location(string)], raw)
       end
+    end
+
+    def location(scanner)
+      line = scanner.string[0..scanner.pos-1].count("\n") + 1
+      if line == 1
+        col = scanner.pos + 1
+      else
+        col = scanner.string[0..scanner.pos-1].reverse.index("\n")
+      end
+
+      [line, col]
     end
 
     # for tests
@@ -119,7 +131,7 @@ module Dentaku
 
       def grouping
         names = { open: '(', close: ')', comma: ',' }.invert
-        new(:grouping, '\(|\)|,(?=.*\))', lambda { |raw| names[raw] })
+        new(:grouping, /\(|\)|,(?=.*\))/m, lambda { |raw| names[raw] })
       end
 
       def case_statement

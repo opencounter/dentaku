@@ -12,7 +12,8 @@ module Dentaku
       end
 
       def self.arity
-        nil
+        arity = instance_method(:initialize).arity
+        arity < 0 ? nil : arity
       end
 
       def dependencies(context={})
