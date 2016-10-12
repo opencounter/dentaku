@@ -198,7 +198,7 @@ module Dentaku
             consume_infix(last_token)
 
             grouping, lparen = operations.pop
-            raise ParseError, "Unbalanced parenthesis" unless grouping == AST::Grouping
+            raise ParseError, "Unexpected token in parenthesis" unless grouping == AST::Grouping
 
             if check_op(AST::Function)
               consume(token, arities.pop.succ)
@@ -209,7 +209,7 @@ module Dentaku
             consume_infix(last_token)
 
           else
-            raise ParseError "Unknown grouping token #{ token.value }"
+            raise ParseError, "Unknown grouping token #{ token.value }"
           end
 
         when :dictionary
@@ -273,7 +273,7 @@ module Dentaku
       end
 
       unless output.count == 1
-        raise ParseError, "Expected single ouput got #{output.length}"
+        raise ParseError, "Unexpected output #{output.length}"
       end
 
       output.first

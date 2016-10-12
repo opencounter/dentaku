@@ -3,6 +3,17 @@ require 'dentaku/token'
 require 'dentaku/parser'
 
 describe Dentaku::Parser do
+  def self.should_not_parse(*expressions)
+    describe "parse errors\n     " do
+      expressions.each do |(expression, message)|
+        it "#{expression}" do
+          expect{ parse_expression(expression) }.to raise_error(Dentaku::ParseError, %r{#{ message }})
+          #expect{ parse_expression(expression) }.to raise_error(Dentaku::ParseError, /#{message}/i)
+        end
+      end
+    end
+  end
+
   def parse_expression(expression)
     Dentaku::Parser.new(Dentaku::Tokenizer.tokenize(expression)).parse
   rescue => e
@@ -134,84 +145,46 @@ describe Dentaku::Parser do
     expect(calculator.evaluate!(node, x: 3)).to eq(4)
   end
 
-  describe "ParseError" do
-    it 'checks case end' do
-      expression = "
-      CASE foo
-      WHEN baz THEN 3
-      WHEN faz THEN 1
-      "
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-    end
+  should_not_parse(
+    ["foo bar", /unexpected output/i],
+    [
+      "IF(true, 3, 4)
+       IF(true, 3, 4)", /unexpected output/i],
 
-    it 'checks case switch' do
-      expression = "
-      CASE
+    ["if(foo, 1)", /wrong number of args/i],
+    #["max(3, 2)", /badmessage/],
+    ["1 + if", /invalid use of function if/i],
+    ["(1 + 2 * 5", /too many opening paren/i],
+    ["((1 + 2 * 5)", /too many opening paren/i],
+    ["(1 + 2 * 5))", /too many closing paren/i],
+    ["1 + 2 * 5))", /too many closing paren/i],
+    ['"foo', /parse error at: '"foo'/i],
+    ["CASE foo
+      WHEN baz THEN 3
+      WHEN faz THEN 1 ", /Missing CASE END/],
+    ["CASE
       WHEN baz THEN
         CASE
         WHEN 1 THEN 2
         END
       WHEN faz THEN 1
-      END
-      "
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-    end
-
-    it 'checks case thens' do
-      expression = "
-      CASE foo
+      END ", /case missing switch variable/i],
+    ["CASE foo
       WHEN baz THEN 3
       WHEN faz
-      END
-      "
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-    end
-
-    it 'checks function arity' do
-      expression = "if(foo, 1)"
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-    end
-
-    it 'checks user function arity' do
-      Dentaku::AST::Function.register("add3(:numeric, :numeric, :numeric) = :numeric", ->(n1,n2,n3) { n1 + n2 + n3 })
-      expression = "add3(2, 1)"
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-
-      expression = "add3(2, 1, 5, 6)"
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-    end
-
-    it "doesn't allow using function names as identifiers" do
-      expression = "1 + if"
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-    end
-
-    it "doesn't allow unbalanced parens" do
-      expression = "(1 + 2 * 5"
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-    end
-
-    it "doesn't allow unbalanced quotes" do
-      expression = '"foo'
-      expect {
-        parse_expression(expression)
-      }.to raise_error(Dentaku::ParseError)
-    end
-  end
+      END", /Expected case token, got/],
+    ["CASE foo
+      WHEN baz THEN 3
+      WHEN faz 3
+      END", /Expected case token, got/],
+    ["CASE foo
+      END", /Case missing switch variable/],
+    ["CASE foo
+      WHEN baz THEN 3
+      IF(true, 1, 2)
+      WHEN baz THEN 3
+      END", /Expected first argument to be a CaseWhen, was \(3\)/],
+    ["([)]", /Unexpected token in parenthesis/],
+    ["field:café", /parse error at/],
+  )
 end
