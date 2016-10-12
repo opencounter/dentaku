@@ -44,6 +44,7 @@ module Dentaku
             define_method(:type_syntax) { type_syntax }
             define_method(:implementation) { implementation }
             define_method(:arity) { type_spec.arity }
+            define_method(:inspect) { type_syntax }
           end
         end
 

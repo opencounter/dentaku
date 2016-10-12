@@ -4,6 +4,7 @@ module Dentaku
       attr_reader :type
 
       def initialize(token)
+        @token = token
         @value = token.value
         @type  = token.category
       end

@@ -44,7 +44,7 @@ module Dentaku
       args = get_args(operator_class.arity || count)
 
       if operator_class.arity && (args.length != operator_class.arity || args.any?(&:nil?))
-        raise ParseError, "Wrong number of args for #{operator_class} expected #{operator_class.arity}, got #{args.compact.length}"
+        raise ParseError, "Wrong number of args for #{operator_class.inspect} expected #{operator_class.arity}, got #{args.compact.length}"
       end
 
       operator = operator_class.new(*args)
@@ -62,25 +62,25 @@ module Dentaku
 
     def parse
       return AST::Nil.new if input.empty?
-      # puts 'TOKENS:'
-      # input.each { |i| p i }
+      puts 'TOKENS:'
+      input.each { |i| p i }
 
       while true
         token, last_token = input.shift, token
         break unless token
 
-        # puts 'operations:'
-        # operations.reverse.each { |o| p o }
+        puts 'operations:'
+        operations.reverse.each { |o| p o }
 
-        # puts 'output:'
-        # output.reverse.each { |o| p o }
+        puts 'output:'
+        output.reverse.each { |o| p o }
 
-        # puts 'arities:'
-        # arities.reverse.each { |a| p a }
+        puts 'arities:'
+        arities.reverse.each { |a| p a }
 
-        # puts '======='
-        # puts 'next:'
-        # p token
+        puts '======='
+        puts 'next:'
+        p token
 
         case token.category
         when :numeric
@@ -249,7 +249,7 @@ module Dentaku
             raise ParseError, "Unknown list token #{ token }"
           end
         else
-          raise ParseError "Unknown token #{ token }"
+          raise ParseError, "Unknown token #{ token }"
         end
       end
 

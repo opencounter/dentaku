@@ -23,7 +23,7 @@ module Dentaku
 
     def initialize(ast_cache={})
       clear
-      @tokenizer = Tokenizer.new
+      # @tokenizer = Tokenizer.new
       @ast_cache = ast_cache
     end
 
@@ -90,7 +90,7 @@ module Dentaku
 
     def ast(expression)
       @ast_cache.fetch(expression) {
-        Parser.new(tokenizer.tokenize(expression)).parse.tap do |node|
+        Parser.new(Tokenizer.tokenize(expression)).parse.tap do |node|
           @ast_cache[expression] = node if Dentaku.cache_ast?
         end
       }

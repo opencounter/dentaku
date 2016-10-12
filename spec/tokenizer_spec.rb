@@ -1,7 +1,7 @@
 require 'dentaku/tokenizer'
 
 describe Dentaku::Tokenizer do
-  let(:tokenizer) { described_class.new }
+  let(:tokenizer) { described_class }
 
   it 'handles an empty expression' do
     expect(tokenizer.tokenize('')).to be_empty

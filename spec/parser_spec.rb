@@ -4,7 +4,7 @@ require 'dentaku/parser'
 
 describe Dentaku::Parser do
   def parse_expression(expression)
-    Dentaku::Parser.new(Dentaku::Tokenizer.new.tokenize(expression)).parse
+    Dentaku::Parser.new(Dentaku::Tokenizer.tokenize(expression)).parse
   rescue => e
     # binding.pry
     raise e
