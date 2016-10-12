@@ -31,18 +31,16 @@ module Dentaku
     end
 
     def scan(input, scanner)
-      tokens = scanner.scan(input, last_token)
-      return false unless tokens
+      token = scanner.scan(input, last_token)
+      return false unless token
 
-      tokens.each do |token|
-        raise "unexpected zero-width match (:#{ token.category }) at '#{ string }'" if token.length == 0
+      raise "unexpected zero-width match (:#{ token.category }) at '#{ string }'" if token.length == 0
 
-        @nesting += 1 if LPAREN == token
-        @nesting -= 1 if RPAREN == token
-        raise ParseError, "too many closing parentheses" if @nesting < 0
+      @nesting += 1 if LPAREN == token
+      @nesting -= 1 if RPAREN == token
+      raise ParseError, "too many closing parentheses" if @nesting < 0
 
-        @tokens << token unless token.is?(:whitespace) || token.is?(:comment)
-      end
+      @tokens << token unless token.is?(:whitespace) || token.is?(:comment)
 
       true
     end

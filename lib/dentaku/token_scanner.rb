@@ -18,9 +18,7 @@ module Dentaku
       value = raw = string[0]
       value = @converter.call(raw) if @converter
 
-      return Array(value).map do |v|
-        Token === v ? v : Token.new(@category, v, [start, location(string)], raw)
-      end
+      Token.new(@category, value, [start, location(string)], raw)
     end
 
     def location(scanner)
@@ -97,10 +95,9 @@ module Dentaku
         new(:numeric, '(\d+(\.\d+)?|\.\d+)\b', lambda { |raw| raw =~ /\./ ? BigDecimal.new(raw) : raw.to_i })
       end
 
-      R = Struct.new(:range)
       def range
         converter = lambda do |raw|
-          R.new(Range.new(*raw.split('..').map { |raw| raw =~ /\./ ? BigDecimal.new(raw) : raw.to_i }))
+          Range.new(*raw.split('..').map { |raw| raw =~ /\./ ? BigDecimal.new(raw) : raw.to_i })
         end
         new(:range, '(\d+(\.\d+)?|\.\d+)\b\.\.(\d+(\.\d+)?|\.\d+)\b', converter)
       end
