@@ -22,7 +22,7 @@ module Dentaku
 
     def initialize(string)
       @tokens = []
-      @nesting = 0
+      @pairs = Hash.new { |h, k| h[k] = [] }
       @scanner = StringScanner.new(string.to_s)
     end
 
@@ -31,16 +31,17 @@ module Dentaku
         start = location(scanner)
         category, value = scan
 
-        @tokens << Token.new(
+        token = Token.new(
           category,
           value,
           [start, location(scanner)],
           scanner.matched
-        ) unless [:whitespace, :comment].include? category
+        )
+        @tokens << token unless [:whitespace, :comment].include? category
+        add_pair_token(token) if [:open, :close].include?(value)
       end
 
-      raise ParseError, "too many closing parentheses" if @nesting < 0
-      raise ParseError, "too many opening parentheses" if @nesting > 0
+      assert_pairs!
 
       @tokens
     end
@@ -63,15 +64,7 @@ module Dentaku
       elsif match /\^|\+|-|\*|\/|%/
         [:operator, NAMES[:operator][scanner[0]]]
       elsif match /\(|\)|,(?=.*\))/m
-        type = NAMES[:grouping][scanner[0]]
-        case type
-        when :open
-          @nesting += 1
-        when :close
-          @nesting -= 1
-        end
-
-        [:grouping, type]
+        [:grouping, NAMES[:grouping][scanner[0]]]
       elsif match /\{|\}|,(?=.*\})/
         [:dictionary, NAMES[:dictionary][scanner[0]]]
       elsif match /\[|\]|,(?=.*\])/
@@ -90,9 +83,10 @@ module Dentaku
         [:key, scanner[2].strip.to_sym]
       elsif match /[\w\:]+\b/
         [:identifier, scanner[0].strip.downcase]
+      elsif match /['"]/
+        raise ParseError.new("unbalanced quote", location(scanner))
       else
-        puts @tokens
-        raise ParseError, "parse error at: '#{ scanner.string[0..scanner.pos-1] }'"
+        raise ParseError.new("parse error at: '#{ scanner.string[0..scanner.pos-1] }'", location(scanner))
       end
     end
 
@@ -127,6 +121,49 @@ module Dentaku
       end
 
       [line, col]
+    end
+
+    def add_pair_token(token)
+      @pairs[token.category] << token
+    end
+
+    def assert_pairs!
+      @pairs.values.each do |tokens|
+        assert_even_tokens!(tokens)
+      end
+    end
+
+    def assert_even_tokens!(tokens)
+      opens = []
+      closes = []
+      tokens.each do |token|
+        if(token.value == :close && !opens.empty?)
+          opens.pop
+        elsif(token.value == :close)
+          closes << token
+        else
+          opens << token
+        end
+      end
+
+      return if opens.empty? && closes.empty?
+
+      bad_token = closes.first || opens.first
+      message = if bad_token.value == :open
+                  "'#{symbol(bad_token)}' missing closing '#{matching_symbol(bad_token)}'"
+                else
+                  "extraneous closing '#{symbol(bad_token)}' for '#{matching_symbol(bad_token)}'"
+                end
+      raise ParseError.new(message, bad_token)
+    end
+
+    def matching_symbol(token)
+      symbol(token, true)
+    end
+
+    def symbol(token, invert=false)
+      value = invert ? (token.value == :open ? :close : :open) : token.value
+      NAMES[token.category].invert[value].upcase
     end
   end
 end

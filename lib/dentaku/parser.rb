@@ -1,11 +1,33 @@
 require_relative './ast'
 
-# string -> tokenize/lexing (tokens) -> parse (AST)
-# typecheck(AST, resolve_types)
-# ast.value(deps)
-
 module Dentaku
   class ParseError < StandardError
+    attr_reader :message, :location
+
+    def initialize(message, *causes)
+      @message = message
+      @location = extract_range(causes)
+    end
+
+    def inspect
+      "<ParseError #{@message}@#{@location}>"
+    end
+
+    private
+
+    def extract_range(causes)
+      return [[0,0], [0,0]] if causes.empty?
+
+      locations = causes.map do |cause|
+        case cause
+        when Array then cause
+        when Token, AST::Node then cause.loc_range
+        end
+      end
+      start_points = locations.map(&:first)
+      end_points = locations.map(&:last)
+      [start_points.sort.first, end_points.sort.last]
+    end
   end
 
   class Parser
@@ -14,11 +36,10 @@ module Dentaku
     def initialize(tokens, options={})
       @input      = tokens.dup
       @output     = []
-      @operations = options.fetch(:operations, [])
-      @arities    = options.fetch(:arities, [])
+      @operations = []
+      @arities    = []
+      @debug = options[:debug] || true
     end
-
-    # AST Plus ( 1, AST * 5, 6)
 
     def get_args(count)
       Array.new(count) { output.pop }.reverse
@@ -39,12 +60,16 @@ module Dentaku
       consume(end_token) while check_op(AST::Operation)
     end
 
-    def consume(end_token, count=2)
+    def consume(end_token, count=nil)
       operator_class, begin_token = operations.pop
-      args = get_args(operator_class.arity || count)
+
+      args = get_args(count || operator_class.arity || 2)
 
       if operator_class.arity && (args.length != operator_class.arity || args.any?(&:nil?))
-        raise ParseError, "Wrong number of args for #{operator_class.inspect} expected #{operator_class.arity}, got #{args.compact.length}"
+        raise ParseError.new(
+          "Wrong number of args for #{operator_class.inspect} expected #{operator_class.arity}, got #{args.compact.length}",
+          begin_token, end_token
+        )
       end
 
       operator = operator_class.new(*args)
@@ -62,25 +87,30 @@ module Dentaku
 
     def parse
       return AST::Nil.new if input.empty?
-      puts 'TOKENS:'
-      input.each { |i| p i }
+
+      debug do
+        puts 'TOKENS:'
+        input.each { |i| p i }
+      end
 
       while true
         token, last_token = input.shift, token
         break unless token
 
-        puts 'operations:'
-        operations.reverse.each { |o| p o }
+        debug do
+          puts 'operations:'
+          operations.reverse.each { |o| p o }
 
-        puts 'output:'
-        output.reverse.each { |o| p o }
+          puts 'output:'
+          output.reverse.each { |o| p o }
 
-        puts 'arities:'
-        arities.reverse.each { |a| p a }
+          puts 'arities:'
+          arities.reverse.each { |a| p a }
 
-        puts '======='
-        puts 'next:'
-        p token
+          puts '======='
+          puts 'next:'
+          p token
+        end
 
         case token.category
         when :numeric
@@ -96,7 +126,7 @@ module Dentaku
           push_output(AST::String, token)
 
         when :identifier
-          raise ParseError, "Invalid use of function #{token}" unless AST::Identifier.valid?(token)
+          raise ParseError.new("Invalid use of function #{token}", token) unless AST::Identifier.valid?(token)
           push_output(AST::Identifier, token)
 
         when :key
@@ -140,7 +170,7 @@ module Dentaku
             end
 
             unless check_op(AST::Case)
-              raise ParseError, "Expected case token, got #{ token.inspect }"
+              raise ParseError.new("Expected case token, got #{ token.inspect }", token)
             end
             consume(token, arities.pop + 1)
           when :when
@@ -154,7 +184,7 @@ module Dentaku
               arities[-1] += 1
             elsif check_op(AST::Case)
               if last_token.category == :case
-                raise ParseError, "Case missing switch variable"
+                raise ParseError.new("Case missing switch variable", last_token)
               end
 
               operations.push([AST::CaseSwitchVariable, operations.last[1]])
@@ -182,7 +212,7 @@ module Dentaku
 
             operations.push([AST::CaseElse, token])
           else
-            raise ParseError, "Expected case token, got #{ token.inspect }"
+            raise ParseError.new("Expected case token, got #{ token.inspect }", token)
           end
 
         when :grouping
@@ -198,7 +228,7 @@ module Dentaku
             consume_infix(last_token)
 
             grouping, lparen = operations.pop
-            raise ParseError, "Unexpected token in parenthesis" unless grouping == AST::Grouping
+            raise ParseError.new("Unexpected token in parenthesis", last_token) unless grouping == AST::Grouping
 
             if check_op(AST::Function)
               consume(token, arities.pop.succ)
@@ -209,7 +239,7 @@ module Dentaku
             consume_infix(last_token)
 
           else
-            raise ParseError, "Unknown grouping token #{ token.value }"
+            raise ParseError.new("Unknown grouping token #{ token.value }", token)
           end
 
         when :dictionary
@@ -225,7 +255,7 @@ module Dentaku
             consume_infix(last_token)
 
           else
-            raise ParseError, "Unknown dictionary token #{ token.value }"
+            raise ParseError.new("Unknown dictionary token #{ token.value }", token)
           end
         when :list
           case token.value
@@ -246,34 +276,32 @@ module Dentaku
 
             consume_infix(last_token)
           else
-            raise ParseError, "Unknown list token #{ token }"
+            raise ParseError.new("Unknown list token #{ token }", token)
           end
         else
-          raise ParseError, "Unknown token #{ token }"
+          raise ParseError.new("Unknown token #{ token }", token)
         end
       end
 
-      if op = operations.detect { |op| op[0] == Dentaku::AST::Case }
-        raise ParseError, "Missing CASE END"
+      debug do
+        puts
+        puts 'PARSED INPUT'
+        puts 'operations:'
+        operations.reverse.each { |o| p o }
+
+        puts 'output:'
+        output.reverse.each { |o| p o }
+
+        puts 'arities:'
+        arities.reverse.each { |a| p a }
       end
-
-      # puts
-      # puts 'PARSED INPUT'
-      # puts 'operations:'
-      # operations.reverse.each { |o| p o }
-
-      # puts 'output:'
-      # output.reverse.each { |o| p o }
-
-      # puts 'arities:'
-      # arities.reverse.each { |a| p a }
 
       while operations.any?
         consume(last_token)
       end
 
       unless output.count == 1
-        raise ParseError, "Unexpected output #{output.length}"
+        raise ParseError.new("Unexpected output #{output.length}", output[1])
       end
 
       output.first
@@ -303,6 +331,10 @@ module Dentaku
 
     def function(token)
       Dentaku::AST::Function.get(token.value)
+    end
+
+    def debug
+      yield if @debug
     end
   end
 end

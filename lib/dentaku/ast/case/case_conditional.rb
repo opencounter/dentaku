@@ -14,11 +14,11 @@ module Dentaku
       def initialize(when_statement, then_statement)
         @when = when_statement
         unless @when.is_a?(AST::CaseWhen)
-          raise ParseError, "Expected first argument to be a CaseWhen, was (#{when_statement.repr})"
+          raise ParseError.new("Expected first argument to be a CaseWhen, was (#{when_statement.repr})", @when)
         end
         @then = then_statement
         unless @then.is_a?(AST::CaseThen)
-          raise ParseError, "Expected second argument to be a CaseThen, was (#{then_statement.repr})"
+          raise ParseError.new("Expected second argument to be a CaseThen, was (#{then_statement.repr})", @then)
         end
       end
 

@@ -11,7 +11,7 @@ module Dentaku
         @switch = nodes.shift
 
         unless @switch.is_a?(AST::CaseSwitchVariable)
-          raise ParseError, "Case missing switch variable, got #{@switch}"
+          raise ParseError.new("Case missing switch variable, got #{@switch}", @switch)
         end
 
         @conditions = nodes
@@ -20,7 +20,7 @@ module Dentaku
 
         @conditions.each do |condition|
           unless condition.is_a?(AST::CaseConditional)
-            raise ParseError, "#{condition} is not a CaseConditional"
+            raise ParseError.new("#{condition} is not a CaseConditional", condition)
           end
         end
       end

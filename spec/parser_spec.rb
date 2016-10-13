@@ -152,23 +152,26 @@ describe Dentaku::Parser do
        IF(true, 3, 4)", /unexpected output/i],
 
     ["if(foo, 1)", /wrong number of args/i],
-    #["max(3, 2)", /badmessage/],
+    ["MAX(3, 2)", /wrong number of args/i],
     ["1 + if", /invalid use of function if/i],
-    ["(1 + 2 * 5", /too many opening paren/i],
-    ["((1 + 2 * 5)", /too many opening paren/i],
-    ["(1 + 2 * 5))", /too many closing paren/i],
-    ["1 + 2 * 5))", /too many closing paren/i],
-    ['"foo', /parse error at: '"foo'/i],
+    ["(1 + 2 * 5", /'\(' missing closing '\)'/i],
+    ["((1 + 2 * 5)", /'\(' missing closing '\)'/i],
+    ["(1 + 2 * 5))", /extraneous closing '\)'/i],
+    ["1 + 2 * 5))", /extraneous closing '\)'/i],
+    ['"foo', /unbalanced quote/i],
+    ['[1,2,[1]', /'\[' missing closing/i],
+    ['[1,2', /parse error/i],
+    ['{a: 1, b: {a: 1}', /'\{' missing closing/i],
     ["CASE foo
       WHEN baz THEN 3
-      WHEN faz THEN 1 ", /Missing CASE END/],
+      WHEN faz THEN 1 ", /'CASE' missing closing 'END'/],
     ["CASE
       WHEN baz THEN
         CASE
         WHEN 1 THEN 2
         END
       WHEN faz THEN 1
-      END ", /case missing switch variable/i],
+      END", /case missing switch variable/i],
     ["CASE foo
       WHEN baz THEN 3
       WHEN faz

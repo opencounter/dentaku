@@ -26,6 +26,7 @@ module Dentaku
       end
 
       def loc_range
+        return [] unless begin_token && end_token
         [begin_token.begin_location, end_token.end_location]
       end
 
