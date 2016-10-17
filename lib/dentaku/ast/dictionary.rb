@@ -12,6 +12,10 @@ module Dentaku
         end
       end
 
+      def children
+        @dictionary.keys + @dictionary.values
+      end
+
       def value
         Hash[@dictionary.map {|k,v| [k, v.evaluate]}]
       end

@@ -10,6 +10,10 @@ module Dentaku
         @right = right
       end
 
+      def children
+        [@left, @right]
+      end
+
       def begin_token=(*)
       end
 

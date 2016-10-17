@@ -15,6 +15,10 @@ module Dentaku
         @node = node
       end
 
+      def children
+        [@node]
+      end
+
       def value
         @node.evaluate
       end

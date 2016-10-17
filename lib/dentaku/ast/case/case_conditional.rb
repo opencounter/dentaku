@@ -22,6 +22,10 @@ module Dentaku
         end
       end
 
+      def children
+        [@when, @then]
+      end
+
       def repr
         "(#{@when.repr} #{@then.repr})"
       end

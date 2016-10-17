@@ -9,6 +9,10 @@ module Dentaku
         @elements = elements
       end
 
+      def children
+        @elements
+      end
+
       def value
         @elements.map { |el| el.evaluate }
       end

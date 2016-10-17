@@ -34,6 +34,26 @@ module Dentaku
         raise "Abstract #{self.class.name}"
       end
 
+      def children
+        []
+      end
+
+      def each
+        return enum_for(:each) unless block_given?
+
+        yield self
+
+        children.each do |child|
+          child.each do |c|
+            yield c
+          end
+        end
+      end
+
+      def leaves
+        each_child.select { |c| c.children.empty? }
+      end
+
       def repr
         "(TODO #{self.class.name})"
       end

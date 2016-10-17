@@ -45,7 +45,7 @@ describe 'Type Checker' do
                 puts
                 raise e
               end
-            }.to raise_error(Dentaku::Type::TypeCheckError)
+            }.to raise_error(Dentaku::Type::TypeCheckErrorSet)
           end
         end
       end

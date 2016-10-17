@@ -9,6 +9,10 @@ module Dentaku
         @args = args
       end
 
+      def children
+        @args
+      end
+
       def dependencies(context={})
         @args.flat_map { |a| a.dependencies(context) }
       end

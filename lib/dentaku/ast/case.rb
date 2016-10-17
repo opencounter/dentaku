@@ -25,6 +25,10 @@ module Dentaku
         end
       end
 
+      def children
+        [@switch, @conditions, @else].compact.flatten(1)
+      end
+
       def value
         switch_value = @switch.evaluate
         @conditions.each do |condition|
