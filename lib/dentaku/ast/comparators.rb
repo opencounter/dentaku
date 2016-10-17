@@ -52,7 +52,21 @@ module Dentaku
       end
     end
 
-    class NotEqual < Comparator
+    class Equality < Comparator
+      def generate_constraints(context)
+        ret_type = :bool
+        var = Type::Expression.make_variable('a')
+
+        context.add_constraint!([:syntax, self], [:concrete, ret_type], [:operator, self, :return])
+
+        context.add_constraint!([:syntax, left], var, [:operator, self, :left])
+        context.add_constraint!([:syntax, right], var, [:operator, self, :right])
+        left.generate_constraints(context)
+        right.generate_constraints(context)
+      end
+    end
+
+    class NotEqual < Equality
       def value
         left.evaluate != right.evaluate
       end
@@ -62,7 +76,7 @@ module Dentaku
       end
     end
 
-    class Equal < Comparator
+    class Equal < Equality
       def value
         left.evaluate === right.evaluate
       end

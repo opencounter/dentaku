@@ -55,6 +55,8 @@ describe 'Type Checker' do
   should_type_check(
     "1 + 5 + 10",
     "[1,2,3]",
+    "'foo' = 'fooz'",
+    "'foo' != 'fooz'",
     ["foo + bar - 10", { foo: ":numeric", bar: ":numeric" }],
     ["if(foo, 1, bar)", { foo: ":bool", bar: ":numeric" }],
     ['concat(concat(foo, ["baz"]), ["bar"])', { foo: "[:string]" }],
@@ -70,6 +72,9 @@ describe 'Type Checker' do
   should_not_type_check(
     "1 + 'foo'",
     "[1,2,'3']",
+    "'foo' = 5",
+    "'foo' != 5",
+    "5 = [5]",
     ["1 + foo", { foo: ":string" }],
     ["1 + (5*foo)", { foo: ":bool" }],
     ['if(foo, 1, "bar")', { foo: ":bool" }],
