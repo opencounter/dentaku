@@ -8,6 +8,18 @@ module Dentaku
       @children = []
     end
 
+    def each
+      return enum_for(:each) unless block_given?
+
+      yield self
+
+      children.each do |child|
+        child.each do |c|
+          yield c
+        end
+      end
+    end
+
     def inspect
       "<TracePoint\n#{enum_for(:repr_lines).to_a.join("\n")}>"
     end
@@ -28,6 +40,10 @@ module Dentaku
 
     def initialize
       @runtime_dependencies = []
+    end
+
+    def visited_nodes
+      root.each.map(&:node)
     end
 
     def trace(node, &blk)
