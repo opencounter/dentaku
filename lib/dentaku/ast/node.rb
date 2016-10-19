@@ -51,7 +51,7 @@ module Dentaku
       end
 
       def leaves
-        each_child.select { |c| c.children.empty? }
+        each.select { |c| c.children.empty? }
       end
 
       def repr
