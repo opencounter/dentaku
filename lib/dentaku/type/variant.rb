@@ -21,6 +21,12 @@ module Dentaku
             attr_reader *members
           end
 
+          klass_name = "#{name.capitalize}Variant"
+          if self.const_defined?(klass_name, false)
+            self.send(:remove_const, klass_name)
+          end
+          self.const_set(klass_name, klass)
+
           define_method("#{name}?") { false }
 
           self.singleton_class.class_eval do

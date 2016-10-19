@@ -52,6 +52,12 @@ module Dentaku
           end
         end
 
+        # This will be a problem when we add user functions
+        # It's required so we can marshal the ast for cache when saving expressions
+        function_class = "#{function.function_name.to_s.capitalize}Function"
+        Dentaku::AST.send(:remove_const, function_class) if Dentaku::AST.const_defined?(function_class, false)
+        Dentaku::AST.const_set(function_class, function)
+
         register_class(function)
       end
 
