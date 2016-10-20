@@ -48,7 +48,7 @@ module Dentaku
       end
 
       def self.from_sexpr(sexpr)
-        if sexpr.is_a?(Array) && sexpr.size > 0 && sexpr[0].is_a?(Symbol)
+        if sexpr.is_a?(Array) && sexpr.size > 0 && sexpr[0].is_a?(Symbol) && respond_to?(sexpr[0])
           name, *args = sexpr
           send(name, *args.map(&method(:from_sexpr)))
         else

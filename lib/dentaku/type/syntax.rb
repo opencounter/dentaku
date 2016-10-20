@@ -44,6 +44,12 @@ module Dentaku
               yield new(:LBRACE)
             elsif scanner.scan /\]/
               yield new(:RBRACE)
+            elsif scanner.scan /\{/
+              yield new(:LCBRACE)
+            elsif scanner.scan /\}/
+              yield new(:RCBRACE)
+            elsif scanner.scan /(\w+):/
+              yield new(:KEY, scanner[1])
             elsif scanner.scan /%(\w+)/
               yield new(:VAR, scanner[1])
             elsif scanner.scan /:(\w+)/
@@ -154,9 +160,31 @@ module Dentaku
             list_type = parse_type_inner
             expect!(:RBRACE)
             Expression.param(:list, [list_type])
+          elsif check!(:LCBRACE)
+            parse_dictionary
+          elsif key = check_val!(:KEY)
+            Expression.param(:key, key)
           else
             raise "invalid type expression starting with #{@head.inspect}"
           end
+        end
+
+        def parse_dictionary
+          args = []
+          until check!(:RCBRACE)
+            args << parse_type_inner
+          end
+          keys, types = args.partition.each_with_index{ |_, i| i.even? }
+          unless valid_dictionary?(keys, types)
+            raise "invalid dictionary expression"
+          end
+          Expression.dictionary(keys.map(&:arguments), types)
+        end
+
+        def valid_dictionary?(keys, types)
+          return false unless keys.length == types.length
+          return false unless keys.all?(&:param?)
+          return true
         end
 
         def parse_types(expected_end)
