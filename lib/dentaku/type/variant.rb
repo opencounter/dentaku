@@ -5,7 +5,7 @@ module Dentaku
         cases.each do |name, members|
           parent_class = self
 
-          klass = Class.new(parent_class) do
+          anon_klass = Class.new(parent_class) do
             define_method(:initialize) do |values|
               raise ArgumentError unless values.length == members.length
               members.zip(values) do |name, value|
@@ -25,7 +25,7 @@ module Dentaku
           if self.const_defined?(klass_name, false)
             self.send(:remove_const, klass_name)
           end
-          self.const_set(klass_name, klass)
+          klass = self.const_set(klass_name, anon_klass)
 
           define_method("#{name}?") { false }
 
