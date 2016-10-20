@@ -24,9 +24,7 @@ module Dentaku
       def resolve_identifier(identifier)
         type = @resolver.call(identifier)
         type or raise UnboundIdentifier.new(identifier)
-        Expression.from_sexpr(type).tap do |exp|
-          # puts "RESOLVED IDENT: #{identifier.identifier} => #{exp}"
-        end
+        Expression.from_sexpr(type)
       end
 
       def add_constraint!(lhs, rhs, reason)

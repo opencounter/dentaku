@@ -153,7 +153,6 @@ module Dentaku
 
       def error!(constraint)
         if @debug
-          # binding.pry
           puts "!> #{constraint.repr}"
         end
 

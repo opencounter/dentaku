@@ -38,7 +38,7 @@ module Dentaku
       @output     = []
       @operations = []
       @arities    = []
-      @debug = options[:debug] || true
+      @debug = options[:debug]
     end
 
     def get_args(count)
