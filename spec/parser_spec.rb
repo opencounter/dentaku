@@ -8,7 +8,6 @@ describe Dentaku::Parser do
       expressions.each do |(expression, message)|
         it "#{expression}" do
           expect{ parse_expression(expression) }.to raise_error(Dentaku::ParseError, %r{#{ message }})
-          #expect{ parse_expression(expression) }.to raise_error(Dentaku::ParseError, /#{message}/i)
         end
       end
     end
@@ -16,9 +15,6 @@ describe Dentaku::Parser do
 
   def parse_expression(expression)
     Dentaku::Parser.new(Dentaku::Tokenizer.tokenize(expression)).parse
-  rescue => e
-    # binding.pry
-    raise e
   end
 
   let(:calculator) { Dentaku::Calculator.new }

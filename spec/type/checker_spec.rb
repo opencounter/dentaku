@@ -34,17 +34,8 @@ describe 'Type Checker' do
 
         describe "expression(#{expression})" do
           it "fails check" do
-            expect{
-              begin
+            expect {
               checker.check!(ast)
-              rescue => e
-                puts
-                # binding.pry
-                puts expression
-                puts e.message
-                puts
-                raise e
-              end
             }.to raise_error(Dentaku::Type::TypeCheckErrorSet)
           end
         end
