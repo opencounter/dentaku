@@ -35,6 +35,11 @@ describe Dentaku::Calculator do
         expect(with_external_funcs.evaluate('BIGGEST(list)', list: [8,6,7,5,3,0,9])).to eq(9)
       end
 
+      it 'includes MIN and MAX' do
+        expect(with_external_funcs.evaluate('MIN([field,2])', field: 100)).to eq(2)
+        expect(with_external_funcs.evaluate('MAX([field,2])', field: 1)).to eq(2)
+      end
+
       it 'includes SMALLEST' do
         expect(with_external_funcs.evaluate('SMALLEST(list)', list: [8,6,7,5,3,0,9])).to eq(0)
       end
