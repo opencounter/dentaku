@@ -20,6 +20,18 @@ module Dentaku
         Hash[@dictionary.map {|k,v| [k, v.evaluate]}]
       end
 
+      def simplify
+        simplified_dict = @dictionary.map {|k,v| [k, v.simplify]}.to_h
+
+        if simplified_dict.values.all? {|c| c.children.empty?}
+          make_literal(simplified_dict.map {|k,v| [k,v.value]}.to_h)
+        else
+          ret = self.class.new()
+          ret.instance_variable_set(:@dictionary, simplified_dict)
+          ret
+        end
+      end
+
       def dependencies(context={})
         @dictionary.values.flat_map { |val| val.dependencies(context) }
       end
