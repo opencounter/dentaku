@@ -19,6 +19,10 @@ module Dentaku
         @node.evaluate
       end
 
+      def simplified_value
+        self
+      end
+
       def dependencies(context={})
         @node.dependencies(context)
       end

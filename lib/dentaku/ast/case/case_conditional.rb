@@ -30,6 +30,10 @@ module Dentaku
         "(#{@when.repr} #{@then.repr})"
       end
 
+      def simplified_value
+        self
+      end
+
       def dependencies(context={})
         @when.dependencies(context) + @then.dependencies(context)
       end
