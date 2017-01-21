@@ -16,6 +16,10 @@ module Dentaku
         arity < 0 ? nil : arity
       end
 
+      def literal?
+        false
+      end
+
       def dependencies(context={})
         []
       end

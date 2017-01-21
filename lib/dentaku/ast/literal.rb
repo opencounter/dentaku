@@ -13,6 +13,10 @@ module Dentaku
         @value
       end
 
+      def literal?
+        true
+      end
+
       def simplify
         self
       end

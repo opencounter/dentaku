@@ -29,9 +29,9 @@ module Dentaku
 
       def simplified_value
 
-        potentially_true_children = children.reject {|c| c.children.empty? && !c.value}
+        potentially_true_children = children.reject {|c| c.literal? && !c.value}
 
-        if potentially_true_children.any? {|c| c.children.empty? && c.value }
+        if potentially_true_children.any? {|c| c.literal? && c.value }
           make_literal(true)
         else
           case potentially_true_children.length

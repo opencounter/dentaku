@@ -23,7 +23,7 @@ module Dentaku
       def simplify
         simplified_dict = @dictionary.map {|k,v| [k, v.simplify]}.to_h
 
-        if simplified_dict.values.all? {|c| c.children.empty?}
+        if simplified_dict.values.all?(&:literal?)
           make_literal(simplified_dict.map {|k,v| [k,v.value]}.to_h)
         else
           ret = self.class.new()

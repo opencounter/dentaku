@@ -76,8 +76,7 @@ module Dentaku
           node = expression
           node = ast(node) unless node.is_a?(AST::Node)
           result = node.simplify
-          #binding.pry
-          if result.children.empty?
+          if result.literal?
             result.value
           else
             nil
