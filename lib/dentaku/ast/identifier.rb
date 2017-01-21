@@ -27,7 +27,16 @@ module Dentaku
       end
 
       def simplify
-        self
+        context = Calculator.current.memory
+        v = context[identifier]
+        case v
+        when Node
+          v.simplify
+        when NilClass
+          self
+        else
+          make_literal(v)
+        end
       end
 
       def dependencies(context={})
