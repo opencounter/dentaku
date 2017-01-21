@@ -70,6 +70,22 @@ module Dentaku
       end
     end
 
+    def partial_evaluate(expression, data={})
+      with_dynamic do
+        store(data) do
+          node = expression
+          node = ast(node) unless node.is_a?(AST::Node)
+          result = node.simplify
+          #binding.pry
+          if result.children.empty?
+            result.value
+          else
+            nil
+          end
+        end
+      end
+    end
+
     def trace(node, &blk)
       return yield if @tracer.nil?
 

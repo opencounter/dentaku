@@ -8,6 +8,10 @@ module Dentaku
       def value
         @identifier
       end
+
+      def simplify
+        self
+      end
     end
   end
 end

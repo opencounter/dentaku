@@ -68,12 +68,29 @@ module Dentaku
         end
       end
 
+      def simplify
+        simplified_children = children.map(&:simplify)
+        simplified_me = self.class.new(*simplified_children)
+        simplified_me.simplified_value
+      end
+
       protected
 
       def value
         raise 'abstract'
       end
 
+      def simplified_value
+        begin
+          make_literal(self.value)
+        rescue UnboundVariableError
+          self
+        end
+      end
+
+      def make_literal(val)
+        AST::Literal.new(Token.new( 'abstract_literal', val, loc_range ))
+      end
     end
   end
 end

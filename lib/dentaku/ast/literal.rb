@@ -13,6 +13,10 @@ module Dentaku
         @value
       end
 
+      def simplify
+        self
+      end
+
       def dependencies(*)
         []
       end

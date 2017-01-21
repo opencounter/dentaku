@@ -403,4 +403,32 @@ describe Dentaku::Calculator do
       end
     end
   end
+
+
+  describe 'simplify' do
+    let(:expression) { "if(foo > 5 OR bar < 5, 1, 2)" }
+    let(:deps) { { foo: 3} }
+    subject(:result) { calculator.partial_evaluate(expression, deps) }
+
+    context 'with solvable subset of dependencies' do
+      let(:deps) { { bar: 2 } }
+      it "should solve it" do
+        #deps = { { foo: 6 } }
+        #expect(result).to eq(1)
+        expect(result).to eq(1)
+        #deps = { { foo: 1, bar: 6 } }
+        #expect(result).to eq(2)
+      end
+    end
+
+    context 'with unsolvable subset of dependencies' do
+      let(:deps) { { foo: 3} }
+      it { should be nil }
+
+      it 'eliminates unneccessary unmet dependencies' do
+        # fail
+      end
+    end
+
+  end
 end

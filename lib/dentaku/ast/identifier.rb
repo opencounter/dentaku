@@ -26,6 +26,10 @@ module Dentaku
         end
       end
 
+      def simplify
+        self
+      end
+
       def dependencies(context={})
         context.has_key?(identifier) ? dependencies_of(context[identifier]) : [identifier]
       end
