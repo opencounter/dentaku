@@ -66,6 +66,21 @@ module Dentaku
         cast(cast(left.evaluate) / r)
       end
 
+      def simplified_value
+        return self unless right.literal?
+        r = cast(right.value, false)
+
+        if r == 0
+          AST::ExceptionNode.new(ZeroDivisionError)
+        elsif r == 1
+          left
+        elsif left.literal?
+          make_literal( cast(cast(left.value) / r) )
+        else
+          self
+        end
+      end
+
       def self.precedence
         20
       end

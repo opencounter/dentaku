@@ -44,6 +44,27 @@ module Dentaku
         end
       end
 
+      def simplified_value
+        return self unless @switch.node.literal?
+
+        @conditions.each do |condition|
+          #the semantics of .value() allows more than one branch to match, and the first one matched is chosen
+          #so, if there's a branch that's not evaluatable, we don't know that it *doesn't* match.
+          #so we can't simplify the statement further
+          return self unless condition.when.node.literal?
+
+          if condition.when.value === @switch.value
+            return condition.then.node
+          end
+        end
+
+        if @else
+          return @else.node
+        else
+          return AST::ExceptionNode.new("No block matched the switch value '#{@switch.value}'")
+        end
+      end
+
       def dependencies(context={})
         # TODO: should short-circuit
         @switch.dependencies(context) +
