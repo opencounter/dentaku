@@ -10,6 +10,16 @@ module Dentaku
       def types
         [:numeric, :numeric, :bool]
       end
+
+      def simplified_value
+        if children.all?(&:literal?)
+          make_literal(value)
+        elsif left == right
+          make_literal([1,1].inject(operator))
+        else
+          self
+        end
+      end
     end
 
     class LessThan < Comparator

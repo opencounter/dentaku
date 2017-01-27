@@ -465,6 +465,14 @@ describe Dentaku::Calculator do
       expect(calculator.simplify("foo OR 3>2").value).to eq(true)
     end
 
+    it 'simplifies comparisons' do
+      expect(calculator.simplify("foo == foo").value).to eq(true)
+      expect(calculator.simplify("foo >= foo").value).to eq(true)
+      expect(calculator.simplify("foo <= foo").value).to eq(true)
+      expect(calculator.simplify("foo > foo").value).to eq(false)
+      expect(calculator.simplify("foo < foo").value).to eq(false)
+    end
+
     it 'simplifies a variety of expression types' do
     end
   end

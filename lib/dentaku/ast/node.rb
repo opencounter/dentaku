@@ -78,6 +78,16 @@ module Dentaku
         simplified_me.simplified_value
       end
 
+      def ==(other)
+        if self.class == other.class
+          instance_variables.all? do |v|
+            instance_variable_get(v) == other.instance_variable_get(v)
+          end
+        else
+          super(other)
+        end
+      end
+
       protected
 
       def value
