@@ -460,6 +460,11 @@ describe Dentaku::Calculator do
       end
     end
 
+    it "simplifies logical combinators" do
+      expect(calculator.simplify("foo AND 2>3").value).to eq(false)
+      expect(calculator.simplify("foo OR 3>2").value).to eq(true)
+    end
+
     it 'simplifies a variety of expression types' do
     end
   end
