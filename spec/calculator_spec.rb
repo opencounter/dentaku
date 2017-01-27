@@ -473,6 +473,19 @@ describe Dentaku::Calculator do
       expect(calculator.simplify("foo < foo").value).to eq(false)
     end
 
+    it 'simplifies arithmetic' do
+      expect(calculator.simplify("foo - foo").value).to eq(0)
+      expect(calculator.simplify("(foo - 0) == foo").value).to eq(true)
+      expect(calculator.simplify("(0 - foo) == (- foo)").value).to eq(true)
+      expect(calculator.simplify("(foo + 0) == foo").value).to eq(true)
+      expect(calculator.simplify("foo * 0").value).to eq(0)
+      expect(calculator.simplify("(foo * 1) == foo").value).to eq(true)
+      expect(calculator.simplify("foo ^ 0").value).to eq(1)
+      expect(calculator.simplify("(foo ^ 1) == foo").value).to eq(true)
+      expect(calculator.simplify("(foo + bar) - (foo + bar)").value).to eq(0)
+    end
+
+
     it 'simplifies a variety of expression types' do
     end
   end

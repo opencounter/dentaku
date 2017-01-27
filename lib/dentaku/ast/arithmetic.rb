@@ -32,6 +32,18 @@ module Dentaku
       def self.precedence
         10
       end
+
+      def simplified_value
+        literal, unliteral = children.partition(&:literal?)
+
+        if literal.length == 2
+          make_literal(value)
+        elsif literal.length == 1 && literal.first.value == 0
+          unliteral.first
+        else
+          self
+        end
+      end
     end
 
     class Subtraction < Arithmetic
@@ -42,6 +54,20 @@ module Dentaku
       def self.precedence
         10
       end
+
+      def simplified_value
+        return make_literal(0) if left == right
+
+        if children.all?(&:literal?)
+          make_literal(value)
+        elsif right.literal? && right.value == 0
+          left
+        elsif left.literal? && left.value == 0
+          Negation.new(right)
+        else
+          self
+        end
+      end
     end
 
     class Multiplication < Arithmetic
@@ -51,6 +77,21 @@ module Dentaku
 
       def self.precedence
         20
+      end
+
+      def simplified_value
+        literal, unliteral = children.partition(&:literal?)
+
+        case literal.length
+        when 0 then self
+        when 1 then
+          case literal.first.value
+          when 0 then make_literal(0)
+          when 1 then unliteral.first
+          else self
+          end
+        when 2 then make_literal(value)
+        end
       end
     end
 
@@ -75,7 +116,7 @@ module Dentaku
         elsif r == 1
           left
         elsif left.literal?
-          make_literal( cast(cast(left.value) / r) )
+          make_literal(value)
         else
           self
         end
@@ -103,6 +144,21 @@ module Dentaku
 
       def self.precedence
         30
+      end
+
+      def simplified_value
+        return self unless right.literal?
+        r = cast(right.value, false)
+
+        if r == 0
+          make_literal(1)
+        elsif r == 1
+          left
+        elsif left.literal?
+          make_literal(value)
+        else
+          self
+        end
       end
     end
   end
