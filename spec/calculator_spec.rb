@@ -486,7 +486,12 @@ describe Dentaku::Calculator do
     end
 
 
+    it 'simplifies if statements' do
+      expect(calculator.simplify("if(foo = bar, 3, 3)").value).to eq(3)
+    end
+
     it 'simplifies a variety of expression types' do
+      #expect(calculator.simplify("if(3>2, 1, foo)").value).to eq(1)
     end
   end
 end

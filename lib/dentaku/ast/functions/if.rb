@@ -24,6 +24,16 @@ module Dentaku
         # TODO : short-circuit?
         (predicate.dependencies(context) + left.dependencies(context) + right.dependencies(context)).uniq
       end
+
+      def simplified_value
+        if left == right
+          left
+        elsif predicate.literal?
+          predicate.value ? left : right
+        else
+          self
+        end
+      end
     end
   end
 end
