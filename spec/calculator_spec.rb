@@ -406,29 +406,61 @@ describe Dentaku::Calculator do
 
 
   describe 'simplify' do
-    let(:expression) { "if(foo > 5 OR bar < 5, 1, 2)" }
-    let(:deps) { { foo: 3} }
-    subject(:result) { calculator.partial_evaluate(expression, deps) }
+    it 'can solve a fully specified expression' do
+      result = calculator.simplify("3 + 4 * 5")
+      expect(result.literal?).to be(true)
+      expect(result.value).to eq(23)
+    end
 
-    context 'with solvable subset of dependencies' do
-      let(:deps) { { bar: 2 } }
-      it "should solve it" do
-        #deps = { { foo: 6 } }
-        #expect(result).to eq(1)
-        expect(result).to eq(1)
-        #deps = { { foo: 1, bar: 6 } }
-        #expect(result).to eq(2)
+    it 'can solve an expression with a solvable subset of dependencies' do
+      result = calculator.simplify("if(foo > 5 OR bar < 5, 1, 2)", {foo: 6})
+      expect(result.literal?).to be(true)
+      expect(result.value).to eq(1)
+    end
+
+    it 'can simplify away redundent dependencies, even without fully solving' do
+      result = calculator.simplify("if(foo > 5 or foo2 > 5, foo+bar, foo*3)", {foo: 6})
+      expect(result.literal?).to be(false)
+      expect(result.dependencies).to eq(['bar'])
+    end
+
+    it 'simplifies dividing by zero to an exception' do
+      result = calculator.simplify("foo / 0")
+      expect(result.literal?).to be (true)
+      expect {result.value}.to raise_error(ZeroDivisionError)
+    end
+
+    describe 'case' do
+      let(:formula) {<<-FORMULA
+        case chooser
+        when 1 then 1/0
+        when 2 then 2
+        when foo then foo
+        else chooser
+        end
+      FORMULA
+      }
+
+      it 'simplifies past possible errors' do
+        result = calculator.simplify(formula, {chooser: 2})
+        expect(result.literal?).to be(true)
+        expect(result.value).to eq(2)
+      end
+
+      it "doesn't simplify past unevaluatable branches" do
+        result = calculator.simplify(formula, {chooser: 3})
+        expect(result.literal?).to be(false)
+        expect(result.dependencies.uniq).to eq(['foo'])
+      end
+
+      it "can simplify to else" do
+        result = calculator.simplify(formula, {chooser: 3, foo: 2})
+        expect(result.literal?).to be(true)
+        expect(result.value).to eq(3)
       end
     end
 
-    context 'with unsolvable subset of dependencies' do
-      let(:deps) { { foo: 3} }
-      it { should be nil }
-
-      it 'eliminates unneccessary unmet dependencies' do
-        # fail
-      end
+    it 'simplifies a variety of expression types' do
     end
-
   end
 end

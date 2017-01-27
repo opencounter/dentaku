@@ -70,17 +70,12 @@ module Dentaku
       end
     end
 
-    def partial_evaluate(expression, data={})
+    def simplify(expression, data={})
       with_dynamic do
         store(data) do
           node = expression
           node = ast(node) unless node.is_a?(AST::Node)
-          result = node.simplify
-          if result.literal?
-            result.value
-          else
-            nil
-          end
+          node.simplify
         end
       end
     end
