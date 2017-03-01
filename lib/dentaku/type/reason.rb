@@ -7,7 +7,6 @@ module Dentaku
         arg: [:ast, :index],
         operator: [:ast, :side],
         identifier: [:ast],
-        dictionary_key: [:ast, :key],
         list_member: [:ast, :index],
         conjunction: [:left, :right],
         destructure: [:constraint, :index],
