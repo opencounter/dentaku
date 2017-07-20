@@ -63,10 +63,10 @@ module Dentaku
         [:operator, :negate]
       elsif match /\^|\+|-|\*|\/|%/
         [:operator, NAMES[:operator][scanner[0]]]
-      elsif match /\(|\)|,(?=.*\))/m
-        [:grouping, NAMES[:grouping][scanner[0]]]
       elsif match /\{|\}|,(?=.*\})/
         [:dictionary, NAMES[:dictionary][scanner[0]]]
+      elsif match /\(|\)|,(?=.*\))/m
+        [:grouping, NAMES[:grouping][scanner[0]]]
       elsif match /\[|\]|,(?=.*\])/
         [:list, NAMES[:list][scanner[0]]]
       elsif match /(case|end|then|when|else)\b/i

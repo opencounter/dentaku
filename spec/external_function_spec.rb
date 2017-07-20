@@ -14,6 +14,9 @@ describe Dentaku::Calculator do
           ["pow(:numeric, :numeric) = :numeric", ->(mantissa, exponent) { mantissa ** exponent }],
           ["biggest([:numeric]) = :numeric", ->(args) { args.max }],
           ["smallest([:numeric]) = :numeric", ->(args) { args.min }],
+          ['key_count(%b, [%a], :string, :string) = :numeric', ->(fee_by_type, values, type_key, quantity_key) {
+            return fee_by_type.keys.length
+          }],
         ]
 
         c.add_functions(fns)
@@ -54,6 +57,11 @@ describe Dentaku::Calculator do
         )
 
         expect(calculator.evaluate("INCLUDES(list, 2)", list: [1,2,3])).to eq(true)
+      end
+
+      it 'supports dictionary parameters', focus: true do
+        result = with_external_funcs.evaluate("key_count({ foo: 1.1, bar: 2.2, baz: 3 }, [], 'plumbing_fixture_type', 'plumbing_fixture_quantity')")
+        expect(result).to eq(3)
       end
     end
   end
