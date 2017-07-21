@@ -27,9 +27,10 @@ module Dentaku
     end
 
     def call
+      stack = []
       until scanner.eos?
         start = location(scanner)
-        category, value = scan
+        category, value = scan(stack.last)
 
         token = Token.new(
           category,
@@ -37,6 +38,10 @@ module Dentaku
           [start, location(scanner)],
           scanner.matched
         )
+
+        stack.push(category) if value == :open
+        stack.pop if value == :close
+
         @tokens << token unless [:whitespace, :comment].include? category
         add_pair_token(token) if [:open, :close].include?(value)
       end
@@ -48,7 +53,7 @@ module Dentaku
 
     private
 
-    def scan
+    def scan(parent_category=nil)
       if match /\s+/
         [:whitespace]
       elsif match /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//
@@ -63,10 +68,13 @@ module Dentaku
         [:operator, :negate]
       elsif match /\^|\+|-|\*|\/|%/
         [:operator, NAMES[:operator][scanner[0]]]
-      elsif match /\{|\}|,(?=.*\})/
-        [:dictionary, NAMES[:dictionary][scanner[0]]]
+      elsif match /,/m
+        raise ParseError.new("comma found outside of group", location(scanner)) unless parent_category
+        [parent_category, NAMES[parent_category][scanner[0]]]
       elsif match /\(|\)|,(?=.*\))/m
         [:grouping, NAMES[:grouping][scanner[0]]]
+      elsif match /\{|\}|,(?=.*\})/
+        [:dictionary, NAMES[:dictionary][scanner[0]]]
       elsif match /\[|\]|,(?=.*\])/
         [:list, NAMES[:list][scanner[0]]]
       elsif match /(case|end|then|when|else)\b/i
