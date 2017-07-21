@@ -156,7 +156,7 @@ describe Dentaku::Parser do
     ["1 + 2 * 5))", /extraneous closing '\)'/i],
     ['"foo', /unbalanced quote/i],
     ['[1,2,[1]', /'\[' missing closing/i],
-    ['[1,2', /parse error/i],
+    ['[1,2', /missing closing/i],
     ['{a: 1, b: {a: 1}', /'\{' missing closing/i],
     ["CASE foo
       WHEN baz THEN 3
