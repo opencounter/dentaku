@@ -3,12 +3,12 @@ require_relative "../function"
 
 # include?
 Dentaku::AST::Function.register('include([%a], %a) = %a', ->(haystack, needle) {
-  stack.include? needle
+  haystack.include?(needle)
 })
 
 # at
 Dentaku::AST::Function.register('at([%a], :numeric) = %a', ->(array, position) {
-  array.at position
+  array.at(position)
 })
 
 # any?
