@@ -27,17 +27,3 @@ Dentaku::AST::Function.register(
     (list & values).any?
   }
 )
-
-# join
-Dentaku::AST::Function.register(
-  'join([:string], :string) = :string', ->(strings, separator) {
-    strings.join(separator)
-  }
-)
-
-# split
-Dentaku::AST::Function.register(
-  'split(:string, :string) = [:string]', ->(string, separator) {
-    string.split(separator)
-  }
-)
