@@ -32,6 +32,6 @@ Dentaku::AST::Function.register(
 # https://github.com/rails/rails/blob/d66e7835bea9505f7003e5038aa19b6ea95ceea1/activesupport/lib/active_support/core_ext/object/blank.rb#L116
 Dentaku::AST::Function.register(
   'blank(:string) = :bool', ->(string) {
-    string.empty? || /\A[[:space:]]*\z/.match?(string)
+    string.empty? || !(/\A[[:space:]]*\z/.match(string).nil?)
   }
 )
