@@ -27,3 +27,11 @@ Dentaku::AST::Function.register(
     (list & values).any?
   }
 )
+
+# Map an array with a Dentaku function
+Dentaku::AST::Function.register(
+  'map([%a], :string) = [%a]', -> (list, function) {
+    fn = Dentaku::AST::Function.get(function).implementation
+    list.map { |value| fn.call(value) }
+  }
+)

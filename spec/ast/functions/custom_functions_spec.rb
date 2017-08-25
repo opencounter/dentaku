@@ -11,7 +11,9 @@ describe 'custom functions' do
       ['EMPTY([0])',         false],
       ['EMPTY([])',          true ],
       ['IN([1], [1, 2])',    true ],
-      ['IN([1], [2, 3])',    false]
+      ['IN([1], [2, 3])',    false],
+      ['INCLUDE(0..2, 1)',   true ],
+      ['INCLUDE(0..2, 3)',   false]
     ].each do |formula, result|
       expect(Dentaku(formula)).to eq result
     end
@@ -38,8 +40,8 @@ describe 'custom functions' do
     expect(Dentaku("to_int('1')")).to eq 1
   end
 
-  pending 'calculates date functions' do
-    expect(Dentaku("PARSE_DATE(2008, 1, 20)")).to eq 1200805200
-  end
+  # pending 'calculates date functions' do
+  #   expect(Dentaku("PARSE_DATE(2008, 1, 20)")).to eq 1200805200
+  # end
 
 end
