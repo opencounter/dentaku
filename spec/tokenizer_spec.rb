@@ -209,4 +209,14 @@ describe Dentaku::Tokenizer do
       expect(tokens.map(&:value)).to eq([:not, :open, 8, :lt, 5, :close])
     end
   end
+
+  it 'records the index ranges of tokens from the original string' do
+    str = "if( 8*2 > 15, 'apple' , 'banana' )"
+    tokens = tokenizer.tokenize(str)
+    tokens_val = tokens.map(&:to_s)
+    tokens_in_str = tokens.map {|t| str[t.index_range]}
+    expected = ["if", "(", "8", "*", "2", ">", "15", ",", "'apple'", ",", "'banana'", ")"]
+    expect(tokens_val).to eq(expected)
+    expect(tokens_in_str).to eq(expected)
+  end
 end

@@ -1,14 +1,15 @@
 module Dentaku
   class Token
-    attr_reader :category, :loc_range, :raw_value, :value
+    attr_reader :category, :index_range, :loc_range, :raw_value, :value
 
-    def initialize(category, value, loc_range=nil, raw_value=nil)
+    def initialize(category, value, index_range=nil, loc_range=nil, raw_value=nil)
       if raw_value.nil?
         raw_value = loc_range
       end
 
       @category  = category
       @value     = value
+      @index_range = index_range
       @loc_range = loc_range
       @raw_value = raw_value
     end

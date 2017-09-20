@@ -29,12 +29,14 @@ module Dentaku
     def call
       stack = []
       until scanner.eos?
+        start_i = scanner.pos
         start = location(scanner)
         category, value = scan(stack.last)
 
         token = Token.new(
           category,
           value,
+          (start_i..scanner.pos-1),
           [start, location(scanner)],
           scanner.matched
         )

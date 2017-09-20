@@ -30,6 +30,11 @@ module Dentaku
         [begin_token.begin_location, end_token.end_location]
       end
 
+      def index_range
+        return nil unless begin_token && end_token
+        (begin_token.index_range.begin..end_token.index_range.end)
+      end
+
       def generate_constraints(context)
         raise "Abstract #{self.class.name}"
       end
