@@ -22,21 +22,27 @@ module Dentaku
 
     def initialize(string)
       @tokens = []
+      @input = string.to_s
       @pairs = Hash.new { |h, k| h[k] = [] }
-      @scanner = StringScanner.new(string.to_s)
+      @scanner = StringScanner.new(@input)
+    end
+
+    def byte_offset_to_index(index)
+      @input.byteslice(0, index).length
     end
 
     def call
       stack = []
       until scanner.eos?
-        start_i = scanner.pos
+        start_i = byte_offset_to_index(scanner.pos)
         start = location(scanner)
         category, value = scan(stack.last)
+        end_i = byte_offset_to_index(scanner.pos) - 1
 
         token = Token.new(
           category,
           value,
-          (start_i..scanner.pos-1),
+          (start_i..end_i),
           [start, location(scanner)],
           scanner.matched
         )

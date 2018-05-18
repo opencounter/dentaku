@@ -1,3 +1,4 @@
+require 'spec_helper'
 require 'dentaku/tokenizer'
 
 describe Dentaku::Tokenizer do
@@ -210,7 +211,7 @@ describe Dentaku::Tokenizer do
     end
   end
 
-  it 'records the index ranges of tokens from the original string' do
+  it 'records the character indexes of tokens from the original string' do
     str = "if( 8*2 > 15, 'apple' , 'banana' )"
     tokens = tokenizer.tokenize(str)
     tokens_val = tokens.map(&:to_s)
@@ -218,5 +219,12 @@ describe Dentaku::Tokenizer do
     expected = ["if", "(", "8", "*", "2", ">", "15", ",", "'apple'", ",", "'banana'", ")"]
     expect(tokens_val).to eq(expected)
     expect(tokens_in_str).to eq(expected)
+  end
+
+  it 'records the correct indexes of tokens w/utf-8 encoding' do
+    str = "/* ☃☃☃☃☃☃☃☃☃  */IF(IN(zoning:overlays, [18476]), 150/* ☃☃☃☃☃☃☃☃☃  */, 65)"
+    tokens = tokenizer.tokenize(str)
+    expect(str[tokens[11].index_range]).to eq(tokens[11].value.to_s)
+    expect(str[tokens[4].index_range]).to eq("zoning:overlays")
   end
 end
