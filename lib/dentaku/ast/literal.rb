@@ -28,6 +28,10 @@ module Dentaku
       def repr
         @value.inspect
       end
+
+      def cachable?
+        false
+      end
     end
   end
 end

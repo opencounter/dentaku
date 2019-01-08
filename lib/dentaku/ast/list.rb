@@ -33,6 +33,10 @@ module Dentaku
       def repr
         "[#{@elements.map(&:repr).join(', ')}]"
       end
+
+      def cachable?
+        @elements.all?(&:cachable?)
+      end
     end
   end
 end

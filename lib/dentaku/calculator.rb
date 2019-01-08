@@ -19,7 +19,7 @@ require 'dentaku/parser'
 
 module Dentaku
   class Calculator
-    attr_reader :result, :memory, :tokenizer
+    attr_reader :result, :memory, :tokenizer, :previous_run_cache
 
     def initialize(ast_cache={})
       clear
@@ -123,8 +123,61 @@ module Dentaku
       store(key, ast(formula))
     end
 
+    def cache
+      @cache ||= Cache.new({})
+      yield @cache
+    end
+
+    class Cache
+      def initialize(ast_storage={}, input={}, context=nil)
+        @ast_storage = ast_storage || {}
+        @input = input
+        @context = context
+      end
+
+      def with(node)
+
+      end
+
+      def getset(node, dependencies)
+        key = node.checksum
+        cached = @ast_storage[key]
+
+        node_deps = dependencies.slice(*node.dependencies).map(&:first)
+        input_checksum = Zlib.crc32(node_deps.sort.to_json)
+
+        if cached && cached[:input_checksum] == input_checksum
+          puts :got_cached_value
+          cached[:value]
+        else
+          @ast_storage[key] ||= {}
+          @ast_storage[key][:node_type] = node.class.to_s
+          @ast_storage[key][:input_checksum] = input_checksum
+
+
+          # should somehow track visited nodes of children
+          @ast_storage[key][:value] = yield Tracer.new(@ast_storage[key])
+        end
+      end
+
+      class Tracer
+        def initialize(cache)
+          @cache = cache
+        end
+
+        def satisfied(key)
+          (@cache[:satisfied_identifiers] ||= []) << key
+        end
+
+        def unsatisfied(key)
+          (@cache[:unsatisfied_identifiers] ||= []) << key
+        end
+      end
+    end
+
     def clear
       @memory = {}
+      @cache = nil
     end
 
     def empty?
