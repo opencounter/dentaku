@@ -19,7 +19,8 @@ require 'dentaku/parser'
 
 module Dentaku
   class Calculator
-    attr_reader :result, :memory, :tokenizer
+    attr_reader :result, :memory, :tokenizer, :cache, :current_node_cache
+    attr_writer :current_node_cache
 
     def initialize(ast_cache={})
       clear
@@ -60,12 +61,22 @@ module Dentaku
       [evaluate!(expression, data), @tracer]
     end
 
-    def evaluate!(expression, data={})
+    def with_input(data)
+      @current_node_cache = nil
+
       with_dynamic do
         store(data) do
-          node = expression
-          node = ast(node) unless node.is_a?(AST::Node)
-          node.evaluate
+          yield self
+        end
+      end
+    end
+
+    def evaluate!(expression, data={})
+      with_input(data) do
+        if expression.is_a?(Dentaku::AST::Node)
+          expression.evaluate
+        else
+          ast(expression).evaluate
         end
       end
     end
@@ -96,16 +107,10 @@ module Dentaku
       }
     end
 
-    def store(key_or_hash, value=nil)
+    def store(key_or_hash)
       restore = Hash[memory]
 
-      if value.nil?
-        key_or_hash.each do |key, val|
-          memory[key.to_s.downcase] = val
-        end
-      else
-        memory[key_or_hash.to_s.downcase] = value
-      end
+      @memory = key_or_hash || {}
 
       if block_given?
         begin
@@ -123,8 +128,130 @@ module Dentaku
       store(key, ast(formula))
     end
 
+    def cache
+      @cache# ||= TraceCache.new({})
+    end
+
+    def cache=(execution_cache)
+      @cache = TraceCache.new(execution_cache)
+    end
+
+    def cache_for(node)
+      if block_given?
+        previous_cache = @current_node_cache || cache
+
+        begin
+          @current_node_cache = cache.for(node)
+          yield @current_node_cache
+        ensure
+          if previous_cache.node
+            @current_node_cache = previous_cache.merge!(@current_node_cache.target)
+          end
+        end
+      else
+        cache.for(node)
+      end
+    end
+
+    class TraceCache
+      attr_reader :node
+
+      def initialize(ast_storage={}, node=nil)
+        @ast_storage = ast_storage || {}
+        @node = node
+      end
+
+      def key
+        node.checksum.to_s
+      end
+
+      def for(next_node)
+        self.class.new(@ast_storage, next_node)
+      end
+
+      def merge!(child_cache)
+        if target && target["unsatisfied_identifiers"]
+          begin
+          target["satisfied_identifiers"].to_set.merge(child_cache["satisfied_identifiers"] || [])
+          target["unsatisfied_identifiers"].to_set.merge(child_cache["unsatisfied_identifiers"] || [])
+          rescue => e
+            binding.pry
+          end
+        end
+        self
+      end
+
+      def target
+        @ast_storage[key] ||= {}
+      end
+
+      def dependencies
+        @dependencies ||= Calculator.current.memory || {}
+      end
+
+      def getset
+        raise RuntimeError unless @node
+        keys = node.dependencies
+        node_dependencies = Hash[[keys, dependencies.values_at(*keys)].transpose]
+
+        node_input = node_dependencies.sort.each_with_object({}) do |(key, val), memo|
+          memo[key] = if val.respond_to?(:stored_values)
+            val.stored_values
+          elsif val.is_a?(Array)
+            val.map { |v| v.respond_to?(:stored_values) ? v.stored_values : v }
+          else
+            val
+          end
+        end
+        json = Oj.dump(node_input)
+        input_checksum = Zlib.crc32(json)
+
+        if target && (target["input_checksum"] == input_checksum) && !target["value"].nil?
+          if target['value'].nil?
+            raise UnboundVariableError.new(target["unsatisfied_identifiers"])
+          else
+            target["value"]
+          end
+        else
+          target["node_type"] = node.class.to_s
+          target["input_checksum"] = input_checksum
+          target["unsatisfied_identifiers"] = Set.new
+          target["satisfied_identifiers"] = Set.new
+          target.delete("value")
+
+          target["value"] = yield
+        end
+      end
+
+      def trace
+        target["unsatisfied_identifiers"] = Set.new
+        target["satisfied_identifiers"] = Set.new
+
+        yield Tracer.new(target)
+      end
+
+      def dump
+        Marshal.dump(@ast_storage)
+      end
+
+      class Tracer
+        def initialize(cache)
+          @cache = cache
+        end
+
+        def satisfied(key)
+          @cache["satisfied_identifiers"] << key
+        end
+
+        def unsatisfied(key)
+          @cache["unsatisfied_identifiers"] << key
+        end
+      end
+    end
+
     def clear
       @memory = {}
+      @cache = nil
     end
 
     def empty?

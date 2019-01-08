@@ -46,5 +46,9 @@ module Dentaku
       (category.nil? || other.category.nil? || category == other.category) &&
       (value.nil?    || other.value.nil?    || value    == other.value)
     end
+
+    def checksum
+      Zlib.crc32()
+    end
   end
 end

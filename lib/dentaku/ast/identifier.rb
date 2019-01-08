@@ -13,9 +13,38 @@ module Dentaku
         @identifier = token.value.to_s.downcase
       end
 
+      def evaluate
+        if Calculator.current.cache
+          Calculator.current.cache_for(self) do |cache|
+            cache.trace do |tracer|
+              value_with_trace(tracer)
+            end
+          end
+        else
+          value
+        end
+      end
+
+      def value_with_trace(trace)
+        v, type = context[identifier]
+        case v
+        when Node
+          v.evaluate
+        when NilClass
+          trace.unsatisfied(identifier)
+          raise UnboundVariableError.new([identifier])
+        else
+          if type == :default
+            trace.unsatisfied(identifier)
+          else
+            trace.satisfied(identifier)
+          end
+          v
+        end
+      end
+
       def value
-        context = Calculator.current.memory
-        v = context[identifier]
+        v, type = context[identifier]
         case v
         when Node
           v.evaluate

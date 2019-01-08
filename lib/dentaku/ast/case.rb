@@ -48,7 +48,7 @@ module Dentaku
         # TODO: should short-circuit
         @switch.dependencies(context) +
           @conditions.flat_map { |condition| condition.dependencies(context) } +
-          @else.dependencies(context)
+          (@else ? @else.dependencies(context) : [])
       end
 
       def generate_constraints(context)
@@ -76,7 +76,7 @@ module Dentaku
       end
 
       def repr
-        "case TODO"
+        children.map(&:repr).join("\n") << "END"
       end
     end
   end

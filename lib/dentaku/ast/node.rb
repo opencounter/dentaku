@@ -16,6 +16,15 @@ module Dentaku
         arity < 0 ? nil : arity
       end
 
+      # def marshal_dump(*)
+      #   checksum # temp hack to add temp var
+
+      #   instance_variables.inject({}) do |vars, attr|
+      #     vars[attr] = instance_variable_get(attr)
+      #     vars
+      #   end
+      # end
+
       def dependencies(context={})
         []
       end
@@ -60,17 +69,52 @@ module Dentaku
       end
 
       def repr
-        "(TODO #{self.class.name})"
+        raise RuntimeError, "Cant REPR #{self.class}"
+        # "(TODO #{self.class.name})"
       end
 
       def inspect
         "<AST #{repr}>"
       end
 
+      def source
+        return repr
+
+        @source ||= begin
+          source_values = if begin_token == end_token
+            [begin_token.raw_value]
+          else
+            [begin_token.raw_value] + children.map(&:source) + [end_token.raw_value]
+          end
+
+          source_values.flatten.join
+        end
+      end
+
+      def checksum
+        @checksum ||= Zlib.crc32(source).to_s
+      end
+
       def evaluate
-        Calculator.current.trace(self) do
+        if cachable?
+          Calculator.current.cache_for(self) do |cache|
+            cache.getset { |tracer| value }
+          end
+        else
           value
         end
+      end
+
+      def value_with_trace(trace)
+        value
+      end
+
+      def cachable?
+        Calculator.current.cache
+      end
+
+      def context
+        Calculator.current.memory
       end
 
       protected

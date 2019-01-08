@@ -37,6 +37,10 @@ module Dentaku
         "#{left.repr} #{operator} #{right.repr}"
       end
 
+      def source
+        repr
+      end
+
       def generate_constraints(context)
         left_type, right_type, ret_type = self.types
 
