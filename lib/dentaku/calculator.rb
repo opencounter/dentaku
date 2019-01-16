@@ -19,7 +19,7 @@ require 'dentaku/parser'
 
 module Dentaku
   class Calculator
-    attr_reader :result, :memory, :tokenizer, :previous_run_cache
+    attr_reader :result, :memory, :tokenizer, :cache, :current_node_cache
 
     def initialize(ast_cache={})
       clear
@@ -60,12 +60,22 @@ module Dentaku
       [evaluate!(expression, data), @tracer]
     end
 
-    def evaluate!(expression, data={})
+    def with_input(data)
+      @current_node_cache = nil
+
       with_dynamic do
         store(data) do
-          node = expression
-          node = ast(node) unless node.is_a?(AST::Node)
-          node.evaluate
+          yield self
+        end
+      end
+    end
+
+    def evaluate!(expression, data={})
+      with_input(data) do
+        if expression.is_a?(Dentaku::AST::Node)
+          expression.evaluate
+        else
+          ast(expression).evaluate
         end
       end
     end
@@ -99,13 +109,7 @@ module Dentaku
     def store(key_or_hash, value=nil)
       restore = Hash[memory]
 
-      if value.nil?
-        key_or_hash.each do |key, val|
-          memory[key.to_s.downcase] = val
-        end
-      else
-        memory[key_or_hash.to_s.downcase] = value
-      end
+      @memory = key_or_hash
 
       if block_given?
         begin
@@ -124,40 +128,111 @@ module Dentaku
     end
 
     def cache
-      @cache ||= Cache.new({})
-      yield @cache
+      @cache ||= TraceCache.new({})
     end
 
-    class Cache
-      def initialize(ast_storage={}, input={}, context=nil)
-        @ast_storage = ast_storage || {}
-        @input = input
-        @context = context
-      end
+    def cache=(execution_cache)
+      @cache = TraceCache.new(execution_cache)
+    end
 
-      def with(node)
+    def cache_for(node)
+      if block_given?
+        previous_cache = @current_node_cache || cache
 
-      end
-
-      def getset(node, dependencies)
-        key = node.checksum
-        cached = @ast_storage[key]
-
-        node_deps = dependencies.slice(*node.dependencies).map(&:first)
-        input_checksum = Zlib.crc32(node_deps.sort.to_json)
-
-        if cached && cached[:input_checksum] == input_checksum
-          puts :got_cached_value
-          cached[:value]
-        else
-          @ast_storage[key] ||= {}
-          @ast_storage[key][:node_type] = node.class.to_s
-          @ast_storage[key][:input_checksum] = input_checksum
-
-
-          # should somehow track visited nodes of children
-          @ast_storage[key][:value] = yield Tracer.new(@ast_storage[key])
+        begin
+          @current_node_cache = cache.for(node)
+          yield @current_node_cache
+        ensure
+          if previous_cache.node
+            @current_node_cache = previous_cache.merge!(@current_node_cache.target)
+          end
         end
+      else
+        @current_node_cache = cache.for(node)
+      end
+    end
+
+    class TraceCache
+      attr_reader :node
+
+      def initialize(ast_storage={}, node=nil)
+        @ast_storage = ast_storage || {}
+        @node = node
+      end
+
+      def key
+        node.checksum.to_s
+      end
+
+      def for(next_node)
+        self.class.new(@ast_storage, next_node)
+      end
+
+      def merge!(child_cache)
+        if target
+          target["satisfied_identifiers"].to_set.merge(child_cache["satisfied_identifiers"] || [])
+          target["unsatisfied_identifiers"].to_set.merge(child_cache["unsatisfied_identifiers"] || [])
+        end
+        self
+      end
+
+      def target
+        @ast_storage[key] ||= {}
+      end
+
+      def dependencies
+        @dependencies ||= Calculator.current.memory || {}
+      end
+
+      def getset
+        raise RuntimeError unless @node
+        keys = node.dependencies
+        node_dependencies = Hash[[keys, dependencies.values_at(*keys)].transpose]
+
+        node_input = node_dependencies.sort.each_with_object({}) do |(key, val), memo|
+          memo[key] = val.respond_to?(:stored_values) ? val.stored_values : val
+        end.to_json
+        input_checksum = Zlib.crc32(node_input)
+
+        if target && target["input_checksum"] == input_checksum && !target["value"].nil?
+          $cache_hits ||= 0
+          $cache_hits += 1
+
+          if target['value'].nil?
+            raise UnboundVariableError.new(target["unsatisfied_identifiers"])
+          else
+            target["value"]
+          end
+        else
+          if target && target["input_checksum"] == input_checksum && target["value"].nil?
+            $cache_nil_misses ||= 0
+            $cache_nil_misses += 1
+          elsif target
+            $cache_checksum_misses ||= 0
+            $cache_checksum_misses += 1
+          end
+
+          $cache_misses ||= 0
+          $cache_misses += 1
+          # target["node_type"] = node.class.to_s
+          # target["raw_input"] = node_input
+          # target["raw_source"] = @node.source
+          target["input_checksum"] = input_checksum
+          target["unsatisfied_identifiers"] = Set.new
+          target["satisfied_identifiers"] = Set.new
+          target["value"] = yield
+        end
+      end
+
+      def trace
+        target["unsatisfied_identifiers"] = Set.new
+        target["satisfied_identifiers"] = Set.new
+
+        yield Tracer.new(target)
+      end
+
+      def as_json(*)
+        @ast_storage.as_json
       end
 
       class Tracer
@@ -166,11 +241,11 @@ module Dentaku
         end
 
         def satisfied(key)
-          (@cache[:satisfied_identifiers] ||= []) << key
+          @cache["satisfied_identifiers"] << key
         end
 
         def unsatisfied(key)
-          (@cache[:unsatisfied_identifiers] ||= []) << key
+          @cache["unsatisfied_identifiers"] << key
         end
       end
     end

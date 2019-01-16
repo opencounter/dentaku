@@ -16,10 +16,14 @@ module Dentaku
         arity < 0 ? nil : arity
       end
 
-      def _dump
-        checksum # temp hack to add temp var
-        super
-      end
+      # def marshal_dump(*)
+      #   checksum # temp hack to add temp var
+
+      #   instance_variables.inject({}) do |vars, attr|
+      #     vars[attr] = instance_variable_get(attr)
+      #     vars
+      #   end
+      # end
 
       def dependencies(context={})
         []
@@ -85,22 +89,13 @@ module Dentaku
       end
 
       def checksum
-        @checksum ||= Zlib.crc32(source)
+        @checksum ||= Zlib.crc32(source).to_s
       end
 
-      # Do I need to care about where a value comes from?
-      #
-      # Need to cache full value metadata at every node, but return the value, except for the top level
-      # where we want to also get the satisifed and unsatidfied identifiers
-      #
       def evaluate
         if cachable?
-          Calculator.current.cache do |cache|
-            cache.getset(self, context) do |tracer|
-              value_with_trace(tracer)
-            end
-            # [node_id, "Node", value]
-            # [value_type, value, met_deps, unmet_deps]
+          Calculator.current.cache_for(self) do |cache|
+            cache.getset { |tracer| value }
           end
         else
           value

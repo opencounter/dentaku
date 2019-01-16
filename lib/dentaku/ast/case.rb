@@ -48,7 +48,7 @@ module Dentaku
         # TODO: should short-circuit
         @switch.dependencies(context) +
           @conditions.flat_map { |condition| condition.dependencies(context) } +
-          @else.dependencies(context)
+          (@else ? @else.dependencies(context) : [])
       end
 
       def generate_constraints(context)
