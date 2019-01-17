@@ -14,12 +14,15 @@ module Dentaku
       end
 
       def evaluate
-        t = Time.now
-        Calculator.current.cache_for(self) do |cache|
-          cache.trace do |tracer|
-            value_with_trace(tracer)
+        if Calculator.current.cache
+          Calculator.current.cache_for(self) do |cache|
+            cache.trace do |tracer|
+              value_with_trace(tracer)
+            end
           end
-        end.tap { $node_eval_time += Time.now - t }
+        else
+          value
+        end
       end
 
       def value_with_trace(trace)

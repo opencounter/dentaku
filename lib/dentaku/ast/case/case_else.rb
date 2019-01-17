@@ -22,6 +22,10 @@ module Dentaku
       def dependencies(context={})
         @node.dependencies(context)
       end
+
+      def repr
+        "ELSE #{@node.repr}"
+      end
     end
   end
 end

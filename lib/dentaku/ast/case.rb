@@ -76,7 +76,7 @@ module Dentaku
       end
 
       def repr
-        "case TODO"
+        children.map(&:repr).join("\n") << "END"
       end
     end
   end

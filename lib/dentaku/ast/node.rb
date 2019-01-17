@@ -69,7 +69,8 @@ module Dentaku
       end
 
       def repr
-        "(TODO #{self.class.name})"
+        raise RuntimeError, "Cant REPR #{self.class}"
+        # "(TODO #{self.class.name})"
       end
 
       def inspect
@@ -77,6 +78,8 @@ module Dentaku
       end
 
       def source
+        return repr
+
         @source ||= begin
           source_values = if begin_token == end_token
             [begin_token.raw_value]
@@ -107,7 +110,7 @@ module Dentaku
       end
 
       def cachable?
-        true
+        Calculator.current.cache
       end
 
       def context

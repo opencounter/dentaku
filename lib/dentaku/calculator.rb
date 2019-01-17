@@ -106,10 +106,10 @@ module Dentaku
       }
     end
 
-    def store(key_or_hash, value=nil)
+    def store(key_or_hash)
       restore = Hash[memory]
 
-      @memory = key_or_hash
+      @memory = key_or_hash || {}
 
       if block_given?
         begin
@@ -128,7 +128,7 @@ module Dentaku
     end
 
     def cache
-      @cache ||= TraceCache.new({})
+      @cache# ||= TraceCache.new({})
     end
 
     def cache=(execution_cache)
@@ -148,7 +148,7 @@ module Dentaku
           end
         end
       else
-        @current_node_cache = cache.for(node)
+        cache.for(node)
       end
     end
 
@@ -169,9 +169,13 @@ module Dentaku
       end
 
       def merge!(child_cache)
-        if target
+        if target && target["unsatisfied_identifiers"]
+          begin
           target["satisfied_identifiers"].to_set.merge(child_cache["satisfied_identifiers"] || [])
           target["unsatisfied_identifiers"].to_set.merge(child_cache["unsatisfied_identifiers"] || [])
+          rescue => e
+            binding.pry
+          end
         end
         self
       end
@@ -189,14 +193,19 @@ module Dentaku
         keys = node.dependencies
         node_dependencies = Hash[[keys, dependencies.values_at(*keys)].transpose]
 
+        # target["ast_obj"] = @ast_storage.object_id
+        # target["key"] = key
+
         node_input = node_dependencies.sort.each_with_object({}) do |(key, val), memo|
           memo[key] = val.respond_to?(:stored_values) ? val.stored_values : val
         end.to_json
         input_checksum = Zlib.crc32(node_input)
 
-        if target && target["input_checksum"] == input_checksum && !target["value"].nil?
+        if target && (target["input_checksum"] == input_checksum) && !target["value"].nil?
           $cache_hits ||= 0
           $cache_hits += 1
+
+          # target["hit"] = true
 
           if target['value'].nil?
             raise UnboundVariableError.new(target["unsatisfied_identifiers"])
@@ -205,21 +214,26 @@ module Dentaku
           end
         else
           if target && target["input_checksum"] == input_checksum && target["value"].nil?
+            # target["hit"] = :nil
             $cache_nil_misses ||= 0
             $cache_nil_misses += 1
-          elsif target
+          elsif target && target["input_checksum"] != input_checksum
+            # target["hit"] = [:checksum, target.deep_dup, input_checksum]
             $cache_checksum_misses ||= 0
             $cache_checksum_misses += 1
+          else
+            target["hit"] = false
           end
 
           $cache_misses ||= 0
           $cache_misses += 1
-          # target["node_type"] = node.class.to_s
+          target["node_type"] = node.class.to_s
           # target["raw_input"] = node_input
           # target["raw_source"] = @node.source
           target["input_checksum"] = input_checksum
           target["unsatisfied_identifiers"] = Set.new
           target["satisfied_identifiers"] = Set.new
+          target.delete("value")
           target["value"] = yield
         end
       end
