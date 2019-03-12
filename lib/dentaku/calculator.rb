@@ -195,9 +195,15 @@ module Dentaku
         node_dependencies = Hash[[keys, dependencies.values_at(*keys)].transpose]
 
         node_input = node_dependencies.sort.each_with_object({}) do |(key, val), memo|
-          memo[key] = val.respond_to?(:stored_values) ? val.stored_values : val
-        end.to_json
-        input_checksum = Zlib.crc32(node_input)
+          memo[key] = if val.respond_to?(:stored_values)
+            val.stored_values
+          elsif val.is_a?(Array)
+            val.map { |v| v.respond_to?(:stored_values) ? v.stored_values : v }
+          else
+            val
+          end
+        end
+        input_checksum = Zlib.crc32(node_input.to_json)
 
         if target && (target["input_checksum"] == input_checksum) && !target["value"].nil?
           if target['value'].nil?
