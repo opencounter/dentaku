@@ -203,7 +203,8 @@ module Dentaku
             val
           end
         end
-        input_checksum = Zlib.crc32(node_input.to_json)
+        json = Oj.dump(node_input)
+        input_checksum = Zlib.crc32(json)
 
         if target && (target["input_checksum"] == input_checksum) && !target["value"].nil?
           if target['value'].nil?
