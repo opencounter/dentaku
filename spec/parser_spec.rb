@@ -13,6 +13,17 @@ describe Dentaku::Parser do
     end
   end
 
+  def self.should_parse(*expressions)
+    describe "parse success\n     " do
+      expressions.each do |(expression, classType)|
+        it "#{expression}" do
+          ast = parse_expression(expression)
+          expect(ast).to be_a(classType)
+        end
+      end
+    end
+  end
+
   def parse_expression(expression)
     Dentaku::Parser.new(Dentaku::Tokenizer.tokenize(expression)).parse
   end
@@ -140,6 +151,16 @@ describe Dentaku::Parser do
 
     expect(calculator.evaluate!(node, x: 3)).to eq(4)
   end
+
+  should_parse(
+    ["{ a: TRUE, b: false }", Dentaku::AST::Dictionary],
+    ["[1, 2, 3]", Dentaku::AST::List],
+    ["IF(1 = 2, { a: 1 }, { c: 3 })", Dentaku::AST::Function],
+    ["IF(1 = 2, 'here', 'there')", Dentaku::AST::Function],
+    ["{ a: { b: 2 } }", Dentaku::AST::Dictionary],
+    ["if(2 = 1, (1%6), 7)", Dentaku::AST::Function],
+  )
+
 
   should_not_parse(
     ["foo bar", /unexpected output/i],

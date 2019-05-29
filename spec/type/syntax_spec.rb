@@ -25,6 +25,14 @@ describe Dentaku::Type::Syntax do
     expect(expr.return_type.repr).to eql(':bool')
   end
 
+  it 'parses function with complex return type' do
+    expr = Dentaku::Type::Syntax.parse_spec('foo({ id: :string, code: :string }) = { zones: [{ id: :string, code: :string, rule: { id: :numeric, name: :string, slug: :string, rule_type: :string, description: :string }, slug: :string, admin_name: :string, is_overlay: :bool, permission: { id: :numeric, code: :string, name: :string, slug: :string, category: :string, priority: :numeric, description: :string, display_name: :string, display_verb: :string, municipal_code_url: :string }, description: :string, display_name: :string, municipal_code_url: :string, development_standards_url: :string }], parcels: [{ key: :string, value: :string }] }')
+    expect(expr.name).to eql('foo')
+    expect(expr.arg_types.size).to be 1
+    expect(expr.arg_types[0].repr).to eql("{id::string, code::string}")
+    expect(expr.return_type.repr).to eql("{zones::list({id::string, code::string, rule:{id::numeric, name::string, slug::string, rule_type::string, description::string}, slug::string, admin_name::string, is_overlay::bool, permission:{id::numeric, code::string, name::string, slug::string, category::string, priority::numeric, description::string, display_name::string, display_verb::string, municipal_code_url::string}, description::string, display_name::string, municipal_code_url::string, development_standards_url::string}), parcels::list({key::string, value::string})}")
+  end
+
   it 'parses type' do
     expr = Dentaku::Type::Syntax.parse_type(':numeric')
     expect(expr.name).to eql(:numeric)

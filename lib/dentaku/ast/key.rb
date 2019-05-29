@@ -8,6 +8,10 @@ module Dentaku
       def value
         @identifier
       end
+
+      def repr
+        self.class.name
+      end
     end
   end
 end
