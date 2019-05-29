@@ -98,18 +98,16 @@ module Dentaku
         break unless token
 
         debug do
+          puts "remaining: #{input.map(&:value).join(", ")}"
+
           puts 'operations:'
           operations.reverse.each { |o| p o }
 
           puts 'output:'
           output.reverse.each { |o| p o }
 
-          puts 'arities:'
-          arities.reverse.each { |a| p a }
-
-          puts '======='
-          puts 'next:'
-          p token
+          puts "arities: #{arities.reverse.each { |a| a }.join(", ")}"
+          puts "\ncurrent: #{token}"
         end
 
         case token.category
@@ -245,18 +243,20 @@ module Dentaku
         when :dictionary
           case token.value
           when :open
-            operations.push [AST::Dictionary, token]
+              operations.push [AST::Dictionary, token]
+              arities.push 0
 
           when :close
             consume_infix(last_token)
-            consume(token, output.length)
+            consume(token, arities.pop + 2)
 
           when :comma
+            arities[-1] += 2
             consume_infix(last_token)
-
           else
             raise ParseError.new("Unknown dictionary token #{ token.value }", token)
           end
+
         when :list
           case token.value
           when :open
