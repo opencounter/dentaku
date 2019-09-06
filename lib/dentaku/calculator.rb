@@ -11,9 +11,9 @@ require 'dentaku/type/expression'
 require 'dentaku/tracer'
 
 require 'dentaku'
-require 'dentaku/bulk_expression_solver'
 require 'dentaku/exceptions'
 require 'dentaku/token'
+require 'dentaku/tokenizer'
 require 'dentaku/dependency_resolver'
 require 'dentaku/parser'
 
@@ -23,7 +23,7 @@ module Dentaku
     attr_writer :current_node_cache
 
     def initialize(ast_cache={})
-      clear
+      @memory = {}
       # @tokenizer = Tokenizer.new
       @ast_cache = ast_cache
     end
@@ -87,14 +87,6 @@ module Dentaku
       @tracer.trace(node, &blk)
     end
 
-    def solve!(expression_hash)
-      BulkExpressionSolver.new(expression_hash, self).solve!
-    end
-
-    def solve(expression_hash, &block)
-      BulkExpressionSolver.new(expression_hash, self).solve(&block)
-    end
-
     def dependencies(expression)
       ast(expression).dependencies(memory)
     end
@@ -105,27 +97,6 @@ module Dentaku
           @ast_cache[expression] = node if Dentaku.cache_ast?
         end
       }
-    end
-
-    def store(key_or_hash)
-      restore = Hash[memory]
-
-      @memory = key_or_hash || {}
-
-      if block_given?
-        begin
-          return yield
-        ensure
-          @memory = restore
-        end
-      end
-
-      self
-    end
-    alias_method :bind, :store
-
-    def store_formula(key, formula)
-      store(key, ast(formula))
     end
 
     def cache
@@ -144,7 +115,7 @@ module Dentaku
           @current_node_cache = cache.for(node)
           yield @current_node_cache
         ensure
-          if previous_cache.node
+          if previous_cache && previous_cache.node
             @current_node_cache = previous_cache.merge!(@current_node_cache.target)
           end
         end
@@ -249,13 +220,26 @@ module Dentaku
       end
     end
 
-    def clear
-      @memory = {}
-      @cache = nil
-    end
-
     def empty?
       memory.empty?
     end
+
+    private
+
+    def store(key_or_hash)
+      @memory = key_or_hash || {}
+
+      if block_given?
+        begin
+          return yield
+        ensure
+          @memory = {}
+        end
+      end
+
+      self
+    end
+    alias_method :bind, :store
+
   end
 end
