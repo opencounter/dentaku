@@ -102,8 +102,7 @@ describe Dentaku::Calculator do
   end
 
   it 'include ROUND' do
-    expect(calculator.evaluate('round(8.75)')).to eq(BigDecimal.new('9'))
-
+    expect(calculator.evaluate('round(8.75)')).to eq(BigDecimal('9'))
     expect(calculator.evaluate('ROUND(apples * 0.93)', input({ apples: 10 }))).to eq(9)
   end
 
@@ -118,7 +117,7 @@ describe Dentaku::Calculator do
   it 'evaluates functions with negative numbers' do
     expect(calculator.evaluate('if (-1 < 5, -1, 5)')).to eq(-1)
     expect(calculator.evaluate('if (-1 = -1, -1, 5)')).to eq(-1)
-    expect(calculator.evaluate('round(-1.23)')).to eq(BigDecimal.new('-1'))
+    expect(calculator.evaluate('round(-1.23)')).to eq(BigDecimal('-1'))
     expect(calculator.evaluate('NOT(some_boolean) AND -1 > 3', input(some_boolean: true))).to be_falsey
   end
 
