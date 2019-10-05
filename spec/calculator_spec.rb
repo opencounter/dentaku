@@ -99,39 +99,38 @@ describe Dentaku::Calculator do
       expect(calculator.evaluate('if (foo < 8, 10, 20)', input(foo: 2))).to eq(10)
       expect(calculator.evaluate('if (foo < 8, 10, 20)', input(foo: 9))).to eq(20)
     end
+  end
+
+  it 'include ROUND' do
+    expect(calculator.evaluate('round(8.75)')).to eq(BigDecimal.new('9'))
+
+    expect(calculator.evaluate('ROUND(apples * 0.93)', input({ apples: 10 }))).to eq(9)
+  end
+
+  it 'include NOT' do
+    expect(calculator.evaluate('NOT(some_boolean)', input(some_boolean: true))).to be_falsey
+    expect(calculator.evaluate('NOT(some_boolean)', input(some_boolean: false))).to be_truthy
+
+    expect(calculator.evaluate('NOT(some_boolean) AND 7 > 5', input(some_boolean: true))).to be_falsey
+    expect(calculator.evaluate('NOT(some_boolean) OR 7 < 5', input(some_boolean: false))).to be_truthy
+  end
+
+  it 'evaluates functions with negative numbers' do
+    expect(calculator.evaluate('if (-1 < 5, -1, 5)')).to eq(-1)
+    expect(calculator.evaluate('if (-1 = -1, -1, 5)')).to eq(-1)
+    expect(calculator.evaluate('round(-1.23)')).to eq(BigDecimal.new('-1'))
+    expect(calculator.evaluate('NOT(some_boolean) AND -1 > 3', input(some_boolean: true))).to be_falsey
+  end
+
+  describe 'roundup' do
+    it 'should accept second precision argument like in Office formula' do
+      expect(calculator.evaluate('roundup(1.234, 2)')).to eq(1.24)
     end
+  end
 
-    it 'include ROUND' do
-      expect(calculator.evaluate('round(8.75)')).to eq(BigDecimal.new('9'))
-
-      expect(calculator.evaluate('ROUND(apples * 0.93)', input({ apples: 10 }))).to eq(9)
-    end
-
-    it 'include NOT' do
-      expect(calculator.evaluate('NOT(some_boolean)', input(some_boolean: true))).to be_falsey
-      expect(calculator.evaluate('NOT(some_boolean)', input(some_boolean: false))).to be_truthy
-
-      expect(calculator.evaluate('NOT(some_boolean) AND 7 > 5', input(some_boolean: true))).to be_falsey
-      expect(calculator.evaluate('NOT(some_boolean) OR 7 < 5', input(some_boolean: false))).to be_truthy
-    end
-
-    it 'evaluates functions with negative numbers' do
-      expect(calculator.evaluate('if (-1 < 5, -1, 5)')).to eq(-1)
-      expect(calculator.evaluate('if (-1 = -1, -1, 5)')).to eq(-1)
-      expect(calculator.evaluate('round(-1.23)')).to eq(BigDecimal.new('-1'))
-      expect(calculator.evaluate('NOT(some_boolean) AND -1 > 3', input(some_boolean: true))).to be_falsey
-    end
-
-    describe 'roundup' do
-      it 'should accept second precision argument like in Office formula' do
-        expect(calculator.evaluate('roundup(1.234, 2)')).to eq(1.24)
-      end
-    end
-
-    describe 'rounddown' do
-      it 'should accept second precision argument like in Office formula' do
-        expect(calculator.evaluate('rounddown(1.234, 2)')).to eq(1.23)
-      end
+  describe 'rounddown' do
+    it 'should accept second precision argument like in Office formula' do
+      expect(calculator.evaluate('rounddown(1.234, 2)')).to eq(1.23)
     end
   end
 
