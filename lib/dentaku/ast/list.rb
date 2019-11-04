@@ -35,7 +35,7 @@ module Dentaku
       end
 
       def cachable?
-        @elements.all?(&:cachable?)
+        !@elements.empty? && @elements.all?(&:cachable?)
       end
     end
   end

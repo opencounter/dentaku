@@ -12,10 +12,10 @@ describe Dentaku::Calculator do
 
         fns = [
           ["pow(:numeric, :numeric) = :numeric", ->(mantissa, exponent) { mantissa ** exponent }],
-          ["biggest([:numeric]) = :numeric", ->(args) { args.max }],
+          ["biggest([:numeric], :string) = :numeric", ->(args, str) { args.max }],
           ["smallest([:numeric]) = :numeric", ->(args) { args.min }],
           ["match(:string, :string) = :boolean", ->(a, b) { a == b }],
-          ['key_count(%b, [%a], :string, :string) = :numeric', ->(fee_by_type, values, type_key, quantity_key) {
+          ['key_count({ foo: :numeric, bar: :numeric, baz: :numeric }, [%a], :string, :string) = :numeric', ->(fee_by_type, values, type_key, quantity_key) {
             return fee_by_type.keys.length
           }],
         ]
@@ -32,20 +32,20 @@ describe Dentaku::Calculator do
       it 'includes POW' do
         expect(with_external_funcs.evaluate('POW(2,3)')).to eq(8)
         expect(with_external_funcs.evaluate('POW(3,2)')).to eq(9)
-        expect(with_external_funcs.evaluate('POW(mantissa,exponent)', mantissa: 2, exponent: 4)).to eq(16)
+        expect(with_external_funcs.evaluate('POW(mantissa,exponent)', input(mantissa: 2, exponent: 4))).to eq(16)
       end
 
       it 'includes BIGGEST' do
-        expect(with_external_funcs.evaluate('BIGGEST(list)', list: [8,6,7,5,3,0,9])).to eq(9)
+        expect(with_external_funcs.evaluate('BIGGEST(list, "foo")', input(list: [8,6,7,5,3,0,9]))).to eq(9)
       end
 
       it 'includes MIN and MAX' do
-        expect(with_external_funcs.evaluate('MIN([field,2])', field: 100)).to eq(2)
-        expect(with_external_funcs.evaluate('MAX([field,2])', field: 1)).to eq(2)
+        expect(with_external_funcs.evaluate('MIN([field,2])', input(field: 100))).to eq(2)
+        expect(with_external_funcs.evaluate('MAX([field,2])', input(field: 1))).to eq(2)
       end
 
       it 'includes SMALLEST' do
-        expect(with_external_funcs.evaluate('SMALLEST(list)', list: [8,6,7,5,3,0,9])).to eq(0)
+        expect(with_external_funcs.evaluate('SMALLEST(list)', input(list: [8,6,7,5,3,0,9]))).to eq(0)
       end
 
       it 'supports array parameters' do
@@ -57,7 +57,7 @@ describe Dentaku::Calculator do
           }
         )
 
-        expect(calculator.evaluate("INCLUDES(list, 2)", list: [1,2,3])).to eq(true)
+        expect(calculator.evaluate("INCLUDES(list, 2)", input(list: [1,2,3]))).to eq(true)
       end
 
       it 'supports normal parameters' do

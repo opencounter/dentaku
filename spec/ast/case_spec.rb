@@ -43,12 +43,12 @@ describe Dentaku::AST::Case do
 
     it 'tests each conditional against the switch variable', focus: true do
       node = described_class.new(switch, conditional1, conditional2)
-      expect(calculator.evaluate!(node, fruit: 'banana')).to eq(2)
+      expect(calculator.evaluate!(node, input(fruit: 'banana'))).to eq(2)
     end
 
     it 'raises an exception if the conditional is not matched' do
       node = described_class.new(switch, conditional1, conditional2)
-      expect { calculator.evaluate!(node, fruit: 'orange') }
+      expect { calculator.evaluate!(node, input(fruit: 'orange')) }
         .to raise_error("No block matched the switch value 'orange'")
     end
 
@@ -60,7 +60,7 @@ describe Dentaku::AST::Case do
         conditional1,
         conditional2,
         else_statement)
-      expect(calculator.evaluate!(node, fruit: 'orange')).to eq(3)
+      expect(calculator.evaluate!(node, input(fruit: 'orange'))).to eq(3)
     end
   end
 

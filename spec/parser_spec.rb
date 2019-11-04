@@ -111,7 +111,7 @@ describe Dentaku::Parser do
 
     node  = described_class.new([five, times, x]).parse
     expect { calculator.evaluate!(node) }.to raise_error(Dentaku::UnboundVariableError)
-    expect(calculator.evaluate!(node, x: 3)).to eq 15
+    expect(calculator.evaluate!(node, input(x: 3))).to eq 15
   end
 
   it 'evaluates boolean expressions' do
@@ -149,7 +149,7 @@ describe Dentaku::Parser do
        four,
        case_close]).parse
 
-    expect(calculator.evaluate!(node, x: 3)).to eq(4)
+    expect(calculator.evaluate!(node, input(x: 3))).to eq(4)
   end
 
   should_parse(

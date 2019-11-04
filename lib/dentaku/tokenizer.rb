@@ -121,7 +121,7 @@ module Dentaku
     end
 
     def cast(raw)
-      raw =~ /\./ ? BigDecimal.new(raw) : raw.to_i
+      raw =~ /\./ ? BigDecimal(raw) : raw.to_i
     end
 
     def match(regexp)

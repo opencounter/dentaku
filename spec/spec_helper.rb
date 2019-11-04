@@ -9,6 +9,26 @@ def token_stream(*args)
   end
 end
 
+class InputHash < Hash
+  def [](key)
+    [super, :user]
+  end
+end
+
+def stringify_data(data={})
+  if data.respond_to?(:stringify_keys)
+    data.stringify_keys
+  elsif data.respond_to?(:transform_keys)
+    data.transform_keys(&:to_s)
+  else
+    data.each_with_object({}) { |(k, v), h| h[k.to_s] = v }
+  end
+end
+
+def input(data={})
+  InputHash[stringify_data(data)]
+end
+
 # make a (hopefully intelligent) guess about type
 def type_for(value)
   case value
