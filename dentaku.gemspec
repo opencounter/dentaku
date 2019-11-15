@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "dentaku"
 
+  s.add_dependency('oj')
   s.add_development_dependency('rake')
   s.add_development_dependency('rspec')
   s.add_development_dependency('rspec_junit_formatter')

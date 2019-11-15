@@ -1,3 +1,5 @@
+require 'oj'
+
 require "dentaku/type/variant"
 require 'dentaku/type/checker'
 require 'dentaku/type/constraint'
@@ -203,6 +205,18 @@ module Dentaku
 
       def dump
         Marshal.dump(@ast_storage)
+      end
+
+      def unsatisfied_identifiers
+        @ast_storage.values.map do |v|
+          v["unsatisfied_identifiers"]
+        end.inject(&:+)
+      end
+
+      def satisfied_identifiers
+        @ast_storage.values.map do |v|
+          v["satisfied_identifiers"]
+        end.inject(&:+)
       end
 
       class Tracer

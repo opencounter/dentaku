@@ -29,6 +29,20 @@ module Dentaku
         []
       end
 
+      def any_dependencies_true?
+        dependencies.any? do |dep|
+          v, t = context[dep]
+          v && (t != :default)
+        end
+      end
+
+      def any_dependencies_false?
+        dependencies.any? do |dep|
+          v, t = context[dep]
+          !v && !v.nil? && (t != :default)
+        end
+      end
+
       def constraints(context)
         generate_constraints(context)
         context.constraints
