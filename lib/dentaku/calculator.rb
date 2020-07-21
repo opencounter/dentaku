@@ -1,4 +1,5 @@
 require 'oj'
+require 'zlib'
 
 require "dentaku/type/variant"
 require 'dentaku/type/checker'
@@ -144,12 +145,8 @@ module Dentaku
 
       def merge!(child_cache)
         if target && target["unsatisfied_identifiers"]
-          begin
           target["satisfied_identifiers"].to_set.merge(child_cache["satisfied_identifiers"] || [])
           target["unsatisfied_identifiers"].to_set.merge(child_cache["unsatisfied_identifiers"] || [])
-          rescue => e
-            binding.pry
-          end
         end
         self
       end
