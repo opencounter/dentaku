@@ -216,6 +216,10 @@ module Dentaku
         end.inject(&:+)
       end
 
+      def visited_node_keys
+        @ast_storage.keys
+      end
+
       class Tracer
         def initialize(cache)
           @cache = cache
