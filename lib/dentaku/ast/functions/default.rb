@@ -18,6 +18,10 @@ module Dentaku
           @default_value.evaluate
         end
       end
+
+      def cachable?
+        false
+      end
     end
   end
 end
