@@ -39,6 +39,26 @@ describe Dentaku::Calculator do
     end
   end
 
+  it 'truthiness' do
+    expect(calculator.evaluate("NOT(true)")).to eq(false)
+    expect(calculator.evaluate("NOT(false)")).to eq(true)
+    expect(calculator.evaluate("NOT(3)")).to eq(false)
+    expect(calculator.evaluate("NOT([])")).to eq(false)
+    expect(calculator.evaluate("NOT('none')")).to eq(false)
+
+    expect(calculator.evaluate("true = false")).to eq(false)
+    expect(calculator.evaluate("false = false")).to eq(true)
+    expect(calculator.evaluate("3 = false")).to eq(false)
+    expect(calculator.evaluate("[] = false")).to eq(false)
+    expect(calculator.evaluate("'none' = false")).to eq(false)
+
+    expect(calculator.evaluate("true != false")).to eq(true)
+    expect(calculator.evaluate("false != false")).to eq(false)
+    expect(calculator.evaluate("3 != false")).to eq(true)
+    expect(calculator.evaluate("[] != false")).to eq(true)
+    expect(calculator.evaluate("'none' != false")).to eq(true)
+  end
+
   it 'evaluates a statement with no variables' do
     expect(calculator.evaluate('5+3')).to eq(8)
     expect(calculator.evaluate('(1+1+1)/3*100')).to eq(100)
