@@ -45,5 +45,16 @@ describe Dentaku::AST::And do
         end
       end
     end
+
+    context "with multiple dependencies" do
+      let(:data) { { "a" => true, "b" => false } }
+
+      it "should keep a as a dependency even though it isn't touched" do
+        expect(evaluation).to be false
+        expect(calculator.cache.unsatisfied_identifiers).to be_empty
+        expect(calculator.cache.satisfied_identifiers).to include("b")
+        expect(calculator.cache.satisfied_identifiers).to include("a")
+      end
+    end
   end
 end
