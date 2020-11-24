@@ -13,6 +13,7 @@ module Dentaku
         if left.any_dependencies_false?
           left.evaluate && right.evaluate
         elsif right.any_dependencies_false?
+          left.satisfy_existing_dependencies
           right.evaluate && left.evaluate
         else
           left.evaluate && right.evaluate
@@ -29,6 +30,7 @@ module Dentaku
         if left.any_dependencies_true?
           left.evaluate || right.evaluate
         elsif right.any_dependencies_true?
+          left.satisfy_existing_dependencies
           right.evaluate || left.evaluate
         else
           left.evaluate || right.evaluate
