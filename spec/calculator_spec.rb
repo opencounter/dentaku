@@ -271,6 +271,58 @@ describe Dentaku::Calculator do
       )
       expect(value).to eq(3)
     end
+
+    it 'handles case statements in if' do
+      formula = <<-FORMULA
+      if(
+        (fruit='apple'),
+        CASE quantity
+        WHEN 1 THEN 100
+        WHEN 2 THEN 1000
+        ELSE 10000
+        END,
+        5000)
+      FORMULA
+      value = calculator.evaluate(
+        formula,
+        input(quantity: 1, fruit: 'banana')
+      )
+      expect(value).to eq(5000)
+
+      value = calculator.evaluate(
+        formula,
+        input(quantity: 2, fruit: 'apple')
+      )
+      expect(value).to eq(1000)
+    end
+
+    it 'handles case statements in if in case' do
+      formula = <<-FORMULA
+      CASE country
+      WHEN 'japan'
+      THEN if(
+        (fruit='apple'),
+        CASE quantity
+        WHEN 1 THEN 100
+        WHEN 2 THEN 1000
+        ELSE 10000
+        END,
+        5000)
+      ELSE 25
+      END
+      FORMULA
+      value = calculator.evaluate(
+        formula,
+        input(country: 'japan', quantity: 1, fruit: 'banana')
+      )
+      expect(value).to eq(5000)
+
+      value = calculator.evaluate(
+        formula,
+        input(country: 'china', quantity: 2, fruit: 'apple')
+      )
+      expect(value).to eq(25)
+    end
   end
 
   describe 'math functions' do
