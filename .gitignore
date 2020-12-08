@@ -8,3 +8,6 @@ vendor/*
 /.ruby-gemset
 /.ruby-version
 /.rspec
+
+# just so this doesn't accidentally get included again
+/bin/rspec
