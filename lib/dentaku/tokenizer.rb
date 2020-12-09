@@ -102,7 +102,7 @@ module Dentaku
       elsif match /['"]/
         raise ParseError.new("unbalanced quote", location(scanner))
       else
-        raise ParseError.new("parse error at: '#{ scanner.string[0..scanner.pos-1] }'", location(scanner))
+        raise ParseError.new("Unknown token starting with #{scanner.peek(3).inspect}", location(scanner))
       end
     end
 

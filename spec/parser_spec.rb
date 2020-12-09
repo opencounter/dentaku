@@ -205,6 +205,6 @@ describe Dentaku::Parser do
       WHEN baz THEN 3
       END", /Expected first argument to be a CaseWhen, was \(3\)/],
     ["([)]", /Unexpected token in parenthesis/],
-    ["field:café", /parse error at/],
+    ["field:café", /Unknown token starting with "caf"/]
   )
 end
