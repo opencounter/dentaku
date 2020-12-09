@@ -66,7 +66,7 @@ module Dentaku
         [:whitespace]
       elsif match /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//
         [:comment]
-      elsif match /#{numeric}\.\.#{numeric}/
+      elsif match /#{numeric}\s*\.\.\s*#{numeric}/
         [:range, Range.new(cast(scanner[2]), cast(scanner[3]))]
       elsif match numeric
         [:numeric, cast(scanner[0])]
