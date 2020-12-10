@@ -93,11 +93,11 @@ module Dentaku
         [:combinator, scanner[0].strip.downcase.to_sym]
       elsif match /(true|false)\b/i
         [:logical, scanner[0].strip.downcase == 'true']
-      elsif match /\w+(?=\s*[(])/
+      elsif match /[[:alnum:]_]+(?=\s*[(])/
         [:function, scanner[0].downcase.to_sym]
-      elsif match /(\w+\b):(?!\w)/
+      elsif match /([[:alnum:]_]+\b):(?![[:alnum:]])/
         [:key, scanner[2].strip.to_sym]
-      elsif match /[\w\:]+\b/
+      elsif match /[[:alnum:]_:]+\b/
         [:identifier, scanner[0].strip.downcase]
       elsif match /['"]/
         raise ParseError.new("unbalanced quote", location(scanner))
