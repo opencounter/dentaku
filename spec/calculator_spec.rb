@@ -101,6 +101,41 @@ describe Dentaku::Calculator do
     end
   end
 
+  it 'include ifs' do
+    expr = <<-EXPR
+        IFS(
+          (countz > 1 AND price < 10), 100,
+          (countz > 10 AND price > 100), 10,
+          (countz > 100), 1,
+          true, 1000
+        )
+    EXPR
+
+    value = calculator.evaluate(
+      expr,
+      input('countz' => 2, 'price' => 1)
+    )
+    expect(value).to eq(100)
+
+    value = calculator.evaluate(
+      expr,
+      input('countz' => 20, 'price' => 111)
+    )
+    expect(value).to eq(10)
+
+    value = calculator.evaluate(
+      expr,
+      input('countz' => 200, 'price' => 11)
+    )
+    expect(value).to eq(1)
+
+    default = calculator.evaluate(
+      expr,
+      input('countz' => 11, 'price' => 11)
+    )
+    expect(default).to eq(1000)
+  end
+
   it 'include ROUND' do
     expect(calculator.evaluate('round(8.75)')).to eq(BigDecimal('9'))
     expect(calculator.evaluate('ROUND(apples * 0.93)', input({ apples: 10 }))).to eq(9)
