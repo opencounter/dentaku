@@ -63,7 +63,7 @@ module Dentaku
       def solve
         if @debug
           @free_vars.each { |v| puts "free #{v.repr}" }
-          @constraints.each { |c| puts "-> #{c.repr}" }
+          @constraints.each { |c| puts "-> #{c.repr} (#{c.reason.repr})" }
         end
 
         while @constraints.any?
