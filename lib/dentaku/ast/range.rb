@@ -11,8 +11,6 @@ module Dentaku
       # regular ruby Range.
       def value
         (left.value..right.value)
-      rescue
-        binding.pry
       end
 
       def generate_constraints!(context)
