@@ -66,7 +66,7 @@ module Dentaku
         [:whitespace]
       elsif match /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//
         [:comment]
-      elsif match /#{numeric}\.\.#{numeric}/
+      elsif match /#{numeric}\s*\.\.\s*#{numeric}/
         [:range, Range.new(cast(scanner[2]), cast(scanner[3]))]
       elsif match numeric
         [:numeric, cast(scanner[0])]
@@ -93,16 +93,16 @@ module Dentaku
         [:combinator, scanner[0].strip.downcase.to_sym]
       elsif match /(true|false)\b/i
         [:logical, scanner[0].strip.downcase == 'true']
-      elsif match /\w+(?=\s*[(])/
+      elsif match /[[:alnum:]_]+(?=\s*[(])/
         [:function, scanner[0].downcase.to_sym]
-      elsif match /(\w+\b):(?!\w)/
+      elsif match /([[:alnum:]_]+\b):(?![[:alnum:]])/
         [:key, scanner[2].strip.to_sym]
-      elsif match /[\w\:]+\b/
+      elsif match /[[:alnum:]_:]+\b/
         [:identifier, scanner[0].strip.downcase]
       elsif match /['"]/
         raise ParseError.new("unbalanced quote", location(scanner))
       else
-        raise ParseError.new("parse error at: '#{ scanner.string[0..scanner.pos-1] }'", location(scanner))
+        raise ParseError.new("Unknown token starting with #{scanner.peek(3).inspect}", location(scanner))
       end
     end
 

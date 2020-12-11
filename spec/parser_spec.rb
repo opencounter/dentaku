@@ -159,6 +159,8 @@ describe Dentaku::Parser do
     ["IF(1 = 2, 'here', 'there')", Dentaku::AST::Function],
     ["{ a: { b: 2 } }", Dentaku::AST::Dictionary],
     ["if(2 = 1, (1%6), 7)", Dentaku::AST::Function],
+    ["field:café", Dentaku::AST::Identifier],
+    ["field:値", Dentaku::AST::Identifier],
   )
 
 
@@ -205,6 +207,6 @@ describe Dentaku::Parser do
       WHEN baz THEN 3
       END", /Expected first argument to be a CaseWhen, was \(3\)/],
     ["([)]", /Unexpected token in parenthesis/],
-    ["field:café", /parse error at/],
+    ["field:$money", /Unknown token starting with "[$]mo"/]
   )
 end
