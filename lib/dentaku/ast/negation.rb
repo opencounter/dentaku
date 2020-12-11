@@ -16,8 +16,8 @@ module Dentaku
       end
 
       def generate_constraints(context)
-        context.add_constraint!([:syntax, self], [:concrete, :bool], [:operator, self, :return])
-        context.add_constraint!([:syntax, @node], [:concrete, :bool], [:operator, self, :left])
+        context.add_constraint!([:syntax, self], [:concrete, :numeric], [:operator, self, :return])
+        context.add_constraint!([:syntax, @node], [:concrete, :numeric], [:operator, self, :left])
         @node.generate_constraints(context)
       end
 
