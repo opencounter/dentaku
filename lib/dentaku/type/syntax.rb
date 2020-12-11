@@ -41,13 +41,13 @@ module Dentaku
             elsif scanner.scan /[)]/
               yield new(:RPAREN)
             elsif scanner.scan /\[/
-              yield new(:LBRACE)
+              yield new(:LBRACK)
             elsif scanner.scan /\]/
-              yield new(:RBRACE)
+              yield new(:RBRACK)
             elsif scanner.scan /\{/
-              yield new(:LCBRACE)
+              yield new(:LCURLY)
             elsif scanner.scan /\}/
-              yield new(:RCBRACE)
+              yield new(:RCURLY)
             elsif scanner.scan /(\w+):/
               yield new(:KEY, scanner[1])
             elsif scanner.scan /%(\w+)/
@@ -156,11 +156,11 @@ module Dentaku
             else
               Expression.concrete(param_name.to_sym)
             end
-          elsif check!(:LBRACE)
+          elsif check!(:LBRACK)
             list_type = parse_type_inner
-            expect!(:RBRACE)
+            expect!(:RBRACK)
             Expression.param(:list, [list_type])
-          elsif check!(:LCBRACE)
+          elsif check!(:LCURLY)
             parse_dictionary
           elsif key = check_val!(:KEY)
             Expression.param(:key, key)
@@ -171,7 +171,7 @@ module Dentaku
 
         def parse_dictionary
           args = []
-          until check!(:RCBRACE)
+          until check!(:RCURLY)
             args << parse_type_inner
           end
           keys, types = args.partition.each_with_index{ |_, i| i.even? }
