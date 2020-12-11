@@ -2,6 +2,7 @@ module Dentaku
   module Type
     class Checker
       class UnboundIdentifier < StandardError
+        attr_reader :identifier
         def initialize(identifier)
           @identifier = identifier
         end
