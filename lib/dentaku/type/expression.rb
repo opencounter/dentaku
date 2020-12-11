@@ -57,6 +57,8 @@ module Dentaku
               Type.date
             elsif name == :list && arguments.size == 1
               Type.list(arguments[0].resolve(reverse_scope))
+            elsif name == :pair && arguments.size == 2
+              Type.pair(*arguments.map { |a| a.resolve(reverse_scope) })
             else
               raise RuntimeError, "Unresolvable type expression #{self.repr}"
             end

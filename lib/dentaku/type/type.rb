@@ -9,6 +9,7 @@ module Dentaku
         date: [],
         abstract: [],
 
+        pair: [:left_type, :right_type],
         list: [:member_type],
         dictionary: [:keys, :types],
         bound: [:name],
