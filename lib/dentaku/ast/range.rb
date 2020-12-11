@@ -14,7 +14,9 @@ module Dentaku
       end
 
       def generate_constraints!(context)
-        # pass. this is handled by AST::Case
+        context.add_constraint!([:syntax, self], [:concrete, :range], [:literal, self])
+        context.add_constraint!([:syntax, left], [:concrete, :numeric], [:range_element, self, :left])
+        context.add_constraint!([:syntax, right], [:concrete, :numeric], [:range_element, self, :right])
       end
 
       # higher than comparators (5) lower than any kind of math (10+)

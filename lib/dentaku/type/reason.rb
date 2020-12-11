@@ -18,6 +18,7 @@ module Dentaku
         case_when_range: [:ast, :index],
         case_else: [:ast],
         case_return: [:ast],
+        range_element: [:ast, :side],
       )
 
       def repr
