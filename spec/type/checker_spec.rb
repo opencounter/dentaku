@@ -61,6 +61,7 @@ describe 'Type Checker' do
   )
 
   should_not_type_check(
+    "1..3 == 2",
     "1 + 'foo'",
     "[1,2,'3']",
     "'foo' = 5",
