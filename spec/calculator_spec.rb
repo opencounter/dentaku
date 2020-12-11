@@ -179,6 +179,17 @@ describe Dentaku::Calculator do
     end
   end
 
+  describe 'within' do
+    it 'should check that a number is within a range' do
+      expect(e!('within(1..3, 2)')).to be true
+      expect(e!('within(1..2, 3)')).to be false
+      expect(e!('within(1..3+4, 6)')).to be true
+      expect(e!('within(1..3+4, 7)')).to be true
+      expect(e!('within(1..3+4, 8)')).to be false
+      expect(e!('within(1..foo, 6)', input(foo: 10))).to be true
+    end
+  end
+
   describe 'dictionary' do
     it 'handles dictionary' do
       result = e!('{code: field:code, value: val*10}', 'field:code': '23', val: 10)
