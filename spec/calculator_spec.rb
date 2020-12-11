@@ -30,7 +30,6 @@ describe Dentaku::Calculator do
     expect(calculator.evaluate('(((695759/735000)^(1/(1981-1991)))-1)*1000').round(4)).to eq(5.5018)
     expect(calculator.evaluate('0.253/0.253')).to eq(1)
     expect(calculator.evaluate('0.253/d', input(d: 0.253))).to eq(1)
-    expect(calculator.evaluate('1..3 = 2')).to eq(true)
   end
 
   describe 'dependencies' do
@@ -130,6 +129,17 @@ describe Dentaku::Calculator do
   describe 'rounddown' do
     it 'should accept second precision argument like in Office formula' do
       expect(calculator.evaluate('rounddown(1.234, 2)')).to eq(1.23)
+    end
+  end
+
+  describe 'within' do
+    it 'should check that a number is within a range' do
+      expect(calculator.evaluate('within(1..3, 2)')).to be true
+      expect(calculator.evaluate('within(1..2, 3)')).to be false
+      expect(calculator.evaluate('within(1..3+4, 6)')).to be true
+      expect(calculator.evaluate('within(1..3+4, 7)')).to be true
+      expect(calculator.evaluate('within(1..3+4, 8)')).to be false
+      expect(calculator.evaluate('within(1..foo, 6)', input(foo: 10))).to be true
     end
   end
 
