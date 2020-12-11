@@ -24,7 +24,7 @@ module Dentaku
         cases(
           conjunction: ->(left, right) { "TypeMismatch(#{left.repr},#{right.repr})" },
           literal: ->(ast) { "LIT: #{ast.repr}" },
-          other: ->(*) { "#{_name}:#{inspect}" }
+          other: ->(*) { "#{_name}:#{@_values.inspect}" }
         )
       end
 
