@@ -1,14 +1,29 @@
 module Dentaku
   module Type
     class Checker
-      class UnboundIdentifier < StandardError
-        attr_reader :identifier
-        def initialize(identifier)
-          @identifier = identifier
+      class UnboundIdentifiers < StandardError
+        attr_reader :identifiers, :type_solution
+        def initialize(identifiers, type_solution)
+          @identifiers = identifiers
+          @type_solution = type_solution
+          @unbound_types = @identifiers.map do |ast|
+            begin
+              constraint = @type_solution[Expression.syntax(ast)]
+              constraint.rhs.resolve.repr
+            rescue KeyError
+              '(unknown type)'
+            rescue
+              binding.pry
+            end
+          end
         end
 
         def message
-          "UnboundIdentifier (#{@identifier})"
+          ids_and_types = @identifiers.zip(@unbound_types).map do |(id, type_repr)|
+            "#{id.repr}:#{type_repr}"
+          end.join(', ')
+
+          "UnboundIdentifiers (#{ids_and_types})"
         end
       end
 
@@ -20,11 +35,17 @@ module Dentaku
 
       def reset!
         @constraints = []
+        @unbound = []
       end
 
       def resolve_identifier(identifier)
         type = @resolver.call(identifier)
-        type or raise UnboundIdentifier.new(identifier)
+
+        if type.nil?
+          @unbound << identifier
+          return Expression.make_variable("unbound-#{identifier.identifier}")
+        end
+
         Expression.from_sexpr(type)
       end
 
@@ -50,6 +71,10 @@ module Dentaku
             syntax: -> (ast) { ast.type = constraint.rhs.resolve },
             other: :pass
           )
+        end
+
+        if @unbound.any?
+          raise UnboundIdentifiers.new(@unbound, solutions)
         end
 
         solutions

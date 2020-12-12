@@ -73,14 +73,24 @@ describe Dentaku::Calculator do
   end
 
   it 'fails to evaluate unbound statements' do
-    unbound = 'foo * 1.5'
+    unbound = 'if(foo, concat([bar * 1.5], baz), zot)'
+
     expect { e!(unbound) }.to raise_error do |error|
-      expect(error).to be_a Dentaku::Type::Checker::UnboundIdentifier
-      expect(error.identifier.inspect).to eq '<AST foo>'
+      expect(error).to be_a Dentaku::Type::Checker::UnboundIdentifiers
+      expect(error.message).to match %r(foo:bool)
+      expect(error.message).to match %r(bar:numeric)
+      expect(error.message).to match %r(baz:\[numeric\])
+      expect(error.message).to match %r(zot:\[numeric\])
     end
+
     expect(e(unbound)).to be_nil
     expect(e(unbound) { :bar }).to eq :bar
     expect(e(unbound) { |e| e }).to eq unbound
+  end
+
+  it 'gives a good error message for an unknown typed missing variable' do
+    expect { e!('foo') }.to raise_error { |e| expect(e.message).to match /foo:abstract/ }
+    expect { e!('concat([], foo)') }.to raise_error { |e| expect(e.message).to match /foo:\[abstract\]/ }
   end
 
   it 'rebinds for each evaluation' do
