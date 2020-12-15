@@ -23,7 +23,10 @@ module Dentaku
             "{ #{content} }"
           },
           bound: ->(var_name) { "%#{var_name}" },
-          other: -> { _name }
+          abstract: -> { '%unknown-type' },
+          other: -> { ":#{_name}" },
+        )
+      end
         )
       end
 
