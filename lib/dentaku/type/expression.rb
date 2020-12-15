@@ -25,6 +25,8 @@ module Dentaku
       def self.from_sexpr(sexpr)
         if sexpr.is_a?(String)
           Syntax.parse_type(sexpr)
+        elsif sexpr.is_a?(Type)
+          sexpr.to_expr
         else
           super
         end
