@@ -78,6 +78,14 @@ module Dentaku
         []
       end
 
+      def to_sexpr
+        [self.class.name, loc_range, type && type.to_sexpr, *serialized_values]
+      end
+
+      def serialized_values
+        []
+      end
+
       def each
         return enum_for(:each) unless block_given?
 

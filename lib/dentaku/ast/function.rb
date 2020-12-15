@@ -9,6 +9,10 @@ module Dentaku
         @args = args
       end
 
+      def serialized_values
+        [function_name, arity]
+      end
+
       def children
         @args
       end
