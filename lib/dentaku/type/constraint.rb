@@ -40,6 +40,19 @@ module Dentaku
       def repr
         "#{lhs.repr} = #{rhs.repr}"
       end
+
+      def repr_with_reason(depth=0)
+        return repr if depth > 5 or @reason.identifier? or @reason.literal?
+        if depth == 0
+          "#{repr}, because: #{@reason.repr(depth)}"
+        else
+          "#{repr} (#{@reason.repr(depth)})"
+        end
+      end
+
+      def to_sexpr
+        [lhs.to_sexpr, rhs.to_sexpr, reason.to_sexpr]
+      end
     end
   end
 end
