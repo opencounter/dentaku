@@ -25,6 +25,8 @@ module Dentaku
       def self.from_sexpr(sexpr)
         if sexpr.is_a?(String)
           Syntax.parse_type(sexpr)
+        elsif sexpr.is_a?(Type)
+          sexpr.to_expr
         else
           super
         end
@@ -103,7 +105,7 @@ module Dentaku
 
       def repr
         cases(
-          syntax: ->(ast) { "[#{ast.repr}]" },
+          syntax: ->(ast) { "(#{ast.repr})" },
           param: ->(name, arguments) {
             if arguments.empty?
               ":#{name}"
@@ -114,7 +116,7 @@ module Dentaku
           variable: ->(name, uniq) { "%#{name}#{uniq}" },
           var: -> (name) { "%%#{name}" },
           dictionary: -> (keys, values) {
-            "{#{keys.zip(values).map { |(k, v)| "#{k}:#{v.repr}" }.join(', ')}}"
+            "{#{keys.zip(values).map { |(k, v)| "#{k} #{v.repr}" }.join(', ')}}"
           },
         )
       end

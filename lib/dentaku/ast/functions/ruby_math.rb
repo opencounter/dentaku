@@ -1,5 +1,5 @@
 # import all functions from Ruby's Math module
-require_relative "../function"
+require 'dentaku/ast/function'
 
 Math.methods(false).each do |method|
   arity = Math.method(method).arity

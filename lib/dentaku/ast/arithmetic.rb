@@ -1,6 +1,4 @@
-require_relative './operation'
-require 'bigdecimal'
-require 'bigdecimal/util'
+require_relative 'operation'
 
 module Dentaku
   module AST
@@ -21,10 +19,19 @@ module Dentaku
 
       private
 
-      def cast(value, prefer_integer=true)
-        v = BigDecimal(value, Float::DIG+1)
-        v = v.to_i if prefer_integer && v.frac.zero?
-        v
+      if RUBY_ENGINE == 'opal'
+        def cast(value, *)
+          value
+        end
+      else
+        require 'bigdecimal'
+        require 'bigdecimal/util'
+
+        def cast(value, prefer_integer=true)
+          v = BigDecimal(value, Float::DIG+1)
+          v = v.to_i if prefer_integer && v.frac.zero?
+          v
+        end
       end
     end
 

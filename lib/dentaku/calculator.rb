@@ -1,7 +1,8 @@
-require 'oj'
-require 'zlib'
+require 'oj' unless RUBY_ENGINE == 'opal'
+require 'zlib' unless RUBY_ENGINE == 'opal'
 
 require "dentaku/type/variant"
+require "dentaku/type/error"
 require 'dentaku/type/checker'
 require 'dentaku/type/constraint'
 require 'dentaku/type/reason'
@@ -17,7 +18,7 @@ require 'dentaku'
 require 'dentaku/exceptions'
 require 'dentaku/token'
 require 'dentaku/tokenizer'
-require 'dentaku/dependency_resolver'
+require 'dentaku/dependency_resolver' unless RUBY_ENGINE == 'opal'
 require 'dentaku/parser'
 
 module Dentaku
@@ -159,37 +160,39 @@ module Dentaku
         @dependencies ||= Calculator.current.memory || {}
       end
 
-      def getset
-        raise RuntimeError unless @node
-        keys = node.dependencies
-        node_dependencies = Hash[[keys, dependencies.values_at(*keys)].transpose]
+      unless RUBY_ENGINE == 'opal'
+        def getset
+          raise RuntimeError unless @node
+          keys = node.dependencies
+          node_dependencies = Hash[[keys, dependencies.values_at(*keys)].transpose]
 
-        node_input = node_dependencies.sort.each_with_object({}) do |(key, val), memo|
-          memo[key] = if val.respond_to?(:stored_values)
-            val.stored_values
-          elsif val.is_a?(Array)
-            val.map { |v| v.respond_to?(:stored_values) ? v.stored_values : v }
-          else
-            val
+          node_input = node_dependencies.sort.each_with_object({}) do |(key, val), memo|
+            memo[key] = if val.respond_to?(:stored_values)
+              val.stored_values
+            elsif val.is_a?(Array)
+              val.map { |v| v.respond_to?(:stored_values) ? v.stored_values : v }
+            else
+              val
+            end
           end
-        end
-        json = Oj.dump(node_input)
-        input_checksum = Zlib.crc32(json)
+          json = Oj.dump(node_input)
+          input_checksum = Zlib.crc32(json)
 
-        if target && (target["input_checksum"] == input_checksum) && !target["value"].nil?
-          if target['value'].nil?
-            raise UnboundVariableError.new(target["unsatisfied_identifiers"])
+          if target && (target["input_checksum"] == input_checksum) && !target["value"].nil?
+            if target['value'].nil?
+              raise UnboundVariableError.new(target["unsatisfied_identifiers"])
+            else
+              target["value"]
+            end
           else
-            target["value"]
-          end
-        else
-          target["node_type"] = node.class.to_s
-          target["input_checksum"] = input_checksum
-          target["unsatisfied_identifiers"] = Set.new
-          target["satisfied_identifiers"] = Set.new
-          target.delete("value")
+            target["node_type"] = node.class.to_s
+            target["input_checksum"] = input_checksum
+            target["unsatisfied_identifiers"] = Set.new
+            target["satisfied_identifiers"] = Set.new
+            target.delete("value")
 
-          target["value"] = yield
+            target["value"] = yield
+          end
         end
       end
 

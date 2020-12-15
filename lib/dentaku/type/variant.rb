@@ -56,6 +56,10 @@ module Dentaku
         end
       end
 
+      def to_sexpr
+        [_name, *@_values.map { |v| v.respond_to?(:to_sexpr) ? v.to_sexpr : v }]
+      end
+
       def inspect
         "<#{_variant}.#{_name}(#{@_values.map(&:inspect).join(', ')})>"
       end

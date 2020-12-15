@@ -1,4 +1,4 @@
-require_relative '../function'
+require 'dentaku/ast/function'
 
 Dentaku::AST::Function.register("roundup(:numeric, :numeric) = :numeric", ->(numeric, precision) {
   tens = 10.0**precision

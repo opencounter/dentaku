@@ -1,9 +1,13 @@
-require_relative '../exceptions'
+require 'dentaku/exceptions'
 
 module Dentaku
   module AST
     class Identifier < Node
       attr_reader :identifier
+
+      def serialized_values
+        [identifier]
+      end
 
       def self.valid?(token)
         !Function.registry.keys.include?(token.value)

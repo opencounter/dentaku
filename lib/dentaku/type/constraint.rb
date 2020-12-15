@@ -21,8 +21,8 @@ module Dentaku
         Constraint.new(@lhs, blk.call(@rhs), @reason)
       end
 
-      def &(other_contraint)
-        Constraint.new(@rhs, other_contraint.rhs, Reason.conjunction(self, other_contraint))
+      def &(other_constraint)
+        Constraint.new(@rhs, other_constraint.rhs, Reason.conjunction(self, other_constraint))
       end
 
       def swap
@@ -39,6 +39,19 @@ module Dentaku
 
       def repr
         "#{lhs.repr} = #{rhs.repr}"
+      end
+
+      def repr_with_reason(depth=0)
+        return repr if depth > 5 or @reason.identifier? or @reason.literal?
+        if depth == 0
+          "#{repr}, because: #{@reason.repr(depth)}"
+        else
+          "#{repr} (#{@reason.repr(depth)})"
+        end
+      end
+
+      def to_sexpr
+        [lhs.to_sexpr, rhs.to_sexpr, reason.to_sexpr]
       end
     end
   end

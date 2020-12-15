@@ -12,22 +12,22 @@ module Dentaku
         '/'  => :divide,
         '%'  => :mod,
         '..' => :range
-      }.freeze,
+      },
       grouping: {
         '(' => :open,
         ')' => :close,
         ',' => :comma,
-      }.freeze,
+      },
       dictionary: {
         '{' => :open,
         '}' => :close,
         ',' => :comma,
-      }.freeze,
+      },
       list: {
         '[' => :open,
         ']' => :close,
         ',' => :comma,
-      }.freeze,
+      },
       case: {
         'case' => :open,
         'end' => :close,
@@ -35,7 +35,7 @@ module Dentaku
         'when' => :when,
         'else' => :else,
         '..' => :range,
-      }.freeze,
+      },
       comparator: {
         '<=' => :le,
         '>=' => :ge,
@@ -45,8 +45,8 @@ module Dentaku
         '>'  => :gt,
         '='  => :eq,
         '==' => :eq,
-      }.freeze,
-    }.freeze
+      },
+    }
 
     attr_reader :tokens, :scanner
 
@@ -102,7 +102,7 @@ module Dentaku
         [:comment]
       elsif match numeric
         [:numeric, cast(scanner[0])]
-      elsif match /(?<delim>['"])(?<str>.*?)\k<delim>/
+      elsif match /'(.*?)'/ or match /"(.*?)"/
         [:string, scanner[2]]
       elsif can_negate? && match(/\-/)
         [:operator, :negate]

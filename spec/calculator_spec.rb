@@ -72,11 +72,15 @@ describe Dentaku::Calculator do
     expect(e!('(1+1+1)/3*100')).to eq(100)
   end
 
+  it 'type error', focus: true do
+    e!('if(foo = 10, foo + 1 + true + bar, { x: 1 })', foo: 'hello')
+  end
+
   it 'fails to evaluate unbound statements' do
     unbound = 'if(foo, concat([bar * 1.5], baz), zot)'
 
     expect { e!(unbound) }.to raise_error do |error|
-      expect(error).to be_a Dentaku::Type::Checker::UnboundIdentifiers
+      expect(error).to be_a Dentaku::Type::ErrorSet
       expect(error.message).to match %r(foo:bool)
       expect(error.message).to match %r(bar:numeric)
       expect(error.message).to match %r(baz:\[numeric\])
@@ -89,8 +93,9 @@ describe Dentaku::Calculator do
   end
 
   it 'gives a good error message for an unknown typed missing variable' do
-    expect { e!('foo') }.to raise_error { |e| expect(e.message).to match /foo:abstract/ }
-    expect { e!('concat([], foo)') }.to raise_error { |e| expect(e.message).to match /foo:\[abstract\]/ }
+    expect { e!('foo') }.to raise_error { |e| expect(e.message).to match /foo:unknown-type/ }
+    expect { e!('concat([], foo)') }.to raise_error { |e| expect(e.message).to match /foo:\[unknown-type\]/ }
+    expect { e!('[foo]') }.to raise_error { |e| expect(e.message).to match /foo:unknown-type/ }
   end
 
   it 'rebinds for each evaluation' do
