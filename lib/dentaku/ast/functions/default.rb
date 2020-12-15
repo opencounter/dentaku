@@ -1,4 +1,4 @@
-require_relative '../function'
+require 'dentaku/ast/function'
 
 module Dentaku
   module AST

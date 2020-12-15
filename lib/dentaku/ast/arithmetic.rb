@@ -1,6 +1,6 @@
-require_relative './operation'
 require 'bigdecimal'
 require 'bigdecimal/util'
+require_relative 'operation'
 
 module Dentaku
   module AST

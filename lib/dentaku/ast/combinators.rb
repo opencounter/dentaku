@@ -1,4 +1,4 @@
-require_relative './operation'
+require_relative 'operation'
 
 module Dentaku
   module AST
