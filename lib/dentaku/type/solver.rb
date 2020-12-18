@@ -2,50 +2,6 @@ require 'set'
 
 module Dentaku
   module Type
-    class TypeCheckError < StandardError
-      attr_reader :location
-
-      def initialize(constraint)
-        @constraint = constraint
-        @location = extract_range(@constraint.ast_nodes)
-      end
-
-      def message
-        "Expected #{@constraint.lhs.repr} but got #{@constraint.rhs.repr} #{@constraint.reason.repr}"
-      end
-
-      private
-      def extract_range(causes)
-        return [[0,0], [0,0]] if causes.empty?
-
-        locations = causes.map do |cause|
-          case cause
-          when Array then cause
-          when Token, AST::Node then cause.loc_range
-          end
-        end
-        start_points = locations.map(&:first)
-        end_points = locations.map(&:last)
-        [start_points.sort.first, end_points.sort.last]
-      end
-
-    end
-
-    class TypeCheckErrorSet < StandardError
-      attr_reader :errors
-
-      def initialize(constraints)
-        @constraints = constraints
-        @errors = constraints.map do |constraint|
-          TypeCheckError.new(constraint)
-        end
-      end
-
-      def message
-        @errors.map(&:message).join("\n")
-      end
-    end
-
     class Solver
       def initialize(constraints, options={})
         @constraints = constraints
@@ -75,9 +31,7 @@ module Dentaku
           @solution_set.each { |c| puts "=> #{c.repr}" }
         end
 
-        raise TypeCheckErrorSet.new(@errors) if @errors.any?
-
-        @solution_set
+        [@solution_set, @errors]
       end
 
       private
@@ -156,7 +110,7 @@ module Dentaku
           puts "!> #{constraint.repr}"
         end
 
-        @errors << constraint
+        @errors << TypeMismatch.new(constraint)
       end
     end
   end
