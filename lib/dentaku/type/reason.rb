@@ -52,6 +52,10 @@ module Dentaku
 
         # marks the entire type of the CASE statement
         case_return: [:ast],
+
+        # an external constraint that specifies the expected type
+        # of the whole expression
+        root: [],
       )
 
       def repr(depth=0)
@@ -71,6 +75,7 @@ module Dentaku
           case_else: ->(ast) { "ELSE branch of a CASE statement" },
           case_return: ->(ast) { "the return type of a CASE statement" },
           other: ->(*) { "#{_name}:#{@_values.inspect}" },
+          root: -> { "expected type of the whole expression" },
         )
       end
 

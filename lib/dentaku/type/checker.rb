@@ -43,6 +43,9 @@ module Dentaku
       def check!(ast, options={})
         reset!
         ast.generate_constraints(self)
+        expected_type = options.delete(:expected_type)
+        add_constraint!([:syntax, ast], expected_type, [:root]) if expected_type
+
         solutions = Solver.solve(@constraints, options)
 
         solutions.each do |constraint|
