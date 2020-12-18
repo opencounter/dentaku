@@ -98,7 +98,8 @@ module Dentaku
           case_when_range: ->(ast, *) { [ast] },
           case_else: ->(ast) { [ast] },
           case_return: ->(ast) { [ast] },
-          conjunction: ->(left, right) { right.ast_nodes },
+          root: ->(ast) { [ast] },
+          conjunction: ->(left, right) { left.ast_nodes + right.ast_nodes },
           other: []
         )
       end
