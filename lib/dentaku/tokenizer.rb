@@ -34,7 +34,6 @@ module Dentaku
         'then' => :then,
         'when' => :when,
         'else' => :else,
-        '..' => :range,
       }.freeze,
       comparator: {
         '<=' => :le,
