@@ -33,6 +33,11 @@ module Dentaku
         @solutions.fetch(expr.expression_hash)
       end
 
+      def fetch_ast(ast, &blk)
+        expr = Expression.syntax(ast)
+        fetch(expr, &blk)
+      end
+
       def fetch(expr, &blk)
         blk ||= lambda { raise KeyError }
         key = expr.expression_hash
