@@ -16,31 +16,8 @@ module Dentaku
         arity < 0 ? nil : arity
       end
 
-      # def marshal_dump(*)
-      #   checksum # temp hack to add temp var
-
-      #   instance_variables.inject({}) do |vars, attr|
-      #     vars[attr] = instance_variable_get(attr)
-      #     vars
-      #   end
-      # end
-
       def dependencies(context={})
         []
-      end
-
-      def any_dependencies_true?
-        dependencies.any? do |dep|
-          v, t = context[dep]
-          v && (t != :default)
-        end
-      end
-
-      def any_dependencies_false?
-        dependencies.any? do |dep|
-          v, t = context[dep]
-          !v && !v.nil? && (t != :default)
-        end
       end
 
       def satisfy_existing_dependencies
