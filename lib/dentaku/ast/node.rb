@@ -122,21 +122,31 @@ module Dentaku
       end
 
       def evaluate
-        if cachable?
-          Calculator.current.cache_for(self) do |cache|
-            cache.getset { |tracer| value }
-          end
-        else
-          value
-        end
-      end
+        return value unless cachable?
 
-      def value_with_trace(trace)
-        value
+        Calculator.current.cache_for(self) do |cache|
+          cache.getset { |tracer| value }
+        end
       end
 
       def cachable?
         Calculator.current.cache
+      end
+
+      # [jneen] this method allows us to evaluate a node without
+      # raising UnboundVariableError or logging unbound identifiers.
+      #
+      # the purpose of this is to choose the correct path in AND/OR
+      # expressions, so as to not report missing identifiers in branches
+      # that do not matter to the expression.
+      def partial_evaluate
+        out = Calculator.current.with_partial do
+          evaluate
+        end
+
+        out
+      rescue UnboundVariableError
+        nil
       end
 
       def context

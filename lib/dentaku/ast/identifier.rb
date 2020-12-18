@@ -14,14 +14,12 @@ module Dentaku
       end
 
       def evaluate(&default_blk)
-        if Calculator.current.cache
-          Calculator.current.cache_for(self) do |cache|
-            cache.trace do |tracer|
-              value_with_trace(tracer, &default_blk)
-            end
+        return value unless cachable?
+
+        Calculator.current.cache_for(self) do |cache|
+          cache.trace do |tracer|
+            value_with_trace(tracer, &default_blk)
           end
-        else
-          value
         end
       end
 
