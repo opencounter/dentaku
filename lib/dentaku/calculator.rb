@@ -2,6 +2,7 @@ require 'oj'
 require 'zlib'
 
 require "dentaku/type/variant"
+require "dentaku/type/error"
 require 'dentaku/type/checker'
 require 'dentaku/type/constraint'
 require 'dentaku/type/reason'
