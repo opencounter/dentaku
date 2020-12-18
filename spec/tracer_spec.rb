@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Dentaku::Tracer do
-  it 'traces stuff', focus: true do
+  it 'traces stuff' do
     expr = <<-FORMULA
       CASE fruit
       WHEN 'apple'

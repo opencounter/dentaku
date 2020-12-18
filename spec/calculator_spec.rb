@@ -31,7 +31,7 @@ describe Dentaku::Calculator do
     calculator.evaluate!(ast, input(vars))
   end
 
-  it 'evaluates an expression', focus: true do
+  it 'evaluates an expression' do
     expect(e!('7+3')).to eq(10)
     expect(e!('2 -1')).to eq(1)
     expect(e!('-1 + 2')).to eq(1)

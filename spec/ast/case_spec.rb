@@ -41,7 +41,7 @@ describe Dentaku::AST::Case do
         .to raise_error(Dentaku::ParseError)
     end
 
-    it 'tests each conditional against the switch variable', focus: true do
+    it 'tests each conditional against the switch variable' do
       node = described_class.new(switch, conditional1, conditional2)
       expect(calculator.evaluate!(node, input(fruit: 'banana'))).to eq(2)
     end
