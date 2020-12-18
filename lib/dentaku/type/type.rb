@@ -16,7 +16,10 @@ module Dentaku
         pair: [:left_type, :right_type],
         list: [:member_type],
         dictionary: [:keys, :types],
+
         bound: [:name],
+
+        host: [:name, :arguments],
       )
 
       def repr
@@ -28,6 +31,11 @@ module Dentaku
           },
           bound: ->(var_name) { "%#{var_name}" },
           abstract: -> { '%unknown-type' },
+          host: ->(name, args) {
+            n = "&#{name}"
+            a = args.any? ? "(#{args.map(&:repr)})" : ""
+            "#{n}#{a}"
+          },
           other: -> { ":#{_name}" },
         )
       end
@@ -38,6 +46,7 @@ module Dentaku
           dictionary: ->(keys, types) { Expression.dictionary(keys, types.map(&:to_expr)) },
           bound: ->(var_name) { Expression.make_variable(var_name) },
           abstract: -> { Expression.make_variable('abstract') },
+          host: ->(name, args) { Expression.param(name, args.map(&:to_expr)) },
           other: -> { Expression.concrete(_name) },
         )
       end

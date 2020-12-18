@@ -62,7 +62,7 @@ module Dentaku
             elsif name == :pair && arguments.size == 2
               Type.pair(*arguments.map { |a| a.resolve(reverse_scope) })
             else
-              raise RuntimeError, "Unresolvable type expression #{self.repr}"
+              Type.host(name, arguments.map { |a| a.resolve(reverse_scope) })
             end
           },
           variable: -> (name, uniq) {

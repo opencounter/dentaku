@@ -98,4 +98,50 @@ describe 'Type Checker' do
 
     expect{context.check!(ast)}.not_to raise_error
   end
+
+
+  context 'host types', focus: true do
+    Dentaku::AST::Function.register('entity_from(:entity) = :numeric', ->(v) { v })
+    Dentaku::AST::Function.register('entity_into(:numeric) = :entity', ->(v) { v })
+
+    context 'returning a host type' do
+      ast, checker = process_expression('entity_into(123)')
+
+      it 'typechecks' do
+        checker.check!(ast)
+        expect(ast.type).to be_host
+        expect(ast.type.repr).to match /&entity/
+      end
+    end
+
+    context 'trying to use a host type as a normal type' do
+      ast, checker = process_expression('entity_into(123) + 456')
+
+      it 'does not typecheck' do
+        expect { checker.check!(ast) }.to raise_error(Dentaku::Type::ErrorSet) { |e|
+          expect(e.message).to match /TypeMismatch (:numeric = :entity|:entity = :numeric)/
+        }
+      end
+    end
+
+    context 'retrieving data from the host type with functions' do
+      ast, checker = process_expression('entity_from(entity_into(3)) + 4')
+
+      it 'typechecks' do
+        checker.check!(ast)
+        expect(ast.type).to be_numeric
+      end
+    end
+
+    context 'equality on host types' do
+      ast, checker = process_expression('[entity_into(1), entity_into(2)] == [entity_into(3)]')
+
+      it 'typechecks' do
+        checker.check!(ast)
+        expect(ast.type).to be_bool
+      end
+    end
+
+  end
+
 end
