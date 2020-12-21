@@ -1,8 +1,8 @@
-require_relative './case/case_conditional'
-require_relative './case/case_when'
-require_relative './case/case_then'
-require_relative './case/case_switch_variable'
-require_relative './case/case_else'
+require_relative 'case/case_conditional'
+require_relative 'case/case_when'
+require_relative 'case/case_then'
+require_relative 'case/case_switch_variable'
+require_relative 'case/case_else'
 
 module Dentaku
   module AST

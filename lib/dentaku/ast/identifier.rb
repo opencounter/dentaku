@@ -1,4 +1,4 @@
-require_relative '../exceptions'
+require 'dentaku/exceptions'
 
 module Dentaku
   module AST

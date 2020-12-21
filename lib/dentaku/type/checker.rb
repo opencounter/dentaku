@@ -2,6 +2,7 @@ module Dentaku
   module Type
     class Checker
       class UnboundIdentifier < StandardError
+        attr_reader :identifier
         def initialize(identifier)
           @identifier = identifier
         end
@@ -55,6 +56,7 @@ module Dentaku
       end
     end
 
+    # [jneen] TODO this is unused and speculative, should not have been merged.
     class FunctionChecker < Checker
       attr_reader :scope, :type_spec
       def initialize(type_spec, &resolver)

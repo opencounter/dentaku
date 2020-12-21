@@ -21,8 +21,8 @@ module Dentaku
         Constraint.new(@lhs, blk.call(@rhs), @reason)
       end
 
-      def &(other_contraint)
-        Constraint.new(@rhs, other_contraint.rhs, Reason.conjunction(self, other_contraint))
+      def &(other_constraint)
+        Constraint.new(@rhs, other_constraint.rhs, Reason.conjunction(self, other_constraint))
       end
 
       def swap

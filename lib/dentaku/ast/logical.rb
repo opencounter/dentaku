@@ -1,4 +1,4 @@
-require_relative "./literal"
+require_relative "literal"
 
 module Dentaku
   module AST

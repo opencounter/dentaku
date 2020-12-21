@@ -86,7 +86,8 @@ describe 'Type Checker' do
     ]
   )
 
-  it 'checks functions' do
+  pending 'checks functions' do
+    fail
     func_type = 'c([%a], [%a]) = [%a]'
     func_impl = 'concat(arg:1, arg:2)'
 
@@ -96,17 +97,4 @@ describe 'Type Checker' do
 
     expect{context.check!(ast)}.not_to raise_error
   end
-
-  # it 'fails check for bad function', focus: true do
-  #   func_type = 'c([%a]) = [%a]'
-  #   func_impl = 'concat(arg:1, [1])'
-
-  #   ast = Dentaku::Calculator.new.ast(func_impl)
-
-  #   context = Dentaku::Type::FunctionChecker.new(func_type)
-  #   # binding.pry
-
-
-  #   expect{context.check!(ast, debug: true)}.not_to raise_error()
-  # end
 end
