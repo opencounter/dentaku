@@ -13,6 +13,7 @@ describe Dentaku::Calculator do
       when true, false then ':bool'
       when Range       then ':range'
       when String      then ':string'
+      when Missing     then val.type
       else raise "unknown value type: #{val.class}"
       end
     end
