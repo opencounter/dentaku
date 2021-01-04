@@ -1,5 +1,9 @@
 module Dentaku
   module Type
+    def self.build
+      yield Type
+    end
+
     class Type < Variant
       variants(
         bool: [],
@@ -23,7 +27,18 @@ module Dentaku
             "{ #{content} }"
           },
           bound: ->(var_name) { "%#{var_name}" },
-          other: -> { _name }
+          abstract: -> { '%unknown-type' },
+          other: -> { ":#{_name}" },
+        )
+      end
+
+      def to_expr
+        cases(
+          list: ->(el_type) { Expression.param(:list, [el_type.to_expr]) },
+          dictionary: ->(keys, types) { Expression.dictionary(keys, types.map(&:to_expr)) },
+          bound: ->(var_name) { Expression.make_variable(var_name) },
+          abstract: -> { Expression.make_variable('abstract') },
+          other: -> { Expression.concrete(_name) },
         )
       end
 

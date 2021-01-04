@@ -1,17 +1,6 @@
 module Dentaku
   module Type
     class Checker
-      class UnboundIdentifier < StandardError
-        attr_reader :identifier
-        def initialize(identifier)
-          @identifier = identifier
-        end
-
-        def message
-          "UnboundIdentifier (#{@identifier})"
-        end
-      end
-
       attr_reader :constraints
 
       def initialize(&resolver)
@@ -20,11 +9,17 @@ module Dentaku
 
       def reset!
         @constraints = []
+        @unbound = []
       end
 
       def resolve_identifier(identifier)
         type = @resolver.call(identifier)
-        type or raise UnboundIdentifier.new(identifier)
+
+        if type.nil?
+          @unbound << identifier
+          return Expression.make_variable("unbound-#{identifier.identifier}")
+        end
+
         Expression.from_sexpr(type)
       end
 
@@ -43,13 +38,26 @@ module Dentaku
       def check!(ast, options={})
         reset!
         ast.generate_constraints(self)
-        solutions = Solver.solve(@constraints, options)
 
+        expected_type = options.delete(:expected_type)
+        add_constraint!([:syntax, ast], expected_type, [:root, ast]) if expected_type
+
+        solutions, errors = Solver.solve(@constraints, options)
+
+        errors += @unbound.map { |u| UnboundIdentifier.new(u, solutions) }
+
+        # set the "type" attribute on all of the nodes, *even if there
+        # were type errors*. worst case sometimes this attribute will
+        # be abstract, or nil (if it isn't in the solution set at all).
         solutions.each do |constraint|
           constraint.lhs.cases(
             syntax: -> (ast) { ast.type = constraint.rhs.resolve },
             other: :pass
           )
+        end
+
+        if errors.any?
+          raise ErrorSet.new(errors)
         end
 
         solutions

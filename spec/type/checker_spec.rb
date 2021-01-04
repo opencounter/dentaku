@@ -36,7 +36,8 @@ describe 'Type Checker' do
           it "fails check" do
             expect {
               checker.check!(ast)
-            }.to raise_error(Dentaku::Type::TypeCheckErrorSet)
+            }.to raise_error(Dentaku::Type::ErrorSet) do |e|
+            end
           end
         end
       end

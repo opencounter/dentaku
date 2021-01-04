@@ -5,6 +5,10 @@ module Dentaku
     class Identifier < Node
       attr_reader :identifier
 
+      def serialized_values
+        [identifier]
+      end
+
       def self.valid?(token)
         !Function.registry.keys.include?(token.value)
       end

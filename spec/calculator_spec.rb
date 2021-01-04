@@ -70,15 +70,35 @@ describe Dentaku::Calculator do
     expect(e!('(1+1+1)/3*100')).to eq(100)
   end
 
-  it 'fails to evaluate unbound statements' do
-    unbound = 'foo * 1.5'
-    expect { e!(unbound) }.to raise_error do |error|
-      expect(error).to be_a Dentaku::Type::Checker::UnboundIdentifier
-      expect(error.identifier.inspect).to eq '<AST foo>'
+  it 'gives reasonable type errors' do
+    expect { e!('if(foo = 10, foo + 1 + true + bar, { x: 1 })', foo: 'hello') }
+      .to raise_error do |e|
+      expect(e).to be_a Dentaku::Type::ErrorSet
+      expect(e.message).to match /TypeMismatch/
+      expect(e.message).to match /UnboundIdentifier `bar' of type :numeric/
     end
+  end
+
+  it 'fails to evaluate unbound statements' do
+    unbound = 'if(foo, concat([bar * 1.5], baz), zot)'
+
+    expect { e!(unbound) }.to raise_error do |error|
+      expect(error).to be_a Dentaku::Type::ErrorSet
+      expect(error.message).to match %r(`foo' of type :bool)
+      expect(error.message).to match %r(`bar' of type :numeric)
+      expect(error.message).to match %r(`baz' of type \[:numeric\])
+      expect(error.message).to match %r(`zot' of type \[:numeric\])
+    end
+
     expect(e(unbound)).to be_nil
     expect(e(unbound) { :bar }).to eq :bar
     expect(e(unbound) { |e| e }).to eq unbound
+  end
+
+  it 'gives a good error message for an unknown typed missing variable' do
+    expect { e!('foo') }.to raise_error { |e| expect(e.message).to match /`foo' of type %unknown-type/ }
+    expect { e!('concat([], foo)') }.to raise_error { |e| expect(e.message).to match /`foo' of type \[%unknown-type\]/ }
+    expect { e!('[foo]') }.to raise_error { |e| expect(e.message).to match /`foo' of type %unknown-type/ }
   end
 
   it 'rebinds for each evaluation' do
