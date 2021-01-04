@@ -8,11 +8,7 @@ module Dentaku
   module AST
     class Case < Node
       def initialize(*nodes)
-        @switch = nodes.shift
-
-        unless @switch.is_a?(AST::CaseSwitchVariable)
-          raise ParseError.new("Case missing switch variable, got #{@switch}", @switch)
-        end
+        @switch = nodes.shift if nodes.first.is_a?(AST::CaseSwitchVariable)
 
         @conditions = nodes
 
@@ -20,7 +16,7 @@ module Dentaku
 
         @conditions.each do |condition|
           unless condition.is_a?(AST::CaseConditional)
-            raise ParseError.new("#{condition} is not a CaseConditional", condition)
+            raise ParseError.new("`#{condition.repr rescue condition.inspect}' is not a valid CASE condition", condition)
           end
         end
       end
@@ -30,7 +26,8 @@ module Dentaku
       end
 
       def value
-        switch_value = @switch.evaluate
+        switch_value = @switch.nil? ? true : @switch.evaluate
+
         @conditions.each do |condition|
           if condition.when.evaluate === switch_value
             return condition.then.evaluate
@@ -53,12 +50,13 @@ module Dentaku
 
       def generate_constraints(context)
         var = Type::Expression.make_variable('case')
-        @switch.node.generate_constraints(context)
+        @switch && @switch.node.generate_constraints(context)
 
         @conditions.each_with_index do |condition, index|
           condition.when.node.generate_constraints(context)
-          case condition.when.node
-          when AST::Range
+          if @switch.nil?
+            context.add_constraint!([:syntax, condition.when.node], [:concrete, :bool], [:case_when, self, index])
+          elsif condition.when.node.is_a?(AST::Range)
             context.add_constraint!([:syntax, @switch.node], [:concrete, :numeric], [:case_when_range, self, index])
           else
             context.add_constraint!([:syntax, @switch.node], [:syntax, condition.when.node], [:case_when, self, index])
