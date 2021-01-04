@@ -30,14 +30,15 @@ describe 'Type Checker' do
   def self.should_not_type_check(*expressions)
     describe "checking" do
       expressions.each do |expression|
+        error_match = expression.is_a?(Array) ? expression[2..] : []
+
         ast, checker = process_expression(expression)
 
         describe "expression(#{expression})" do
           it "fails check" do
             expect {
               checker.check!(ast)
-            }.to raise_error(Dentaku::Type::ErrorSet) do |e|
-            end
+            }.to raise_error(Dentaku::Type::ErrorSet, *error_match)
           end
         end
       end
