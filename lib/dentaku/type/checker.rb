@@ -40,7 +40,7 @@ module Dentaku
         ast.generate_constraints(self)
 
         expected_type = options.delete(:expected_type)
-        add_constraint!([:syntax, ast], expected_type, [:root]) if expected_type
+        add_constraint!([:syntax, ast], expected_type, [:root, ast]) if expected_type
 
         solutions, errors = Solver.solve(@constraints, options)
 
