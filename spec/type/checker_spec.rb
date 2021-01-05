@@ -61,6 +61,21 @@ describe 'Type Checker' do
     ]
   )
 
+  context 'expected return type' do
+    ast, checker = process_expression('if(true, 1, 2)')
+
+    it 'validates a correct return type' do
+      checker.check!(ast, expected_type: Dentaku::Type.build(&:numeric))
+    end
+
+    it 'invalidates an incorrect return type' do
+      expect {
+        checker.check!(ast, expected_type: Dentaku::Type.build(&:bool))
+      }.to raise_error(Dentaku::Type::ErrorSet,
+                       /:numeric = :bool|:bool = :numeric/)
+    end
+  end
+
   should_not_type_check(
     "1 + 'foo'",
     "[1,2,'3']",
