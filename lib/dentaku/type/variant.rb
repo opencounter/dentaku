@@ -7,7 +7,12 @@ module Dentaku
 
           anon_klass = Class.new(parent_class) do
             define_method(:initialize) do |values|
-              raise ArgumentError unless values.length == members.length
+              unless values.length == members.length
+                raise ArgumentError.new(
+                  "#{parent_class}.#{name} expects #{members.length} values, got #{values.length}: #{values.inspect}"
+                )
+              end
+
               members.zip(values) do |name, value|
                 instance_variable_set("@#{name}", value)
               end
