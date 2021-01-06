@@ -33,8 +33,16 @@ module Dentaku
         normalize_name(type_spec.name)
       end
 
+      def self.arity
+        raise "abstract"
+      end
+
       def function_name
         self.class.function_name
+      end
+
+      def arity
+        self.class.arity
       end
 
       def self.type_spec
