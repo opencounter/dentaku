@@ -1,6 +1,7 @@
 %YAML 1.2
 ---
 # See http://www.sublimetext.com/docs/3/syntax.html
+name: Dentaku (OpenCounter)
 file_extensions:
   - dt
 scope: source.dentaku
