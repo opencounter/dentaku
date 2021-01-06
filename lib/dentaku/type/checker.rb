@@ -10,6 +10,7 @@ module Dentaku
       def reset!
         @constraints = []
         @unbound = []
+        @undef_functions = []
       end
 
       def resolve_identifier(identifier)
@@ -21,6 +22,10 @@ module Dentaku
         end
 
         Expression.from_sexpr(type)
+      end
+
+      def undefined_function!(ast)
+        @undef_functions << ast
       end
 
       def add_constraint!(lhs, rhs, reason)
@@ -44,7 +49,8 @@ module Dentaku
 
         solutions, errors = Solver.solve(@constraints, options)
 
-        errors += @unbound.map { |u| UnboundIdentifier.new(u, solutions) }
+        errors += @unbound.map { |u| ::Dentaku::Type::UnboundIdentifier.new(u, solutions) }
+        errors += @undef_functions.map { |f| ::Dentaku::Type::UndefinedFunction.new(f, solutions) }
 
         # set the "type" attribute on all of the nodes, *even if there
         # were type errors*. worst case sometimes this attribute will

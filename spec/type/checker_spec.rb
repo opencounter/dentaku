@@ -102,6 +102,17 @@ describe 'Type Checker' do
     ]
   )
 
+  context 'undefined functions' do
+    ast, checker = process_expression('foo([1], "2", true)')
+
+    it 'fails nicely' do
+      expect { checker.check!(ast, expected_type: ':numeric') }
+        .to raise_error(Dentaku::Type::ErrorSet,
+                        /UndefinedFunction foo[(]\[:numeric\], :string, :bool[)] = :numeric/)
+
+    end
+  end
+
   pending 'checks functions' do
     fail
     func_type = 'c([%a], [%a]) = [%a]'

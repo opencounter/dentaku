@@ -26,23 +26,27 @@ module Dentaku
       end
 
       def self.get(name)
-        registry.fetch(normalize_name(name)) { fail "Undefined function #{ name } "}
+        registry.fetch(normalize_name(name)) { UndefinedFunction.named(name) }
       end
 
       def self.function_name
         normalize_name(type_spec.name)
       end
 
-      def self.arity
+      def self.type_syntax
         raise "abstract"
       end
 
-      def function_name
-        self.class.function_name
+      def self.arity
+        type_spec.arity
       end
 
       def arity
         self.class.arity
+      end
+
+      def function_name
+        self.class.function_name
       end
 
       def self.type_spec
@@ -59,7 +63,6 @@ module Dentaku
           singleton_class.class_eval do
             define_method(:type_syntax) { type_syntax }
             define_method(:implementation) { implementation }
-            define_method(:arity) { type_spec.arity }
             define_method(:inspect) { type_syntax }
           end
         end

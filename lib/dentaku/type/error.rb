@@ -32,7 +32,7 @@ module Dentaku
       end
 
       def unbound_type
-        @solution.fetch(Expression.syntax(@identifier)) { Type.abstract }.resolve
+        @solution.resolved_type_of(@identifier)
       end
 
       def message
@@ -40,7 +40,34 @@ module Dentaku
       end
 
       def additional_json
-        { identifier: identifier, expected_type: unbound_type }
+        { type: 'UnboundIdentifier',
+          identifier: identifier,
+          expected_type: unbound_type }
+      end
+    end
+
+    class UndefinedFunction < Error
+      attr_reader :ast, :type_solution
+      def initialize(ast, type_solution)
+        @ast = ast
+        @type_solution = type_solution
+      end
+
+      def locations
+        [@ast.loc_range]
+      end
+
+      def return_type
+        @type_solution.resolved_type_of(@ast)
+      end
+
+      def arg_types
+        @ast.args.map(&@type_solution.method(:resolved_type_of))
+      end
+
+      def message
+        args_repr = arg_types.map(&:repr).join(', ')
+        "UndefinedFunction #{ast.function_name}(#{args_repr}) = #{return_type.repr}"
       end
     end
 
