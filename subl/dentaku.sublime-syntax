@@ -1,0 +1,63 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+file_extensions:
+  - dt
+scope: source.dentaku
+
+contexts:
+  main:
+    # The main context is the initial starting point of our syntax.
+    # Include other contexts from here (or specify them directly).
+    - include: comments
+    - include: punc
+    - include: keywords
+    - include: numbers
+    - include: names
+    - include: strings
+
+  punc:
+    - match: '[\[\]\{\}\(\),]+'
+      scope: punctuation.separator.dentaku
+    - match: '[=<>^%*/+-]+|!='
+      scope: keyword.operator.dentaku
+    - match: '[.][.]'
+      scope: keyword.operator.dentaku
+
+  keywords:
+    - match: '(?i)\b(case|when|then|else|end|and|or)\b'
+      scope: keyword.control.dentaku
+    - match: '(?i)\b(true|false|missing)\b'
+      scope: constant.language.dentaku
+
+
+  numbers:
+    - match: '\b(-)?[0-9]+(.[0-9]+)?\b'
+      scope: constant.numeric.dentaku
+
+  names:
+    # dict keys
+    - match: '[[:alnum:]_]+:(?![[:alnum:]_])'
+      scope: variable.other.member.dentaku
+
+    # functions
+    - match: '[[:alnum:]_]+(?=[(])'
+      scope: variable.function.dentaku
+
+    # parameterized names
+    - match: '[[:alnum:]_]+:[[:alnum:]_:]*[[:alnum:]]'
+      scope: variable.parameter.dentaku
+
+    # other names
+    - match: '[[:alnum:]_]+'
+      scope: variable.other.dentaku
+
+  strings:
+    - match: '".*?"'
+      scope: string.quoted.double.dentaku
+    - match: "'.*?'"
+      scope: string.quoted.single.dentaku
+
+  comments:
+    - match: '/[*].*?[*]/'
+      scope: comment.block.dentaku
