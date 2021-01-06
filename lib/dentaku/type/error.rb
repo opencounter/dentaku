@@ -20,33 +20,7 @@ module Dentaku
       end
     end
 
-    class UnboundIdentifier < Error
-      attr_reader :identifier
-      def initialize(ident, type_solution)
-        @identifier = ident
-        @solution = type_solution
-      end
-
-      def locations
-        [@identifier.loc_range]
-      end
-
-      def unbound_type
-        @solution.resolved_type_of(@identifier)
-      end
-
-      def message
-        "UnboundIdentifier `#{identifier.repr}' of type #{unbound_type.repr}"
-      end
-
-      def additional_json
-        { type: 'UnboundIdentifier',
-          identifier: identifier,
-          expected_type: unbound_type }
-      end
-    end
-
-    class UndefinedFunction < Error
+    class InvalidAST < Error
       attr_reader :ast, :type_solution
       def initialize(ast, type_solution)
         @ast = ast
@@ -57,17 +31,49 @@ module Dentaku
         [@ast.loc_range]
       end
 
-      def return_type
-        @type_solution.resolved_type_of(@ast)
+      def type
+        @type ||= type_solution.resolved_type_of(ast)
       end
 
+      def additional_json
+        { ast: @ast,
+          type: type }
+      end
+    end
+
+    class UnboundIdentifier < InvalidAST
+      def message
+        "UnboundIdentifier `#{ast.repr}' of type #{type.repr}"
+      end
+    end
+
+    class UndefinedFunction < InvalidAST
       def arg_types
         @ast.args.map(&@type_solution.method(:resolved_type_of))
       end
 
       def message
         args_repr = arg_types.map(&:repr).join(', ')
-        "UndefinedFunction #{ast.function_name}(#{args_repr}) = #{return_type.repr}"
+        "UndefinedFunction #{ast.function_name}(#{args_repr}) = #{type.repr}"
+      end
+    end
+
+    class FunctionAsIdentifier < InvalidAST
+      def message
+        "FunctionAsIdentifier `#{ast.repr}' is a function and must be called with parentheses"
+      end
+    end
+
+    class WrongNumberOfArguments < InvalidAST
+      def message
+        "WrongNumberOfArguments for #{ast.function_name}(...): expected #{ast.arity}, got #{ast.args.size}"
+      end
+
+      def additional_json
+        super.merge(
+          expected: ast.arity,
+          got: ast.args.size
+        )
       end
     end
 

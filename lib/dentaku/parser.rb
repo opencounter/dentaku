@@ -60,17 +60,25 @@ module Dentaku
       consume(end_token) while check_op(AST::Operation)
     end
 
+    def check_arity(operator_class, args, begin_token, end_token)
+      # functions do their own arity checking at typecheck time
+      return if operator_class <= AST::Function
+
+      return unless operator_class.arity
+      return if args.length == operator_class.arity && args.none?(&:nil?)
+
+      raise ParseError.new(
+        "Wrong number of args for #{operator_class.inspect} expected #{operator_class.arity}, got #{args.compact.length}",
+        begin_token, end_token
+      )
+    end
+
     def consume(end_token, count=nil)
       operator_class, begin_token = operations.pop
 
       args = get_args(count || operator_class.arity || 2)
 
-      if operator_class.arity && (args.length != operator_class.arity || args.any?(&:nil?))
-        raise ParseError.new(
-          "Wrong number of args for #{operator_class.inspect} expected #{operator_class.arity}, got #{args.compact.length}",
-          begin_token, end_token
-        )
-      end
+      check_arity(operator_class, args, begin_token, end_token)
 
       operator = operator_class.new(*args)
       operator.begin_token = begin_token
@@ -124,7 +132,6 @@ module Dentaku
           push_output(AST::String, token)
 
         when :identifier
-          raise ParseError.new("Invalid use of function #{token}", token) unless AST::Identifier.valid?(token)
           push_output(AST::Identifier, token)
 
         when :key

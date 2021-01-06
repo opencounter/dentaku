@@ -113,6 +113,16 @@ describe 'Type Checker' do
     end
   end
 
+  context 'wrong number of arguments', :focus do
+    ast, checker = process_expression('min(1, 2)')
+
+    it 'fails nicely' do
+      expect { checker.check!(ast) }
+        .to raise_error(Dentaku::Type::ErrorSet,
+                        /WrongNumberOfArguments for min[(][.][.][.][)]: expected 1, got 2/)
+    end
+  end
+
   pending 'checks functions' do
     fail
     func_type = 'c([%a], [%a]) = [%a]'

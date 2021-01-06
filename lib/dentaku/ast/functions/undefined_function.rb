@@ -61,7 +61,7 @@ module Dentaku
         # importantly, though, we allow the checker to continue checking the
         # rest of the expression to find any other type or variable errors that
         # may exist.
-        context.undefined_function!(self)
+        context.invalid_ast!(Type::UndefinedFunction, self)
 
         # we do want to check the arguments though, so let's continue to recurse
         # down the tree.
