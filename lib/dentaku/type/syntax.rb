@@ -161,13 +161,13 @@ module Dentaku
             expect!(:RBRACK)
             Expression.param(:list, [list_type])
           elsif check!(:LCURLY)
-            parse_dictionary
+            parse_struct
           else
             raise "invalid type expression starting with #{@head.inspect}"
           end
         end
 
-        def parse_dictionary
+        def parse_struct
           kvs = []
           until check!(:RCURLY)
             kvs << parse_kv
@@ -175,7 +175,7 @@ module Dentaku
 
           keys, types = kvs.transpose
 
-          Expression.dictionary(keys, types)
+          Expression.struct(keys, types)
         end
 
         def parse_kv
@@ -183,12 +183,6 @@ module Dentaku
           val = parse_type_inner
 
           [key, val]
-        end
-
-        def valid_dictionary?(keys, types)
-          return false unless keys.length == types.length
-          return false unless keys.all? { |k| k.is_a?(Symbol) }
-          return true
         end
 
         def parse_types(expected_end)

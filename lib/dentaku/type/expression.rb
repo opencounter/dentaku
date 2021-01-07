@@ -4,7 +4,7 @@ module Dentaku
       variants(
         syntax: [:ast],
         param: [:name, :arguments],
-        dictionary: [:keys, :types],
+        struct: [:keys, :types],
         variable: [:name, :uniq],
         var: [:name],
       )
@@ -37,8 +37,8 @@ module Dentaku
           param: ->(name, arguments) {
             Expression.param(name, arguments.map(&blk))
           },
-          dictionary: ->(keys, types) {
-            Expression.dictionary(keys, types.map(&blk))
+          struct: ->(keys, types) {
+            Expression.struct(keys, types.map(&blk))
           },
           other: self
         )
@@ -63,8 +63,8 @@ module Dentaku
             next Type.abstract unless var_name
             Type.bound(var_name)
           },
-          dictionary: -> (keys, types) {
-            Type.dictionary(keys, types.map { |t| t.resolve(reverse_scope) })
+          struct: -> (keys, types) {
+            Type.struct(keys, types.map { |t| t.resolve(reverse_scope) })
           },
           other: ->() {
             Type.abstract
@@ -110,7 +110,7 @@ module Dentaku
           },
           variable: ->(name, uniq) { "%#{name}#{uniq}" },
           var: -> (name) { "%%#{name}" },
-          dictionary: -> (keys, values) {
+          struct: -> (keys, values) {
             "{#{keys.zip(values).map { |(k, v)| "#{k}: #{v.repr}" }.join(', ')}}"
           },
         )

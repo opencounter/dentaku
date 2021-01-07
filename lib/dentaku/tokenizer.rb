@@ -6,7 +6,7 @@ module Dentaku
     NAMES = {
       operator: { pow: '^', add: '+', subtract: '-', multiply: '*', divide: '/', mod: '%' }.invert,
       grouping: { open: '(', close: ')', comma: ',' }.invert,
-      dictionary: { open: '{', close: '}', comma: ',' }.invert,
+      struct: { open: '{', close: '}', comma: ',' }.invert,
       list: { open: '[', close: ']', comma: ',' }.invert,
       case: { open: 'case', close: 'end', then: 'then', when: 'when', else: 'else' }.invert,
       comparator: {
@@ -82,7 +82,7 @@ module Dentaku
       elsif match /\(|\)|,(?=.*\))/m
         [:grouping, NAMES[:grouping][scanner[0]]]
       elsif match /\{|\}|,(?=.*\})/
-        [:dictionary, NAMES[:dictionary][scanner[0]]]
+        [:struct, NAMES[:struct][scanner[0]]]
       elsif match /\[|\]|,(?=.*\])/
         [:list, NAMES[:list][scanner[0]]]
       elsif match /(case|end|then|when|else)\b/i
