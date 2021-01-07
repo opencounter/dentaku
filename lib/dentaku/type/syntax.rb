@@ -162,28 +162,32 @@ module Dentaku
             Expression.param(:list, [list_type])
           elsif check!(:LCURLY)
             parse_dictionary
-          elsif key = check_val!(:KEY)
-            Expression.param(:key, key)
           else
             raise "invalid type expression starting with #{@head.inspect}"
           end
         end
 
         def parse_dictionary
-          args = []
+          kvs = []
           until check!(:RCURLY)
-            args << parse_type_inner
+            kvs << parse_kv
           end
-          keys, types = args.partition.each_with_index{ |_, i| i.even? }
-          unless valid_dictionary?(keys, types)
-            raise "invalid dictionary expression"
-          end
-          Expression.dictionary(keys.map(&:arguments), types)
+
+          keys, types = kvs.transpose
+
+          Expression.dictionary(keys, types)
+        end
+
+        def parse_kv
+          key = expect!(:KEY)
+          val = parse_type_inner
+
+          [key, val]
         end
 
         def valid_dictionary?(keys, types)
           return false unless keys.length == types.length
-          return false unless keys.all?(&:param?)
+          return false unless keys.all? { |k| k.is_a?(Symbol) }
           return true
         end
 
