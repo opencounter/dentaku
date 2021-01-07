@@ -6,39 +6,30 @@ module Dentaku
 
     class Type < Variant
       variants(
-        bool: [],
-        numeric: [],
-        string: [],
-        range: [],
-        date: [],
-        abstract: [],
-
-        pair: [:left_type, :right_type],
-        list: [:member_type],
+        declared: [:declared],
         dictionary: [:keys, :types],
+        abstract: [],
         bound: [:name],
       )
 
       def repr
         cases(
-          list: ->(member_type) { "[#{member_type.repr}]" },
+          declared: ->(decl) { decl.repr },
           dictionary: ->(keys, types) {
             content = keys.zip(types).map { |(key, type)| "#{key}: #{type.repr}" }.join(', ')
             "{ #{content} }"
           },
           bound: ->(var_name) { "%#{var_name}" },
           abstract: -> { '%unknown-type' },
-          other: -> { ":#{_name}" },
         )
       end
 
       def to_expr
         cases(
-          list: ->(el_type) { Expression.param(:list, [el_type.to_expr]) },
+          declared: ->(decl) { Expression.param(decl.type_name, decl.args.map(&:to_expr)) },
           dictionary: ->(keys, types) { Expression.dictionary(keys, types.map(&:to_expr)) },
           bound: ->(var_name) { Expression.make_variable(var_name) },
           abstract: -> { Expression.make_variable('abstract') },
-          other: -> { Expression.concrete(_name) },
         )
       end
 

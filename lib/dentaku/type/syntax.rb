@@ -152,7 +152,7 @@ module Dentaku
           elsif (param_name = check_val!(:PARAM))
             if check!(:LPAREN)
               member_types = parse_types(:RPAREN)
-              Expression.param(param_name.to_sym, member_types)
+              Expression.make_param(param_name.to_sym, member_types)
             else
               Expression.concrete(param_name.to_sym)
             end

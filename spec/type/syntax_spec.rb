@@ -67,4 +67,10 @@ describe Dentaku::Type::Syntax do
     expect(expr.types[2].name).to eql(:list)
     expect(expr.types[2].arguments[0].name).to eql(:numeric)
   end
+
+  it 'raises an error un undeclared types' do
+    type_syntax = ':foo(%a)'
+    expect { Dentaku::Type::Syntax.parse_type(type_syntax) }
+      .to raise_error %r(undeclared param type :foo/1)
+  end
 end
