@@ -248,7 +248,8 @@ module Dentaku
 
           when :close
             consume_infix(last_token)
-            consume(token, arities.pop + 2)
+            is_empty = last_token.is?(:struct) && last_token.value == :open
+            consume(token, is_empty ? 0 : arities.pop + 2)
 
           when :comma
             arities[-1] += 2
