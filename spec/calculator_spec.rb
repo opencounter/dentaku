@@ -57,6 +57,8 @@ describe Dentaku::Calculator do
     expect(e!('(((695759/735000)^(1/(1981-1991)))-1)*1000').round(4)).to eq(5.5018)
     expect(e!('0.253/0.253')).to eq(1)
     expect(e!('0.253/d', d: 0.253)).to eq(1)
+    expect(e!("// this is a comment\n35")).to eq(35)
+    expect(e!("36\n// this is a comment")).to eq(36)
   end
 
   describe 'dependencies' do
