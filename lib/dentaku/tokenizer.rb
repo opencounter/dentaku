@@ -79,11 +79,11 @@ module Dentaku
       elsif match /,/m
         raise ParseError.new("comma found outside of group", location(scanner)) unless parent_category
         [parent_category, NAMES[parent_category][scanner[0]]]
-      elsif match /[(]|[)]|,(?=[^}\])]*[)])/m
+      elsif match /[(]|[)]/m
         [:grouping, NAMES[:grouping][scanner[0]]]
-      elsif match /[{]|[}]|,(?=[^}\])]*[}])/
+      elsif match /[{]|[}]/
         [:struct, NAMES[:struct][scanner[0]]]
-      elsif match /\[|\]|,(?=[^}\])]*\])/
+      elsif match /\[|\]/
         [:list, NAMES[:list][scanner[0]]]
       elsif match /(case|end|then|when|else)\b/i
         [:case, NAMES[:case][scanner[1].downcase]]
