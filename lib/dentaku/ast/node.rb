@@ -16,31 +16,8 @@ module Dentaku
         arity < 0 ? nil : arity
       end
 
-      # def marshal_dump(*)
-      #   checksum # temp hack to add temp var
-
-      #   instance_variables.inject({}) do |vars, attr|
-      #     vars[attr] = instance_variable_get(attr)
-      #     vars
-      #   end
-      # end
-
       def dependencies(context={})
         []
-      end
-
-      def any_dependencies_true?
-        dependencies.any? do |dep|
-          v, t = context[dep]
-          v && (t != :default)
-        end
-      end
-
-      def any_dependencies_false?
-        dependencies.any? do |dep|
-          v, t = context[dep]
-          !v && !v.nil? && (t != :default)
-        end
       end
 
       def satisfy_existing_dependencies
@@ -130,21 +107,31 @@ module Dentaku
       end
 
       def evaluate
-        if cachable?
-          Calculator.current.cache_for(self) do |cache|
-            cache.getset { |tracer| value }
-          end
-        else
-          value
-        end
-      end
+        return value unless cachable?
 
-      def value_with_trace(trace)
-        value
+        Calculator.current.cache_for(self) do |cache|
+          cache.getset { |tracer| value }
+        end
       end
 
       def cachable?
         Calculator.current.cache
+      end
+
+      # [jneen] this method allows us to evaluate a node without
+      # raising UnboundVariableError or logging unbound identifiers.
+      #
+      # the purpose of this is to choose the correct path in AND/OR
+      # expressions, so as to not report missing identifiers in branches
+      # that do not matter to the expression.
+      def partial_evaluate
+        out = Calculator.current.with_partial do
+          evaluate
+        end
+
+        out
+      rescue UnboundVariableError
+        nil
       end
 
       def context
