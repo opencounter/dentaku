@@ -179,8 +179,8 @@ describe Dentaku::Calculator do
     end
   end
 
-  describe 'dictionary' do
-    it 'handles dictionary' do
+  describe 'struct' do
+    it 'handles struct' do
       result = e!('{code: field:code, value: val*10}', 'field:code': '23', val: 10)
       expect(result[:code]).to eq('23')
       expect(result[:value]).to eq(100)

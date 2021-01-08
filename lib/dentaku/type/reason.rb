@@ -27,8 +27,8 @@ module Dentaku
         destructure: [:constraint, :index],
 
 
-        # value in a dictionary
-        dictionary_key: [:ast, :key],
+        # value in a struct
+        struct_key: [:ast, :key],
 
         # unused (?)
         # definition_arg: [:type_spec, :scope, :index],
@@ -68,7 +68,7 @@ module Dentaku
           identifier: ->(ast) { "the type of `#{ast.repr}'" },
           list_member: ->(ast) { "elements of #{ast.repr} must all be the same type" },
           destructure: ->(constraint, index) { "inferred from #{constraint.repr}" },
-          dictionary_key: ->(ast, key) { "known type at #{key} in a dictionary" },
+          struct_key: ->(ast, key) { "known type at #{key} in a struct" },
           case_when: ->(ast, index) { "WHEN branch ##{index} of a CASE statement" },
           case_then: ->(ast, index) { "THEN branch ##{index} of a CASE statement" },
           case_when_range: ->(ast, index) { "numeric CASE statement using ranges" },
@@ -91,7 +91,7 @@ module Dentaku
           operator: ->(ast, *) { [ast] },
           identifier: ->(ast) { [ast] },
           destructure: ->(constraint, *) { constraint.ast_nodes },
-          dictionary_key: ->(ast, *) { [ast] },
+          struct_key: ->(ast, *) { [ast] },
           list_member: ->(ast, *) { [ast] },
           case_when: ->(ast, *) { [ast] },
           case_then: ->(ast, *) { [ast] },

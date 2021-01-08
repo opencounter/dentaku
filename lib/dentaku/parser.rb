@@ -240,10 +240,10 @@ module Dentaku
             raise ParseError.new("Unknown grouping token #{ token.value }", token)
           end
 
-        when :dictionary
+        when :struct
           case token.value
           when :open
-              operations.push [AST::Dictionary, token]
+              operations.push [AST::Struct, token]
               arities.push 0
 
           when :close
@@ -254,7 +254,7 @@ module Dentaku
             arities[-1] += 2
             consume_infix(last_token)
           else
-            raise ParseError.new("Unknown dictionary token #{ token.value }", token)
+            raise ParseError.new("Unknown struct token #{ token.value }", token)
           end
 
         when :list
