@@ -182,11 +182,13 @@ module Dentaku
               arities[-1] += 1
             elsif check_op(AST::Case)
               if last_token.category == :case
-                raise ParseError.new("Case missing switch variable", last_token)
+                # [jneen] there is no switch variable, so the arity of the Case node is 1 less than usual.
+                # This parser... could be better.
+                arities[-1] -= 1
+              else
+                operations.push([AST::CaseSwitchVariable, operations.last[1]])
+                consume(last_token)
               end
-
-              operations.push([AST::CaseSwitchVariable, operations.last[1]])
-              consume(last_token)
             end
 
             operations.push([AST::CaseWhen, token])

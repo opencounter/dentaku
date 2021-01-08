@@ -13,6 +13,7 @@ describe Dentaku::Calculator do
       when true, false then ':bool'
       when Range       then ':range'
       when String      then ':string'
+      when Missing     then val.type
       else raise "unknown value type: #{val.class}"
       end
     end
@@ -313,6 +314,24 @@ describe Dentaku::Calculator do
         quantity: 2, fruit: 'apple'
       )
       expect(value).to eq(3)
+    end
+
+    it 'handles empty case statements' do
+      formula = <<-FORMULA
+      CASE
+      WHEN a = 1 THEN "a"
+      WHEN b = 2 THEN "b"
+      ELSE "c"
+      END
+      FORMULA
+
+      expect(e!(formula, a: 1, b: missing(':numeric'))).to eq('a')
+      expect(e!(formula, a: 0, b: 2)).to eq('b')
+      expect(e!(formula, a: 0, b: 0)).to eq('c')
+      expect { e!(formula, a: missing(':numeric'), b: missing(':numeric')) }
+        .to raise_error(Dentaku::UnboundVariableError)
+      expect { e!(formula, a: missing(':numeric'), b: 2) }
+        .to raise_error(Dentaku::UnboundVariableError)
     end
   end
 

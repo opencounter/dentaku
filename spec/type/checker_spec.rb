@@ -20,7 +20,7 @@ describe 'Type Checker' do
 
         describe "expression(#{expression})" do
           it "checks" do
-            expect{checker.check!(ast)}.to_not raise_error
+            checker.check!(ast)
           end
         end
       end
@@ -30,14 +30,15 @@ describe 'Type Checker' do
   def self.should_not_type_check(*expressions)
     describe "checking" do
       expressions.each do |expression|
+        error_match = expression.is_a?(Array) ? expression[2..] : []
+
         ast, checker = process_expression(expression)
 
         describe "expression(#{expression})" do
           it "fails check" do
             expect {
               checker.check!(ast)
-            }.to raise_error(Dentaku::Type::ErrorSet) do |e|
-            end
+            }.to raise_error(Dentaku::Type::ErrorSet, *error_match)
           end
         end
       end
@@ -58,7 +59,13 @@ describe 'Type Checker' do
          WHEN 6 THEN 23
          ELSE 3
        END', { foo: ":numeric" }
-    ]
+    ],
+    [ 'CASE
+       WHEN foo THEN 1
+       WHEN false THEN 3
+       ELSE 4
+       END', { foo: ':bool' }
+    ],
   )
 
   context 'expected return type' do
@@ -99,7 +106,11 @@ describe 'Type Checker' do
          WHEN 5 THEN 2
          ELSE 3
        END', { foo: ":string" }
-    ]
+    ],
+    ['CASE
+     WHEN 1 THEN 2
+     WHEN 3 THEN 4
+     END', {}, /(:numeric = :bool|:bool = :numeric).*[(]WHEN branch/]
   )
 
   pending 'checks functions' do
