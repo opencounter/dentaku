@@ -185,6 +185,11 @@ describe Dentaku::Calculator do
       expect(result[:code]).to eq('23')
       expect(result[:value]).to eq(100)
     end
+
+    it 'handles empty struct' do
+      result = e!('{}')
+      expect(result).to eq({})
+    end
   end
 
   describe 'list' do
