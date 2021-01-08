@@ -4,15 +4,48 @@ require 'dentaku/token'
 module Dentaku
   class Tokenizer
     NAMES = {
-      operator: { pow: '^', add: '+', subtract: '-', multiply: '*', divide: '/', mod: '%' }.invert,
-      grouping: { open: '(', close: ')', comma: ',' }.invert,
-      struct: { open: '{', close: '}', comma: ',' }.invert,
-      list: { open: '[', close: ']', comma: ',' }.invert,
-      case: { open: 'case', close: 'end', then: 'then', when: 'when', else: 'else' }.invert,
+      operator: {
+        '^'  => :pow,
+        '+'  => :add,
+        '-'  => :subtract,
+        '*'  => :multiply,
+        '/'  => :divide,
+        '%'  => :mod,
+        '..' => :range
+      }.freeze,
+      grouping: {
+        '(' => :open,
+        ')' => :close,
+        ',' => :comma,
+      }.freeze,
+      struct: {
+        '{' => :open,
+        '}' => :close,
+        ',' => :comma,
+      }.freeze,
+      list: {
+        '[' => :open,
+        ']' => :close,
+        ',' => :comma,
+      }.freeze,
+      case: {
+        'case' => :open,
+        'end' => :close,
+        'then' => :then,
+        'when' => :when,
+        'else' => :else,
+      }.freeze,
       comparator: {
-        le: '<=', ge: '>=', ne: '!=', lt: '<', gt: '>', eq: '='
-      }.invert.merge({ ne: '<>', eq: '==' }.invert),
-    }
+        '<=' => :le,
+        '>=' => :ge,
+        '!=' => :ne,
+        '<>' => :ne,
+        '<'  => :lt,
+        '>'  => :gt,
+        '='  => :eq,
+        '==' => :eq,
+      }.freeze,
+    }.freeze
 
     attr_reader :tokens, :scanner
 
@@ -66,15 +99,13 @@ module Dentaku
         [:whitespace]
       elsif match /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//
         [:comment]
-      elsif match /#{numeric}\s*\.\.\s*#{numeric}/
-        [:range, Range.new(cast(scanner[2]), cast(scanner[3]))]
       elsif match numeric
         [:numeric, cast(scanner[0])]
       elsif match /(?<delim>['"])(?<str>.*?)\k<delim>/
         [:string, scanner[2]]
       elsif can_negate? && match(/\-/)
         [:operator, :negate]
-      elsif match /\^|\+|-|\*|\/|%/
+      elsif match %r(\^|[+]|[-]|[*]|[/]|[%]|[.][.])
         [:operator, NAMES[:operator][scanner[0]]]
       elsif match /,/m
         raise ParseError.new("comma found outside of group", location(scanner)) unless parent_category

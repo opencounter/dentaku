@@ -328,6 +328,7 @@ module Dentaku
 
         and:      AST::And,
         or:       AST::Or,
+        range:    AST::Range,
       }.fetch(token.value)
     end
 
