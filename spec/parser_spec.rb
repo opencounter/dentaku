@@ -177,9 +177,6 @@ describe Dentaku::Parser do
       "IF(true, 3, 4)
        IF(true, 3, 4)", /unexpected output/i],
 
-    ["if(foo, 1)", /wrong number of args/i],
-    ["MAX(3, 2)", /wrong number of args/i],
-    ["1 + if", /invalid use of function if/i],
     ["(1 + 2 * 5", /'\(' missing closing '\)'/i],
     ["((1 + 2 * 5)", /'\(' missing closing '\)'/i],
     ["(1 + 2 * 5))", /extraneous closing '\)'/i],

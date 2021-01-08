@@ -9,8 +9,8 @@ module Dentaku
         [identifier]
       end
 
-      def self.valid?(token)
-        !Function.registry.keys.include?(token.value)
+      def is_function_name?
+        Function.registry.keys.include?(@identifier)
       end
 
       def initialize(token)
@@ -67,6 +67,10 @@ module Dentaku
       end
 
       def generate_constraints(context)
+        if is_function_name?
+          return context.invalid_ast!(Type::FunctionAsIdentifier, self)
+        end
+
         type = context.resolve_identifier(self)
         context.add_constraint!([:syntax, self], type, Type::Reason.identifier(self))
       end

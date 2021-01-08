@@ -114,6 +114,27 @@ describe 'Type Checker' do
      END', {}, /(:numeric = :bool|:bool = :numeric).*[(]WHEN branch/]
   )
 
+  context 'undefined functions' do
+    ast, checker = process_expression('foo([1], "2", true)')
+
+    it 'fails nicely' do
+      expect { checker.check!(ast, expected_type: ':numeric') }
+        .to raise_error(Dentaku::Type::ErrorSet,
+                        /UndefinedFunction foo[(]\[:numeric\], :string, :bool[)] = :numeric/)
+
+    end
+  end
+
+  context 'wrong number of arguments', :focus do
+    ast, checker = process_expression('min(1, 2)')
+
+    it 'fails nicely' do
+      expect { checker.check!(ast) }
+        .to raise_error(Dentaku::Type::ErrorSet,
+                        /WrongNumberOfArguments for min[(][.][.][.][)]: expected 1, got 2/)
+    end
+  end
+
   pending 'checks functions' do
     fail
     func_type = 'c([%a], [%a]) = [%a]'
