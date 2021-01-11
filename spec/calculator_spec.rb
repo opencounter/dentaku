@@ -32,6 +32,7 @@ describe Dentaku::Calculator do
   end
 
   it 'evaluates an expression' do
+    expect(e!("// comment //\n5")).to eq(5)
     expect(e!('7+3')).to eq(10)
     expect(e!('2 -1')).to eq(1)
     expect(e!('-1 + 2')).to eq(1)

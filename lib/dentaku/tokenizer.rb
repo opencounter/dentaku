@@ -64,7 +64,7 @@ module Dentaku
     def scan(parent_category=nil)
       if match /\s+/
         [:whitespace]
-      elsif match /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//
+      elsif match %r(/[*].*?[*]/|//.*?$)
         [:comment]
       elsif match /#{numeric}\s*\.\.\s*#{numeric}/
         [:range, Range.new(cast(scanner[2]), cast(scanner[3]))]
