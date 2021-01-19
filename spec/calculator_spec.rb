@@ -27,9 +27,9 @@ describe Dentaku::Calculator do
   end
 
   def e!(expr, vars={})
-    ast = calculator.ast(expr)
-    typecheck!(ast, vars)
-    calculator.evaluate!(ast, input(vars))
+    @ast = calculator.ast(expr)
+    typecheck!(@ast, vars)
+    calculator.evaluate!(@ast, input(vars))
   end
 
   it 'evaluates an expression' do
@@ -351,6 +351,8 @@ describe Dentaku::Calculator do
       FORMULA
 
       expect(e!(formula, a: 1, b: missing(':numeric'))).to eq('a')
+      expect(calculator.dependencies(@ast)).to eql ['a', 'b']
+
       expect(e!(formula, a: 0, b: 2)).to eq('b')
       expect(e!(formula, a: 0, b: 0)).to eq('c')
       expect { e!(formula, a: missing(':numeric'), b: missing(':numeric')) }

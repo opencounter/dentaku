@@ -97,6 +97,8 @@ module Dentaku
     end
 
     def ast(expression)
+      return expression if expression.is_a?(AST::Node)
+
       @ast_cache.fetch(expression) {
         Parser.new(Tokenizer.tokenize(expression)).parse.tap do |node|
           @ast_cache[expression] = node if Dentaku.cache_ast?
