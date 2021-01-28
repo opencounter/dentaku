@@ -27,27 +27,20 @@ module Dentaku
         end
       end
 
-      def value_with_trace(trace, &default_blk)
+      def value_with_trace(trace)
         v, type = context[identifier]
-        case v
-        when Node
-          v.evaluate
-        when NilClass
+
+        if v.nil? || (type == :default && Calculator.current.partial_eval?)
           trace.unsatisfied(identifier)
 
-          if default_blk
-            default_blk.call
-          else
-            raise UnboundVariableError.new([identifier])
-          end
+          raise UnboundVariableError.new([identifier])
+        elsif type == :default
+          trace.unsatisfied(identifier)
         else
-          if type == :default
-            trace.unsatisfied(identifier)
-          else
-            trace.satisfied(identifier)
-          end
-          v
+          trace.satisfied(identifier)
         end
+
+        v
       end
 
       def value
