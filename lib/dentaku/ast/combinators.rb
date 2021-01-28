@@ -9,6 +9,17 @@ module Dentaku
     end
 
     class And < Combinator
+      def partial_evaluate
+        left_partial = left.partial_evaluate
+        return false if left_partial == false
+
+        right_partial = right.partial_evaluate
+        return false if right_partial == false
+
+        return nil if left_partial.nil? || right_partial.nil?
+        true
+      end
+
       def value
         # [jneen] this and the similar method below implement "branch favoring".
         # this means that we are not concerned with missing variables in sides
@@ -18,10 +29,11 @@ module Dentaku
         # expression logically.
         #
         # NOTE: need `== false` here because the result is true/false/nil
-        return false if left.partial_evaluate == false
-        return false if right.partial_evaluate == false
+        partial = self.partial_evaluate
 
-        left.evaluate && right.evaluate
+        return left.evaluate && right.evaluate if partial.nil?
+
+        partial
       end
 
       def repr
@@ -30,11 +42,23 @@ module Dentaku
     end
 
     class Or < Combinator
-      def value
-        return true if left.partial_evaluate == true
-        return true if right.partial_evaluate == true
+      def partial_evaluate
+        left_partial = left.partial_evaluate
+        return true if left_partial == true
 
-        left.evaluate || right.evaluate
+        right_partial = right.partial_evaluate
+        return true if right_partial == true
+
+        return nil if left_partial.nil? || right_partial.nil?
+        false
+      end
+
+      def value
+        partial = self.partial_evaluate
+
+        return left.evaluate || right.evaluate if partial.nil?
+
+        partial
       end
 
       def repr
