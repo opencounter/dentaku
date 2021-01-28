@@ -61,12 +61,23 @@ describe Dentaku::AST::Or do
 
     context "it works with not(...)" do
       let(:expression) { 'not(a) or not(b) or not(c) or not(d)' }
-      let(:data) { { 'c' => false } }
+      let(:data) { { 'c' => false, 'a' => false } }
 
       it 'should still hide the unsatisfied dependencies' do
         expect(evaluation).to be true
         expect(calculator.cache.unsatisfied_identifiers).to be_empty
-        expect(calculator.cache.satisfied_identifiers).to eql Set['c']
+        expect(calculator.cache.satisfied_identifiers).to eql Set['a']
+      end
+    end
+
+    context "with defaults" do
+      let(:expression) { "a or (b or c)" }
+      let(:data) { input('b' => defaulted(true), 'a' => defaulted(false)) }
+
+      it 'thing', :jneen do
+        expect(evaluation).to be true
+        expect(calculator.cache.unsatisfied_identifiers).to eql Set[*%w[a b]]
+        expect(calculator.cache.satisfied_identifiers).to be_empty
       end
     end
   end

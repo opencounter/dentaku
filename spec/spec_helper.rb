@@ -16,14 +16,27 @@ class Missing
   end
 end
 
+class DefaultValue
+  attr_reader :value
+  def initialize(value)
+    @value = value
+  end
+end
+
 def missing(type)
   Missing.new(type)
+end
+
+def defaulted(value)
+  DefaultValue.new(value)
 end
 
 class InputHash < Hash
   def [](key)
     out = super
     out = nil if out.is_a?(Missing)
+
+    return [out.value, :default] if out.is_a?(DefaultValue)
 
     [out, :user]
   end
