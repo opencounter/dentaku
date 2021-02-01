@@ -26,11 +26,23 @@ module Dentaku
       end
 
       def self.get(name)
-        registry.fetch(normalize_name(name)) { fail "Undefined function #{ name } "}
+        registry.fetch(normalize_name(name)) { UndefinedFunction.named(name) }
       end
 
       def self.function_name
         normalize_name(type_spec.name)
+      end
+
+      def self.type_syntax
+        raise "abstract"
+      end
+
+      def self.arity
+        type_spec.arity
+      end
+
+      def arity
+        self.class.arity
       end
 
       def function_name
@@ -51,7 +63,6 @@ module Dentaku
           singleton_class.class_eval do
             define_method(:type_syntax) { type_syntax }
             define_method(:implementation) { implementation }
-            define_method(:arity) { type_spec.arity }
             define_method(:inspect) { type_syntax }
           end
         end
@@ -82,10 +93,17 @@ module Dentaku
       def generate_constraints(context)
         @scope = {}
         context.add_constraint!([:syntax, self], type_spec.return_type.resolve_vars(@scope), [:retval, self])
-        type_spec.arg_types.zip(args).each_with_index do |(type, arg), i|
-          context.add_constraint!([:syntax, arg], type.resolve_vars(@scope), [:arg, self, i])
-          arg.generate_constraints(context)
+
+
+        if args.size == arity
+          type_spec.arg_types.zip(args).each_with_index do |(type, arg), i|
+            context.add_constraint!([:syntax, arg], type.resolve_vars(@scope), [:arg, self, i])
+          end
+        else
+          context.invalid_ast!(Type::WrongNumberOfArguments, self)
         end
+
+        args.each { |arg| arg.generate_constraints(context) }
       end
 
       private
