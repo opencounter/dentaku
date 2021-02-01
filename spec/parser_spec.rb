@@ -153,11 +153,11 @@ describe Dentaku::Parser do
   end
 
   should_parse(
-    ["{ a: TRUE, b: false }", Dentaku::AST::Dictionary],
+    ["{ a: TRUE, b: false }", Dentaku::AST::Struct],
     ["[1, 2, 3]", Dentaku::AST::List],
     ["IF(1 = 2, { a: 1 }, { c: 3 })", Dentaku::AST::Function],
     ["IF(1 = 2, 'here', 'there')", Dentaku::AST::Function],
-    ["{ a: { b: 2 } }", Dentaku::AST::Dictionary],
+    ["{ a: { b: 2 } }", Dentaku::AST::Struct],
     ["if(2 = 1, (1%6), 7)", Dentaku::AST::Function],
     ["field:café", Dentaku::AST::Identifier],
     ["field:値", Dentaku::AST::Identifier],

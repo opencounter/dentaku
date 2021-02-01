@@ -53,18 +53,24 @@ describe Dentaku::Type::Syntax do
     expect(expr.arguments[0].arguments[0].name).to eql(:numeric)
   end
 
-  it 'parses dictionary type' do
+  it 'parses struct type' do
     type_syntax = '{ foo: :string, bar: { one: :string, two: :bool }, baz: [:numeric] }'
     expr = Dentaku::Type::Syntax.parse_type(type_syntax)
-    expect(expr).to be_dictionary
+    expect(expr).to be_struct
     expect(expr.keys).to eql(["foo", "bar", "baz"])
     expect(expr.types[0].name).to eql(:string)
 
-    expect(expr.types[1]).to be_dictionary
+    expect(expr.types[1]).to be_struct
     expect(expr.types[1].keys).to eql(["one", "two"])
     expect(expr.types[1].types[0].name).to eql(:string)
 
     expect(expr.types[2].name).to eql(:list)
     expect(expr.types[2].arguments[0].name).to eql(:numeric)
+  end
+
+  it 'raises an error un undeclared types' do
+    type_syntax = ':foo(%a)'
+    expect { Dentaku::Type::Syntax.parse_type(type_syntax) }
+      .to raise_error %r(undeclared param type :foo/1)
   end
 end

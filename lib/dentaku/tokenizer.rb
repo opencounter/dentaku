@@ -6,7 +6,7 @@ module Dentaku
     NAMES = {
       operator: { pow: '^', add: '+', subtract: '-', multiply: '*', divide: '/', mod: '%' }.invert,
       grouping: { open: '(', close: ')', comma: ',' }.invert,
-      dictionary: { open: '{', close: '}', comma: ',' }.invert,
+      struct: { open: '{', close: '}', comma: ',' }.invert,
       list: { open: '[', close: ']', comma: ',' }.invert,
       case: { open: 'case', close: 'end', then: 'then', when: 'when', else: 'else' }.invert,
       comparator: {
@@ -66,6 +66,8 @@ module Dentaku
         [:whitespace]
       elsif match /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//
         [:comment]
+      elsif match %r(//.*?$)
+        [:comment]
       elsif match /#{numeric}\s*\.\.\s*#{numeric}/
         [:range, Range.new(cast(scanner[2]), cast(scanner[3]))]
       elsif match numeric
@@ -79,11 +81,11 @@ module Dentaku
       elsif match /,/m
         raise ParseError.new("comma found outside of group", location(scanner)) unless parent_category
         [parent_category, NAMES[parent_category][scanner[0]]]
-      elsif match /\(|\)|,(?=.*\))/m
+      elsif match /[(]|[)]/m
         [:grouping, NAMES[:grouping][scanner[0]]]
-      elsif match /\{|\}|,(?=.*\})/
-        [:dictionary, NAMES[:dictionary][scanner[0]]]
-      elsif match /\[|\]|,(?=.*\])/
+      elsif match /[{]|[}]/
+        [:struct, NAMES[:struct][scanner[0]]]
+      elsif match /\[|\]/
         [:list, NAMES[:list][scanner[0]]]
       elsif match /(case|end|then|when|else)\b/i
         [:case, NAMES[:case][scanner[1].downcase]]

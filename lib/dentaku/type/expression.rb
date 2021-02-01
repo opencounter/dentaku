@@ -4,7 +4,7 @@ module Dentaku
       variants(
         syntax: [:ast],
         param: [:name, :arguments],
-        dictionary: [:keys, :types],
+        struct: [:keys, :types],
         variable: [:name, :uniq],
         var: [:name],
       )
@@ -37,41 +37,34 @@ module Dentaku
           param: ->(name, arguments) {
             Expression.param(name, arguments.map(&blk))
           },
-          dictionary: ->(keys, types) {
-            Expression.dictionary(keys, types.map(&blk))
+          struct: ->(keys, types) {
+            Expression.struct(keys, types.map(&blk))
           },
           other: self
         )
       end
 
+      def self.make_param(name, arguments)
+        decl = DECLARED_TYPES[name.to_sym]
+        unless decl && decl.arity == arguments.size
+          raise "undeclared param type :#{name}/#{arguments.size}"
+        end
+
+        param(name, arguments)
+      end
+
       def resolve(reverse_scope={})
         cases(
           param: ->(name, arguments) {
-            if name == :bool && arguments.empty?
-              Type.bool
-            elsif name == :numeric && arguments.empty?
-              Type.numeric
-            elsif name == :string && arguments.empty?
-              Type.string
-            elsif name == :range && arguments.empty?
-              Type.range
-            elsif name == :date && arguments.empty?
-              Type.date
-            elsif name == :list && arguments.size == 1
-              Type.list(arguments[0].resolve(reverse_scope))
-            elsif name == :pair && arguments.size == 2
-              Type.pair(*arguments.map { |a| a.resolve(reverse_scope) })
-            else
-              raise RuntimeError, "Unresolvable type expression #{self.repr}"
-            end
+            Type.declared(DECLARED_TYPES[name].new(arguments.map(&:resolve)))
           },
           variable: -> (name, uniq) {
             var_name = reverse_scope[[name, uniq]]
             next Type.abstract unless var_name
             Type.bound(var_name)
           },
-          dictionary: -> (keys, types) {
-            Type.dictionary(keys, types.map { |t| t.resolve(reverse_scope) })
+          struct: -> (keys, types) {
+            Type.struct(keys, types.map { |t| t.resolve(reverse_scope) })
           },
           other: ->() {
             Type.abstract
@@ -117,7 +110,7 @@ module Dentaku
           },
           variable: ->(name, uniq) { "%#{name}#{uniq}" },
           var: -> (name) { "%%#{name}" },
-          dictionary: -> (keys, values) {
+          struct: -> (keys, values) {
             "{#{keys.zip(values).map { |(k, v)| "#{k}: #{v.repr}" }.join(', ')}}"
           },
         )

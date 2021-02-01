@@ -11,6 +11,7 @@ require 'dentaku/type/solver'
 require 'dentaku/type/type'
 require 'dentaku/type/syntax'
 require 'dentaku/type/expression'
+require "dentaku/type/declared"
 
 require 'dentaku/tracer'
 
