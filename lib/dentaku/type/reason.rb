@@ -56,6 +56,9 @@ module Dentaku
         # an external constraint that specifies the expected type
         # of the whole expression
         root: [:ast],
+
+        # ranges must be composed of :numeric values
+        range_element: [:ast, :side],
       )
 
       def repr(depth=0)
@@ -75,6 +78,7 @@ module Dentaku
           case_else: ->(ast) { "ELSE branch of a CASE statement" },
           case_return: ->(ast) { "the return type of a CASE statement" },
           root: ->(*) { "expected type of the whole expression" },
+          range_element: ->(ast, side) { "#{side_name(side)} of a range" },
           other: ->(*) { "#{_name}:#{@_values.inspect}" },
         )
       end
@@ -100,6 +104,7 @@ module Dentaku
           case_return: ->(ast) { [ast] },
           root: ->(ast) { [ast] },
           conjunction: ->(left, right) { left.ast_nodes + right.ast_nodes },
+          range_element: ->(ast, *) { [ast] },
           other: []
         )
       end
