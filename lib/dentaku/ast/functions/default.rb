@@ -7,16 +7,17 @@ module Dentaku
         "default(%a, %a) = %a"
       end
 
-      def initialize(identifier, default_value)
-        super
-        @identifier = identifier
+      def initialize(expr, default_value)
+        @expr = expr
         @default_value = default_value
       end
 
       def value
-        @identifier.evaluate do
-          @default_value.evaluate
-        end
+        @expr.evaluate
+      rescue UnboundVariableError
+        raise if Calculator.current.partial_eval?
+
+        @default_value.evaluate
       end
 
       def cachable?

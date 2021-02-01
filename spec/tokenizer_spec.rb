@@ -169,7 +169,7 @@ describe Dentaku::Tokenizer do
 
   it 'tokenizes dicts' do
     tokens = tokenizer.tokenize('IF(true, { a: FALSE, b: TRUE })')
-    expect(tokens.map(&:category)).to eq([:function, :grouping, :logical, :grouping, :dictionary, :key, :logical, :dictionary, :key, :logical, :dictionary, :grouping])
+    expect(tokens.map(&:category)).to eq([:function, :grouping, :logical, :grouping, :struct, :key, :logical, :struct, :key, :logical, :struct, :grouping])
     expect(tokens.map(&:value)).to eq([:if, :open, true, :comma, :open, :a, false, :comma, :b, true, :close, :close])
   end
 

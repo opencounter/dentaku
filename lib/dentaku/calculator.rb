@@ -11,6 +11,7 @@ require 'dentaku/type/solver'
 require 'dentaku/type/type'
 require 'dentaku/type/syntax'
 require 'dentaku/type/expression'
+require "dentaku/type/declared"
 
 require 'dentaku/tracer'
 
@@ -30,6 +31,7 @@ module Dentaku
       @memory = {}
       # @tokenizer = Tokenizer.new
       @ast_cache = ast_cache
+      @partial_eval_depth = 0
     end
 
     THREAD_KEY = :dentaku_current_calculator
@@ -65,6 +67,20 @@ module Dentaku
       [evaluate!(expression, data), @tracer]
     end
 
+    # [jneen] because with_partial { ... } blocks can nest, we can't
+    # simply use a boolean here - it would reset the state too early.
+    # a counter is an easy way to allow nesting.
+    def with_partial
+      @partial_eval_depth += 1
+      yield
+    ensure
+      @partial_eval_depth -= 1
+    end
+
+    def partial_eval?
+      @partial_eval_depth > 0
+    end
+
     def with_input(data)
       @current_node_cache = nil
 
@@ -96,6 +112,8 @@ module Dentaku
     end
 
     def ast(expression)
+      return expression if expression.is_a?(AST::Node)
+
       @ast_cache.fetch(expression) {
         Parser.new(Tokenizer.tokenize(expression)).parse.tap do |node|
           @ast_cache[expression] = node if Dentaku.cache_ast?
@@ -231,7 +249,7 @@ module Dentaku
         end
 
         def unsatisfied(key)
-          @cache["unsatisfied_identifiers"] << key
+          @cache["unsatisfied_identifiers"] << key unless Calculator.current.partial_eval?
         end
       end
     end

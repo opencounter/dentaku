@@ -9,18 +9,22 @@ module Dentaku
 
       def reset!
         @constraints = []
-        @unbound = []
+        @invalid_asts = []
       end
 
       def resolve_identifier(identifier)
         type = @resolver.call(identifier)
 
         if type.nil?
-          @unbound << identifier
+          invalid_ast!(UnboundIdentifier, identifier)
           return Expression.make_variable("unbound-#{identifier.identifier}")
         end
 
         Expression.from_sexpr(type)
+      end
+
+      def invalid_ast!(error_class, ast)
+        @invalid_asts << [error_class, ast]
       end
 
       def add_constraint!(lhs, rhs, reason)
@@ -44,7 +48,7 @@ module Dentaku
 
         solutions, errors = Solver.solve(@constraints, options)
 
-        errors += @unbound.map { |u| UnboundIdentifier.new(u, solutions) }
+        errors += @invalid_asts.map { |k, a| k.new(a, solutions) }
 
         # set the "type" attribute on all of the nodes, *even if there
         # were type errors*. worst case sometimes this attribute will

@@ -9,10 +9,6 @@ module Dentaku
         l = cast(left.evaluate)
         r = cast(right.evaluate)
         l.public_send(operator, r)
-      # rescue Dentaku::UnboundVariableError => e
-        # raise e
-      # rescue => e
-        # binding.pry
       end
 
       def types

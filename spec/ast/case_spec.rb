@@ -31,11 +31,6 @@ describe Dentaku::AST::Case do
   let(:calculator) { Dentaku::Calculator.new }
 
   describe '#value' do
-    it 'raises an exception if there is no switch variable' do
-      expect { described_class.new(conditional1, conditional2) }
-        .to raise_error(Dentaku::ParseError)
-    end
-
     it 'raises an exception if a non-conditional is passed' do
       expect { described_class.new(switch, conditional1, when2) }
         .to raise_error(Dentaku::ParseError)

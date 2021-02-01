@@ -56,5 +56,16 @@ describe Dentaku::AST::And do
         expect(calculator.cache.satisfied_identifiers).to include("a")
       end
     end
+
+    context "using not(...)" do
+      let(:expression) { 'not(a) and not(b) and not(c) and not(d)' }
+      let(:data) { { 'b' => true } }
+
+      it 'should still hide the unsatisfied dependencies' do
+        expect(evaluation).to be false
+        expect(calculator.cache.unsatisfied_identifiers).to be_empty
+        expect(calculator.cache.satisfied_identifiers).to eql Set['b']
+      end
+    end
   end
 end

@@ -60,17 +60,25 @@ module Dentaku
       consume(end_token) while check_op(AST::Operation)
     end
 
+    def check_arity(operator_class, args, begin_token, end_token)
+      # functions do their own arity checking at typecheck time
+      return if operator_class <= AST::Function
+
+      return unless operator_class.arity
+      return if args.length == operator_class.arity && args.none?(&:nil?)
+
+      raise ParseError.new(
+        "Wrong number of args for #{operator_class.inspect} expected #{operator_class.arity}, got #{args.compact.length}",
+        begin_token, end_token
+      )
+    end
+
     def consume(end_token, count=nil)
       operator_class, begin_token = operations.pop
 
       args = get_args(count || operator_class.arity || 2)
 
-      if operator_class.arity && (args.length != operator_class.arity || args.any?(&:nil?))
-        raise ParseError.new(
-          "Wrong number of args for #{operator_class.inspect} expected #{operator_class.arity}, got #{args.compact.length}",
-          begin_token, end_token
-        )
-      end
+      check_arity(operator_class, args, begin_token, end_token)
 
       operator = operator_class.new(*args)
       operator.begin_token = begin_token
@@ -124,7 +132,6 @@ module Dentaku
           push_output(AST::String, token)
 
         when :identifier
-          raise ParseError.new("Invalid use of function #{token}", token) unless AST::Identifier.valid?(token)
           push_output(AST::Identifier, token)
 
         when :key
@@ -182,11 +189,13 @@ module Dentaku
               arities[-1] += 1
             elsif check_op(AST::Case)
               if last_token.category == :case
-                raise ParseError.new("Case missing switch variable", last_token)
+                # [jneen] there is no switch variable, so the arity of the Case node is 1 less than usual.
+                # This parser... could be better.
+                arities[-1] -= 1
+              else
+                operations.push([AST::CaseSwitchVariable, operations.last[1]])
+                consume(last_token)
               end
-
-              operations.push([AST::CaseSwitchVariable, operations.last[1]])
-              consume(last_token)
             end
 
             operations.push([AST::CaseWhen, token])
@@ -240,10 +249,10 @@ module Dentaku
             raise ParseError.new("Unknown grouping token #{ token.value }", token)
           end
 
-        when :dictionary
+        when :struct
           case token.value
           when :open
-              operations.push [AST::Dictionary, token]
+              operations.push [AST::Struct, token]
               arities.push 0
 
           when :close
@@ -254,7 +263,7 @@ module Dentaku
             arities[-1] += 2
             consume_infix(last_token)
           else
-            raise ParseError.new("Unknown dictionary token #{ token.value }", token)
+            raise ParseError.new("Unknown struct token #{ token.value }", token)
           end
 
         when :list
@@ -326,6 +335,7 @@ module Dentaku
 
         and:      AST::And,
         or:       AST::Or,
+        range:    AST::Range,
       }.fetch(token.value)
     end
 

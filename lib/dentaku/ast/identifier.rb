@@ -9,8 +9,8 @@ module Dentaku
         [identifier]
       end
 
-      def self.valid?(token)
-        !Function.registry.keys.include?(token.value)
+      def is_function_name?
+        Function.registry.keys.include?(@identifier)
       end
 
       def initialize(token)
@@ -18,38 +18,29 @@ module Dentaku
       end
 
       def evaluate(&default_blk)
-        if Calculator.current.cache
-          Calculator.current.cache_for(self) do |cache|
-            cache.trace do |tracer|
-              value_with_trace(tracer, &default_blk)
-            end
+        return value unless cachable?
+
+        Calculator.current.cache_for(self) do |cache|
+          cache.trace do |tracer|
+            value_with_trace(tracer, &default_blk)
           end
-        else
-          value
         end
       end
 
-      def value_with_trace(trace, &default_blk)
+      def value_with_trace(trace)
         v, type = context[identifier]
-        case v
-        when Node
-          v.evaluate
-        when NilClass
+
+        if v.nil? || (type == :default && Calculator.current.partial_eval?)
           trace.unsatisfied(identifier)
 
-          if default_blk
-            default_blk.call
-          else
-            raise UnboundVariableError.new([identifier])
-          end
+          raise UnboundVariableError.new([identifier])
+        elsif type == :default
+          trace.unsatisfied(identifier)
         else
-          if type == :default
-            trace.unsatisfied(identifier)
-          else
-            trace.satisfied(identifier)
-          end
-          v
+          trace.satisfied(identifier)
         end
+
+        v
       end
 
       def value
@@ -69,6 +60,10 @@ module Dentaku
       end
 
       def generate_constraints(context)
+        if is_function_name?
+          return context.invalid_ast!(Type::FunctionAsIdentifier, self)
+        end
+
         type = context.resolve_identifier(self)
         context.add_constraint!([:syntax, self], type, Type::Reason.identifier(self))
       end

@@ -51,6 +51,12 @@ module Dentaku
         end
       end
 
+      def resolved_type_of(ast)
+        fetch(Expression.syntax(ast)).resolve
+      rescue KeyError
+        Type.abstract
+      end
+
       def inspect
         "<SolutionSet \n#{@solutions.values.map(&:inspect).join("\n")} >"
       end

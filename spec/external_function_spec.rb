@@ -65,7 +65,7 @@ describe Dentaku::Calculator do
         expect(result).to eq(false)
       end
 
-      it 'supports dictionary parameters' do
+      it 'supports struct parameters' do
         result = with_external_funcs.evaluate("key_count({ foo: 1.1, bar: 2.2, baz: 3 }, [], 'plumbing_fixture_type', 'plumbing_fixture_quantity')")
         expect(result).to eq(3)
       end

@@ -78,11 +78,11 @@ module Dentaku
 
     class Equal < Equality
       def value
-        left.evaluate === right.evaluate
+        left.evaluate == right.evaluate
       end
 
       def operator
-        :===
+        :==
       end
     end
   end
