@@ -161,6 +161,13 @@ describe Dentaku::Parser do
     ["if(2 = 1, (1%6), 7)", Dentaku::AST::Function],
     ["field:café", Dentaku::AST::Identifier],
     ["field:値", Dentaku::AST::Identifier],
+    ["CASE
+      WHEN baz THEN
+        CASE
+        WHEN 1 THEN 2
+        END
+      WHEN faz THEN 1
+      END", Dentaku::AST::Case],
   )
 
 
@@ -184,13 +191,6 @@ describe Dentaku::Parser do
     ["CASE foo
       WHEN baz THEN 3
       WHEN faz THEN 1 ", /'CASE' missing closing 'END'/],
-    ["CASE
-      WHEN baz THEN
-        CASE
-        WHEN 1 THEN 2
-        END
-      WHEN faz THEN 1
-      END", /case missing switch variable/i],
     ["CASE foo
       WHEN baz THEN 3
       WHEN faz
@@ -200,7 +200,7 @@ describe Dentaku::Parser do
       WHEN faz 3
       END", /Expected case token, got/],
     ["CASE foo
-      END", /Case missing switch variable/],
+      END", /`foo' is not a valid CASE condition/],
     ["CASE foo
       WHEN baz THEN 3
       IF(true, 1, 2)

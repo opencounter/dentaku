@@ -82,6 +82,10 @@ module Dentaku
       def message
         "Type errors:\n#{@errors.map(&:message).join("\n")}"
       end
+
+      def inspect
+        "#<#{self.class.name} #{@errors.map(&:message).join('; ')}>"
+      end
     end
   end
 end
