@@ -12,7 +12,7 @@ syntax match   dtPunctuation           /\%(|\|+\|[.][.]\|=>\|;\|(\|)\|\[\|\]\|<\
 
 
 
-syn match dtComment /#[^\n]*\n/
+syn match dtComment /\/\*\_.\{-}\*\//
 exe "syn match dtAnnot /++\\?" . ident . "/"
 exe "syn match dtName /" . ident . "/"
 " exe "syn match dtDotted /[.][\\/]\\?" . ident . "/"
@@ -65,5 +65,5 @@ hi! def link dtSQString NONE | hi! def link dtSQString    String
 " hi! def link dtDynamic     Identifier
 " hi! def link dtBinder      Special
 " hi! def link dtDollar      Identifier
-" hi! def link dtComment     Comment
+hi! def link dtComment NONE | hi! def link dtComment     Comment
 hi! def link dtNumber NONE | hi! def link dtNumber      Number
