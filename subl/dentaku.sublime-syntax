@@ -62,3 +62,5 @@ contexts:
   comments:
     - match: '/[*].*?[*]/'
       scope: comment.block.dentaku
+    - match: '//.*?$'
+      scope: comment.inline.dentaku
