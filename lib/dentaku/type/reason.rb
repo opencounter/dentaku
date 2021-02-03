@@ -69,7 +69,7 @@ module Dentaku
           arg: ->(ast, index) { "argument ##{index} of #{ast.function_name}" },
           operator: ->(ast, side) { "#{side_name(side)} of #{ast.operator}" },
           identifier: ->(ast) { "the type of `#{ast.repr}'" },
-          list_member: ->(ast) { "elements of #{ast.repr} must all be the same type" },
+          list_member: ->(ast, *) { "elements of #{ast.repr} must all be the same type" },
           destructure: ->(constraint, index) { "inferred from #{constraint.repr}" },
           struct_key: ->(ast, key) { "known type at #{key} in a struct" },
           case_when: ->(ast, index) { "WHEN branch ##{index} of a CASE statement" },
