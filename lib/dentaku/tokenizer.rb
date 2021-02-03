@@ -162,6 +162,8 @@ module Dentaku
     end
 
     def location(scanner)
+      return [1, 1] if scanner.pos == 0
+
       line = scanner.string[0..scanner.pos-1].count("\n") + 1
       if line == 1
         col = scanner.pos + 1
