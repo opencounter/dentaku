@@ -20,8 +20,8 @@ module Dentaku
         end
       end
 
-      def repr
-        "(#{left.repr} AND #{right.repr})"
+      def operator
+        :AND
       end
     end
 
@@ -37,8 +37,8 @@ module Dentaku
         end
       end
 
-      def repr
-        "(#{left.repr} OR #{right.repr})"
+      def operator
+        :OR
       end
     end
   end
