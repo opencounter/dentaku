@@ -9,6 +9,14 @@ module Dentaku
       @location = extract_range(causes)
     end
 
+    def as_json
+      {
+        error_type: "ParseError",
+        message: message,
+        locations: [location],
+      }
+    end
+
     def inspect
       "<ParseError #{@message}@#{@location}>"
     end
@@ -20,7 +28,7 @@ module Dentaku
 
       locations = causes.map do |cause|
         case cause
-        when Array then cause
+        when Array then [cause]
         when Token, AST::Node then cause.loc_range
         end
       end
