@@ -82,6 +82,13 @@ describe Dentaku::Calculator do
     end
   end
 
+  it 'gives type errors for combinators' do
+    expect { e!('12 OR 23') }.to raise_error do |e|
+      expect(e).to be_a Dentaku::Type::ErrorSet
+      expect(e.message).to match /TypeMismatch/
+    end
+  end
+
   it 'fails to evaluate unbound statements' do
     unbound = 'if(foo, concat([bar * 1.5], baz), zot)'
 
