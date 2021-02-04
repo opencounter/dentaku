@@ -204,6 +204,7 @@ describe Dentaku::Parser do
       WHEN baz THEN 3
       END", /Expected first argument to be a CaseWhen, was \(3\)/],
     ["([)]", /Unexpected token in parenthesis/],
-    ["field:$money", /Unknown token starting with "[$]mo"/]
+    ["field:$money", /Unknown token starting with "[$]mo"/],
+    ["case 1 when 2 then 3 else end", /empty else clause/]
   )
 end

@@ -76,6 +76,7 @@ describe 'Type Checker' do
 
     it 'invalidates an incorrect return type' do
       expect {
+        ast, checker = process_expression('if(true, 1, 2)')
         checker.check!(ast, expected_type: Dentaku::Type.build(&:bool))
       }.to raise_error(Dentaku::Type::ErrorSet,
                        /:numeric = :bool|:bool = :numeric/)
