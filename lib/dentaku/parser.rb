@@ -177,6 +177,10 @@ module Dentaku
               consume(last_token, 2)
               arities[-1] += 1
             elsif check_op(AST::CaseElse)
+              if last_token.is?(:case) && last_token.value == :else
+                raise ParseError.new("empty else clause", last_token)
+              end
+
               consume(last_token)
 
               arities[-1] += 1
@@ -196,7 +200,7 @@ module Dentaku
               consume(last_token, 2)
               arities[-1] += 1
             elsif check_op(AST::Case)
-              if last_token.category == :case
+              if last_token.is?(:case)
                 # [jneen] there is no switch variable, so the arity of the Case node is 1 less than usual.
                 # This parser... could be better.
                 arities[-1] -= 1
