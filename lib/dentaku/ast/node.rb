@@ -86,15 +86,13 @@ module Dentaku
         []
       end
 
-      def each
+      def each(&b)
         return enum_for(:each) unless block_given?
 
         yield self
 
         children.each do |child|
-          child.each do |c|
-            yield c
-          end
+          child.each(&b)
         end
       end
 
