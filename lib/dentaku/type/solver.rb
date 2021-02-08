@@ -69,12 +69,12 @@ module Dentaku
                 other: -> { error!(constraint) }
               )
             },
-            dictionary: ->(keys, types) {
+            struct: ->(keys, types) {
               constraint.rhs.cases(
-                dictionary: ->(other_keys, other_types) {
+                struct: ->(other_keys, other_types) {
                   if other_keys == keys
                     types.zip(other_types).each_with_index do |(lhs, rhs), index|
-                      push(Constraint.new(lhs, rhs, Reason.dictionary_key(constraint, keys[index])))
+                      push(Constraint.new(lhs, rhs, Reason.struct_key(constraint, keys[index])))
                     end
                   else
                     error!(constraint)

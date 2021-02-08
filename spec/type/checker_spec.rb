@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe 'Type Checker' do
-  def self.process_expression(expression)
+  def process_expression(expression)
     if expression.is_a?(Array)
       expression, types = *expression
     else
@@ -16,11 +16,10 @@ describe 'Type Checker' do
   def self.should_type_check(*expressions)
     describe "checking" do
       expressions.each do |expression|
-        ast, checker = process_expression(expression)
-
         describe "expression(#{expression})" do
           it "checks" do
-            expect{checker.check!(ast)}.to_not raise_error
+            ast, checker = process_expression(expression)
+            checker.check!(ast)
           end
         end
       end
@@ -30,14 +29,16 @@ describe 'Type Checker' do
   def self.should_not_type_check(*expressions)
     describe "checking" do
       expressions.each do |expression|
-        ast, checker = process_expression(expression)
+        error_match = expression.is_a?(Array) ? expression[2..] : []
+
 
         describe "expression(#{expression})" do
           it "fails check" do
+            ast, checker = process_expression(expression)
+
             expect {
               checker.check!(ast)
-            }.to raise_error(Dentaku::Type::ErrorSet) do |e|
-            end
+            }.to raise_error(Dentaku::Type::ErrorSet, *error_match)
           end
         end
       end
@@ -58,18 +59,24 @@ describe 'Type Checker' do
          WHEN 6 THEN 23
          ELSE 3
        END', { foo: ":numeric" }
-    ]
+    ],
+    [ 'CASE
+       WHEN foo THEN 1
+       WHEN false THEN 3
+       ELSE 4
+       END', { foo: ':bool' }
+    ],
   )
 
   context 'expected return type' do
-    ast, checker = process_expression('if(true, 1, 2)')
-
     it 'validates a correct return type' do
+      ast, checker = process_expression('if(true, 1, 2)')
       checker.check!(ast, expected_type: Dentaku::Type.build(&:numeric))
     end
 
     it 'invalidates an incorrect return type' do
       expect {
+        ast, checker = process_expression('if(true, 1, 2)')
         checker.check!(ast, expected_type: Dentaku::Type.build(&:bool))
       }.to raise_error(Dentaku::Type::ErrorSet,
                        /:numeric = :bool|:bool = :numeric/)
@@ -77,6 +84,7 @@ describe 'Type Checker' do
   end
 
   should_not_type_check(
+    "1..3 == 2",
     "1 + 'foo'",
     "[1,2,'3']",
     "'foo' = 5",
@@ -99,8 +107,32 @@ describe 'Type Checker' do
          WHEN 5 THEN 2
          ELSE 3
        END', { foo: ":string" }
-    ]
+    ],
+    ['CASE
+     WHEN 1 THEN 2
+     WHEN 3 THEN 4
+     END', {}, /(:numeric = :bool|:bool = :numeric).*[(]WHEN branch/]
   )
+
+  context 'undefined functions' do
+
+    it 'fails nicely' do
+      ast, checker = process_expression('foo([1], "2", true)')
+      expect { checker.check!(ast, expected_type: ':numeric') }
+        .to raise_error(Dentaku::Type::ErrorSet,
+                        /UndefinedFunction foo[(]\[:numeric\], :string, :bool[)] = :numeric/)
+
+    end
+  end
+
+  context 'wrong number of arguments', :focus do
+    it 'fails nicely' do
+      ast, checker = process_expression('min(1, 2)')
+      expect { checker.check!(ast) }
+        .to raise_error(Dentaku::Type::ErrorSet,
+                        /WrongNumberOfArguments for min[(][.][.][.][)]: expected 1, got 2/)
+    end
+  end
 
   pending 'checks functions' do
     fail

@@ -8,11 +8,7 @@ module Dentaku
   module AST
     class Case < Node
       def initialize(*nodes)
-        @switch = nodes.shift
-
-        unless @switch.is_a?(AST::CaseSwitchVariable)
-          raise ParseError.new("Case missing switch variable, got #{@switch}", @switch)
-        end
+        @switch = nodes.shift if nodes.first.is_a?(AST::CaseSwitchVariable)
 
         @conditions = nodes
 
@@ -20,7 +16,7 @@ module Dentaku
 
         @conditions.each do |condition|
           unless condition.is_a?(AST::CaseConditional)
-            raise ParseError.new("#{condition} is not a CaseConditional", condition)
+            raise ParseError.new("`#{condition.repr rescue condition.inspect}' is not a valid CASE condition", condition)
           end
         end
       end
@@ -30,7 +26,8 @@ module Dentaku
       end
 
       def value
-        switch_value = @switch.evaluate
+        switch_value = @switch.nil? ? true : @switch.evaluate
+
         @conditions.each do |condition|
           if condition.when.evaluate === switch_value
             return condition.then.evaluate
@@ -45,34 +42,49 @@ module Dentaku
       end
 
       def dependencies(context={})
-        # TODO: should short-circuit
-        @switch.dependencies(context) +
-          @conditions.flat_map { |condition| condition.dependencies(context) } +
-          (@else ? @else.dependencies(context) : [])
+        out = []
+        out << @switch.dependencies(context) if @switch
+        out << @conditions.flat_map { |c| c.dependencies(context) }
+        out << @else.dependencies(context) if @else
+        out.flatten
       end
 
       def generate_constraints(context)
-        var = Type::Expression.make_variable('case')
-        @switch.node.generate_constraints(context)
+        result_type = Type::Expression.make_variable('case')
+        @switch.node.generate_constraints(context) if @switch
 
         @conditions.each_with_index do |condition, index|
           condition.when.node.generate_constraints(context)
-          case condition.when.node
-          when AST::Range
-            context.add_constraint!([:syntax, @switch.node], [:concrete, :numeric], [:case_when_range, self, index])
+          if @switch.nil?
+            context.add_constraint!([:syntax, condition.when.node],
+                                    [:concrete, :bool],
+                                    [:case_when, self, index])
+          elsif condition.when.node.is_a?(AST::Range)
+            context.add_constraint!([:syntax, @switch.node],
+                                    [:concrete, :numeric],
+                                    [:case_when_range, self, index])
           else
-            context.add_constraint!([:syntax, @switch.node], [:syntax, condition.when.node], [:case_when, self, index])
+            context.add_constraint!([:syntax, @switch.node],
+                                    [:syntax, condition.when.node],
+                                    [:case_when, self, index])
           end
 
           condition.then.node.generate_constraints(context)
-          context.add_constraint!([:syntax, condition.then.node], var, [:case_then, self, index])
+          context.add_constraint!([:syntax, condition.then.node],
+                                  result_type,
+                                  [:case_then, self, index])
         end
 
         if @else
           @else.node.generate_constraints(context)
-          context.add_constraint!([:syntax, @else.node], var, [:case_else, self])
+          context.add_constraint!([:syntax, @else.node],
+                                  result_type,
+                                  [:case_else, self])
         end
-        context.add_constraint!([:syntax, self], var, [:case_return, self])
+
+        context.add_constraint!([:syntax, self],
+                                result_type,
+                                [:case_return, self])
       end
 
       def repr

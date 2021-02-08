@@ -9,9 +9,23 @@ def token_stream(*args)
   end
 end
 
+class Missing
+  attr_reader :type
+  def initialize(type)
+    @type = type
+  end
+end
+
+def missing(type)
+  Missing.new(type)
+end
+
 class InputHash < Hash
   def [](key)
-    [super, :user]
+    out = super
+    out = nil if out.is_a?(Missing)
+
+    [out, :user]
   end
 end
 

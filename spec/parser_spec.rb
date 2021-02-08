@@ -153,14 +153,21 @@ describe Dentaku::Parser do
   end
 
   should_parse(
-    ["{ a: TRUE, b: false }", Dentaku::AST::Dictionary],
+    ["{ a: TRUE, b: false }", Dentaku::AST::Struct],
     ["[1, 2, 3]", Dentaku::AST::List],
     ["IF(1 = 2, { a: 1 }, { c: 3 })", Dentaku::AST::Function],
     ["IF(1 = 2, 'here', 'there')", Dentaku::AST::Function],
-    ["{ a: { b: 2 } }", Dentaku::AST::Dictionary],
+    ["{ a: { b: 2 } }", Dentaku::AST::Struct],
     ["if(2 = 1, (1%6), 7)", Dentaku::AST::Function],
     ["field:café", Dentaku::AST::Identifier],
     ["field:値", Dentaku::AST::Identifier],
+    ["CASE
+      WHEN baz THEN
+        CASE
+        WHEN 1 THEN 2
+        END
+      WHEN faz THEN 1
+      END", Dentaku::AST::Case],
   )
 
 
@@ -170,9 +177,6 @@ describe Dentaku::Parser do
       "IF(true, 3, 4)
        IF(true, 3, 4)", /unexpected output/i],
 
-    ["if(foo, 1)", /wrong number of args/i],
-    ["MAX(3, 2)", /wrong number of args/i],
-    ["1 + if", /invalid use of function if/i],
     ["(1 + 2 * 5", /'\(' missing closing '\)'/i],
     ["((1 + 2 * 5)", /'\(' missing closing '\)'/i],
     ["(1 + 2 * 5))", /extraneous closing '\)'/i],
@@ -184,13 +188,6 @@ describe Dentaku::Parser do
     ["CASE foo
       WHEN baz THEN 3
       WHEN faz THEN 1 ", /'CASE' missing closing 'END'/],
-    ["CASE
-      WHEN baz THEN
-        CASE
-        WHEN 1 THEN 2
-        END
-      WHEN faz THEN 1
-      END", /case missing switch variable/i],
     ["CASE foo
       WHEN baz THEN 3
       WHEN faz
@@ -200,13 +197,14 @@ describe Dentaku::Parser do
       WHEN faz 3
       END", /Expected case token, got/],
     ["CASE foo
-      END", /Case missing switch variable/],
+      END", /`foo' is not a valid CASE condition/],
     ["CASE foo
       WHEN baz THEN 3
       IF(true, 1, 2)
       WHEN baz THEN 3
       END", /Expected first argument to be a CaseWhen, was \(3\)/],
     ["([)]", /Unexpected token in parenthesis/],
-    ["field:$money", /Unknown token starting with "[$]mo"/]
+    ["field:$money", /Unknown token starting with "[$]mo"/],
+    ["case 1 when 2 then 3 else end", /empty else clause/]
   )
 end

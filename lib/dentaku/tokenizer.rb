@@ -4,15 +4,48 @@ require 'dentaku/token'
 module Dentaku
   class Tokenizer
     NAMES = {
-      operator: { pow: '^', add: '+', subtract: '-', multiply: '*', divide: '/', mod: '%' }.invert,
-      grouping: { open: '(', close: ')', comma: ',' }.invert,
-      dictionary: { open: '{', close: '}', comma: ',' }.invert,
-      list: { open: '[', close: ']', comma: ',' }.invert,
-      case: { open: 'case', close: 'end', then: 'then', when: 'when', else: 'else' }.invert,
+      operator: {
+        '^'  => :pow,
+        '+'  => :add,
+        '-'  => :subtract,
+        '*'  => :multiply,
+        '/'  => :divide,
+        '%'  => :mod,
+        '..' => :range
+      }.freeze,
+      grouping: {
+        '(' => :open,
+        ')' => :close,
+        ',' => :comma,
+      }.freeze,
+      struct: {
+        '{' => :open,
+        '}' => :close,
+        ',' => :comma,
+      }.freeze,
+      list: {
+        '[' => :open,
+        ']' => :close,
+        ',' => :comma,
+      }.freeze,
+      case: {
+        'case' => :open,
+        'end' => :close,
+        'then' => :then,
+        'when' => :when,
+        'else' => :else,
+      }.freeze,
       comparator: {
-        le: '<=', ge: '>=', ne: '!=', lt: '<', gt: '>', eq: '='
-      }.invert.merge({ ne: '<>', eq: '==' }.invert),
-    }
+        '<=' => :le,
+        '>=' => :ge,
+        '!=' => :ne,
+        '<>' => :ne,
+        '<'  => :lt,
+        '>'  => :gt,
+        '='  => :eq,
+        '==' => :eq,
+      }.freeze,
+    }.freeze
 
     attr_reader :tokens, :scanner
 
@@ -66,24 +99,24 @@ module Dentaku
         [:whitespace]
       elsif match /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//
         [:comment]
-      elsif match /#{numeric}\s*\.\.\s*#{numeric}/
-        [:range, Range.new(cast(scanner[2]), cast(scanner[3]))]
+      elsif match %r(//.*?$)
+        [:comment]
       elsif match numeric
         [:numeric, cast(scanner[0])]
       elsif match /(?<delim>['"])(?<str>.*?)\k<delim>/
         [:string, scanner[2]]
       elsif can_negate? && match(/\-/)
         [:operator, :negate]
-      elsif match /\^|\+|-|\*|\/|%/
+      elsif match %r(\^|[+]|[-]|[*]|[/]|[%]|[.][.])
         [:operator, NAMES[:operator][scanner[0]]]
       elsif match /,/m
         raise ParseError.new("comma found outside of group", location(scanner)) unless parent_category
         [parent_category, NAMES[parent_category][scanner[0]]]
-      elsif match /\(|\)|,(?=.*\))/m
+      elsif match /[(]|[)]/m
         [:grouping, NAMES[:grouping][scanner[0]]]
-      elsif match /\{|\}|,(?=.*\})/
-        [:dictionary, NAMES[:dictionary][scanner[0]]]
-      elsif match /\[|\]|,(?=.*\])/
+      elsif match /[{]|[}]/
+        [:struct, NAMES[:struct][scanner[0]]]
+      elsif match /\[|\]/
         [:list, NAMES[:list][scanner[0]]]
       elsif match /(case|end|then|when|else)\b/i
         [:case, NAMES[:case][scanner[1].downcase]]
@@ -129,6 +162,8 @@ module Dentaku
     end
 
     def location(scanner)
+      return [1, 1] if scanner.pos == 0
+
       line = scanner.string[0..scanner.pos-1].count("\n") + 1
       if line == 1
         col = scanner.pos + 1

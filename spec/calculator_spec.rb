@@ -13,6 +13,7 @@ describe Dentaku::Calculator do
       when true, false then ':bool'
       when Range       then ':range'
       when String      then ':string'
+      when Missing     then val.type
       else raise "unknown value type: #{val.class}"
       end
     end
@@ -26,9 +27,9 @@ describe Dentaku::Calculator do
   end
 
   def e!(expr, vars={})
-    ast = calculator.ast(expr)
-    typecheck!(ast, vars)
-    calculator.evaluate!(ast, input(vars))
+    @ast = calculator.ast(expr)
+    typecheck!(@ast, vars)
+    calculator.evaluate!(@ast, input(vars))
   end
 
   it 'evaluates an expression' do
@@ -57,6 +58,8 @@ describe Dentaku::Calculator do
     expect(e!('(((695759/735000)^(1/(1981-1991)))-1)*1000').round(4)).to eq(5.5018)
     expect(e!('0.253/0.253')).to eq(1)
     expect(e!('0.253/d', d: 0.253)).to eq(1)
+    expect(e!("// this is a comment\n35")).to eq(35)
+    expect(e!("36\n// this is a comment")).to eq(36)
   end
 
   describe 'dependencies' do
@@ -76,6 +79,13 @@ describe Dentaku::Calculator do
       expect(e).to be_a Dentaku::Type::ErrorSet
       expect(e.message).to match /TypeMismatch/
       expect(e.message).to match /UnboundIdentifier `bar' of type :numeric/
+    end
+  end
+
+  it 'gives type errors for combinators' do
+    expect { e!('12 OR 23') }.to raise_error do |e|
+      expect(e).to be_a Dentaku::Type::ErrorSet
+      expect(e.message).to match /TypeMismatch/
     end
   end
 
@@ -179,11 +189,27 @@ describe Dentaku::Calculator do
     end
   end
 
-  describe 'dictionary' do
-    it 'handles dictionary' do
+  describe 'within' do
+    it 'should check that a number is within a range' do
+      expect(e!('within(1..3, 2)')).to be true
+      expect(e!('within(1..2, 3)')).to be false
+      expect(e!('within(1..3+4, 6)')).to be true
+      expect(e!('within(1..3+4, 7)')).to be true
+      expect(e!('within(1..3+4, 8)')).to be false
+      expect(e!('within(1..foo, 6)', input(foo: 10))).to be true
+    end
+  end
+
+  describe 'struct' do
+    it 'handles struct' do
       result = e!('{code: field:code, value: val*10}', 'field:code': '23', val: 10)
       expect(result[:code]).to eq('23')
       expect(result[:value]).to eq(100)
+    end
+
+    it 'handles empty struct' do
+      result = e!('{}')
+      expect(result).to eq({})
     end
   end
 
@@ -313,6 +339,26 @@ describe Dentaku::Calculator do
         quantity: 2, fruit: 'apple'
       )
       expect(value).to eq(3)
+    end
+
+    it 'handles empty case statements' do
+      formula = <<-FORMULA
+      CASE
+      WHEN a = 1 THEN "a"
+      WHEN b = 2 THEN "b"
+      ELSE "c"
+      END
+      FORMULA
+
+      expect(e!(formula, a: 1, b: missing(':numeric'))).to eq('a')
+      expect(calculator.dependencies(@ast)).to eql ['a', 'b']
+
+      expect(e!(formula, a: 0, b: 2)).to eq('b')
+      expect(e!(formula, a: 0, b: 0)).to eq('c')
+      expect { e!(formula, a: missing(':numeric'), b: missing(':numeric')) }
+        .to raise_error(Dentaku::UnboundVariableError)
+      expect { e!(formula, a: missing(':numeric'), b: 2) }
+        .to raise_error(Dentaku::UnboundVariableError)
     end
   end
 
