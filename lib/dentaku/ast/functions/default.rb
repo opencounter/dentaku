@@ -19,8 +19,13 @@ module Dentaku
         end
       end
 
-      def cachable?
-        false
+      # Don't cache values, but still make a cache key so child identifiers are reported
+      def evaluate
+        Calculator.current.cache_for(self) do |cache|
+          cache.trace do
+            value
+          end
+        end
       end
     end
   end
