@@ -6,7 +6,7 @@ module Dentaku
       end
 
       def initialize(*args)
-        raise RuntimeError.new("Mismatched struct: #{args.map(&:value)}") unless args.length%2 == 0
+        raise ParseError.new("Mismatched struct: #{args.map(&:value)}") unless args.length%2 == 0
         @keys = args.each_slice(2).map { |(k, v)| k }
         @struct = args.each_slice(2).each_with_object({}) do |(key, value), memo|
           memo[key.value] = value
