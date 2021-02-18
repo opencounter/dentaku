@@ -41,6 +41,12 @@ module Dentaku
       end
     end
 
+    class EmptyExpression < InvalidAST
+      def message
+        "EmptyExpression"
+      end
+    end
+
     class UnboundIdentifier < InvalidAST
       def message
         "UnboundIdentifier `#{ast.repr}' of type #{type.repr}"
