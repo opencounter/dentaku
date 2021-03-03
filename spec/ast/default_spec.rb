@@ -6,7 +6,8 @@ describe Dentaku::AST::Default do
   let(:expression) do
     'default(a, 100)'
   end
-  let(:evaluation) { calculator.evaluate!(expression, data) }
+  let(:ast) { calculator.ast(expression) }
+  let(:evaluation) { calculator.evaluate!(ast, data) }
 
   context "with value" do
     let(:data) { { "a" => 10 } }
@@ -21,6 +22,11 @@ describe Dentaku::AST::Default do
 
     it "uses default value" do
       expect(evaluation).to be 100
+    end
+
+    it "surfaces identifiers" do
+      evaluation
+      calculator.cache_for(ast).target["unsatisfied_identifiers"].include?("a")
     end
   end
 end
