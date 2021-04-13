@@ -105,7 +105,7 @@ module Dentaku
       end
 
       def evaluate
-        return value unless cachable?
+        return value if Calculator.current.partial_eval? || !cachable?
 
         Calculator.current.cache_for(self) do |cache|
           cache.getset { |tracer| value }
