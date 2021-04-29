@@ -3,6 +3,10 @@ module Dentaku
     class CaseElse < Node
       attr_reader :node
 
+      def self.precedence
+        3
+      end
+
       def self.arity
         1
       end

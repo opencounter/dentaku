@@ -3,6 +3,10 @@ require_relative 'operation'
 module Dentaku
   module AST
     class Combinator < Operation
+      def self.precedence
+        4
+      end
+
       def types
         [:bool, :bool, :bool]
       end

@@ -362,6 +362,18 @@ describe Dentaku::Calculator do
     end
   end
 
+
+  it 'handles logic in case statements', :jneen do
+    formula = <<-FORMULA
+    CASE
+    WHEN a AND b THEN 1
+    WHEN a OR b THEN 2
+    END
+    FORMULA
+
+    expect(e!(formula, a: true, b: false)).to eq(2)
+  end
+
   describe 'math functions' do
     Math.methods(false).each do |method|
       it method do
