@@ -4,7 +4,7 @@ require 'dentaku/calculator'
 DENTAKU_TYPE_DEBUG = ENV['DENTAKU_TYPE_DEBUG'].to_i > 0
 
 describe Dentaku::Calculator do
-  let(:calculator)  { described_class.new }
+  let(:calculator)  { described_class.new.tap { |c| c.cache = {} } }
 
   def typecheck!(ast, vars)
     types = vars.transform_values do |val|
@@ -60,6 +60,7 @@ describe Dentaku::Calculator do
     expect(e!('0.253/d', d: 0.253)).to eq(1)
     expect(e!("// this is a comment\n35")).to eq(35)
     expect(e!("36\n// this is a comment")).to eq(36)
+    expect(e!("false and false or true")).to eq(true)
   end
 
   describe 'dependencies' do
@@ -360,6 +361,18 @@ describe Dentaku::Calculator do
       expect { e!(formula, a: missing(':numeric'), b: 2) }
         .to raise_error(Dentaku::UnboundVariableError)
     end
+  end
+
+
+  it 'handles logic in case statements', :jneen do
+    formula = <<-FORMULA
+    CASE
+    WHEN a AND b THEN 1
+    WHEN a OR b THEN 2
+    END
+    FORMULA
+
+    expect(e!(formula, a: true, b: false)).to eq(2)
   end
 
   describe 'math functions' do
