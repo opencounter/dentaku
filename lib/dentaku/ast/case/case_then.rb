@@ -3,6 +3,10 @@ module Dentaku
     class CaseThen < Node
       attr_reader :node
 
+      def self.precedence
+        3
+      end
+
       def repr
         "THEN #{@node.repr}"
       end

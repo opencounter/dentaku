@@ -7,6 +7,10 @@ require_relative 'case/case_else'
 module Dentaku
   module AST
     class Case < Node
+      def self.precedence
+        1
+      end
+
       def initialize(*nodes)
         @switch = nodes.shift if nodes.first.is_a?(AST::CaseSwitchVariable)
 
