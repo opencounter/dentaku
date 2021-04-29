@@ -88,7 +88,11 @@ module Dentaku
       end
 
       def repr
-        children.map(&:repr).join("\n") << "END"
+        out = ''
+        out << 'CASE ' unless @switch
+        children.each { |c| out << c.repr << "\n" }
+        out << 'END'
+        out
       end
     end
   end
