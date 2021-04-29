@@ -60,6 +60,7 @@ describe Dentaku::Calculator do
     expect(e!('0.253/d', d: 0.253)).to eq(1)
     expect(e!("// this is a comment\n35")).to eq(35)
     expect(e!("36\n// this is a comment")).to eq(36)
+    expect(e!("false and false or true")).to eq(true)
   end
 
   describe 'dependencies' do
