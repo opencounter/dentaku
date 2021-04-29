@@ -4,7 +4,7 @@ require 'dentaku/calculator'
 DENTAKU_TYPE_DEBUG = ENV['DENTAKU_TYPE_DEBUG'].to_i > 0
 
 describe Dentaku::Calculator do
-  let(:calculator)  { described_class.new }
+  let(:calculator)  { described_class.new.tap { |c| c.cache = {} } }
 
   def typecheck!(ast, vars)
     types = vars.transform_values do |val|
