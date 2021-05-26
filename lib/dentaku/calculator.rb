@@ -196,6 +196,9 @@ module Dentaku
         input_checksum = Zlib.crc32(json)
 
         if target && (target["input_checksum"] == input_checksum) && !target["value"].nil?
+          target["cache_hits"] ||= 0
+          target["cache_hits"] += 1
+
           if target['value'].nil?
             raise UnboundVariableError.new(target["unsatisfied_identifiers"])
           else
@@ -203,6 +206,8 @@ module Dentaku
           end
         else
           target["node_type"] = node.class.to_s
+          target["node"] = node.inspect
+          target["expression_id"] = $expression_id
           target["input_checksum"] = input_checksum
           target["unsatisfied_identifiers"] = Set.new
           target["satisfied_identifiers"] = Set.new
