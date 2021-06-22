@@ -71,14 +71,14 @@ module Dentaku
     # simply use a boolean here - it would reset the state too early.
     # a counter is an easy way to allow nesting.
     def with_partial
-      @partial_eval_depth += 1
+      @partial_eval = true
       yield
     ensure
-      @partial_eval_depth -= 1
+      @partial_eval = false
     end
 
     def partial_eval?
-      @partial_eval_depth > 0
+      !!@partial_eval
     end
 
     def with_input(data)
