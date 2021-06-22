@@ -67,14 +67,17 @@ module Dentaku
       [evaluate!(expression, data), @tracer]
     end
 
-    # [jneen] because with_partial { ... } blocks can nest, we can't
-    # simply use a boolean here - it would reset the state too early.
-    # a counter is an easy way to allow nesting.
     def with_partial
-      @partial_eval = true
-      yield
-    ensure
-      @partial_eval = false
+      return yield if @partial_eval
+
+      begin
+        @partial_eval = true
+        yield
+      rescue UnboundVariableError
+        nil
+      ensure
+        @partial_eval = false
+      end
     end
 
     def partial_eval?
