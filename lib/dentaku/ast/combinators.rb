@@ -21,6 +21,8 @@ module Dentaku
         return false if left.partial_evaluate == false
         return false if right.partial_evaluate == false
 
+        return nil if Calculator.current.partial_eval?
+
         left.evaluate && right.evaluate
       end
 
@@ -33,6 +35,8 @@ module Dentaku
       def value
         return true if left.partial_evaluate == true
         return true if right.partial_evaluate == true
+
+        return nil if Calculator.current.partial_eval?
 
         left.evaluate || right.evaluate
       end

@@ -14,8 +14,12 @@ module Dentaku
       end
 
       def value
-        @identifier.evaluate do
-          @default_value.evaluate
+        if Calculator.current.partial_eval?
+          @identifier.evaluate
+        else
+          @identifier.evaluate do
+            @default_value.evaluate
+          end
         end
       end
 
