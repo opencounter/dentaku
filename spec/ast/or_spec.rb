@@ -69,5 +69,33 @@ describe Dentaku::AST::Or do
         expect(calculator.cache.satisfied_identifiers).to eql Set['c']
       end
     end
+
+    describe 'partial_evaluation' do
+      let(:ident_count) { (ENV['PERF_SIZE'] || 100).to_i }
+
+      context 'with default' do
+        let(:expression) do
+          (0...ident_count).to_a.map { |i| "default(f#{i}, false)" }.join(" OR ")
+        end
+
+        it 'hits all idents but doesnt overflow' do
+          expect(evaluation).to be false
+          expect(calculator.cache.satisfied_identifiers).to be_empty
+          expect(calculator.cache.unsatisfied_identifiers.size).to eql(ident_count)
+        end
+      end
+
+      context 'without default', :perf do
+        let(:expression) do
+          (0...ident_count).to_a.map { |i| "f#{i}" }.join(" OR ")
+        end
+
+        it 'finishes after the first unknown ident' do
+          expect { evaluation }.to raise_error(Dentaku::UnboundVariableError)
+          expect(calculator.cache.satisfied_identifiers).to be_empty
+          expect(calculator.cache.unsatisfied_identifiers).to eql Set.new(['f0'])
+        end
+      end
+    end
   end
 end
