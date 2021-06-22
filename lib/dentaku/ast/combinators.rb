@@ -6,6 +6,12 @@ module Dentaku
       def types
         [:bool, :bool, :bool]
       end
+
+      def partial_evaluate
+        return real_evaluate if Calculator.current.partial_eval?
+
+        super
+      end
     end
 
     class And < Combinator
@@ -21,6 +27,10 @@ module Dentaku
         return false if left.partial_evaluate == false
         return false if right.partial_evaluate == false
 
+        real_evaluate
+      end
+
+      def real_evaluate
         left.evaluate && right.evaluate
       end
 
@@ -34,6 +44,10 @@ module Dentaku
         return true if left.partial_evaluate == true
         return true if right.partial_evaluate == true
 
+        real_evaluate
+      end
+
+      def real_evaluate
         left.evaluate || right.evaluate
       end
 
