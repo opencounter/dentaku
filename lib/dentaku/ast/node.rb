@@ -123,13 +123,15 @@ module Dentaku
       # expressions, so as to not report missing identifiers in branches
       # that do not matter to the expression.
       def partial_evaluate
-        out = Calculator.current.with_partial do
-          evaluate
-        end
+        return evaluate if Calculator.current.partial_eval?
 
-        out
-      rescue UnboundVariableError
-        nil
+        begin
+          Calculator.current.with_partial do
+            evaluate
+          end
+        rescue UnboundVariableError
+          nil
+        end
       end
 
       def context
