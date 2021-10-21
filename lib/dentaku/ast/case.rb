@@ -7,6 +7,10 @@ require_relative 'case/case_else'
 module Dentaku
   module AST
     class Case < Node
+      def self.precedence
+        1
+      end
+
       def initialize(*nodes)
         @switch = nodes.shift if nodes.first.is_a?(AST::CaseSwitchVariable)
 
@@ -88,7 +92,11 @@ module Dentaku
       end
 
       def repr
-        children.map(&:repr).join("\n") << "END"
+        out = ''
+        out << 'CASE ' unless @switch
+        children.each { |c| out << c.repr << "\n" }
+        out << 'END'
+        out
       end
     end
   end
