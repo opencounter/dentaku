@@ -37,6 +37,14 @@ module Dentaku
         return ":#{type_name}" if args.empty?
         ":#{type_name}(#{args.map(&:repr)})"
       end
+
+      def inspect
+        "(declared #{repr})"
+      end
+
+      def to_sexpr
+        [type_name, *@args.map(&:to_sexpr)]
+      end
     end
 
     declare(:bool)

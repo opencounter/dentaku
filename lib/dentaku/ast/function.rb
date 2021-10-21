@@ -53,6 +53,10 @@ module Dentaku
         @type_spec ||= Type::Syntax.parse_spec(type_syntax)
       end
 
+      def self.inspect
+        type_syntax rescue super
+      end
+
       def self.register(type_syntax, implementation)
         function = Class.new(self) do
           def value
@@ -63,7 +67,6 @@ module Dentaku
           singleton_class.class_eval do
             define_method(:type_syntax) { type_syntax }
             define_method(:implementation) { implementation }
-            define_method(:inspect) { type_syntax }
           end
         end
 
