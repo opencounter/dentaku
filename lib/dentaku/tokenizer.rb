@@ -88,11 +88,27 @@ module Dentaku
       end
 
       assert_pairs!
-
+      filter_tokens!
       @tokens
     end
 
     private
+
+    # filter out ignored tokens like trailing or duplicate commas
+    def filter_tokens!
+      i = 0
+      @tokens = @tokens.select do |token|
+        next_token = @tokens[i+1]
+        next true if next_token.nil?
+
+        if token.value == :comma && [:comma,:close].include?(next_token.value)
+          next false
+        end
+
+        i+=1
+        true
+      end
+    end
 
     def scan(parent_category=nil)
       if match /\s+/

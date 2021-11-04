@@ -83,6 +83,10 @@ describe Dentaku::Calculator do
     end
   end
 
+  it 'allows trailing commas' do
+    expect(e!('[1,2,3,]')).to eq([1,2,3])
+  end
+
   it 'gives type errors for combinators' do
     expect { e!('12 OR 23') }.to raise_error do |e|
       expect(e).to be_a Dentaku::Type::ErrorSet
@@ -211,6 +215,20 @@ describe Dentaku::Calculator do
     it 'handles empty struct' do
       result = e!('{}')
       expect(result).to eq({})
+    end
+
+    it "gracefully fails when keys aren't present" do
+      expect { e!('{a:1,b:2}') }.to raise_error(/Values without keys/)
+    end
+
+    it 'allows trailing commas',:jneen do
+      result = e!("{a: 1, b: 2,}")
+      expect(result[:a]).to eq(1)
+      expect(result[:b]).to eq(2)
+
+      result = e!("{a: 1, b: 2,//comment\n}")
+      expect(result[:a]).to eq(1)
+      expect(result[:b]).to eq(2)
     end
   end
 
@@ -364,7 +382,7 @@ describe Dentaku::Calculator do
   end
 
 
-  it 'handles logic in case statements', :jneen do
+  it 'handles logic in case statements' do
     formula = <<-FORMULA
     CASE
     WHEN a AND b THEN 1

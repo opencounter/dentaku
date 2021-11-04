@@ -7,6 +7,8 @@ module Dentaku
 
       def initialize(*args)
         raise ParseError.new("Mismatched struct: #{args.map(&:value)}") unless args.length%2 == 0
+        raise ParseError.new("Values without keys: #{args.compact.map(&:inspect)}") if args.any?(&:nil?)
+
         @keys = args.each_slice(2).map { |(k, v)| k }
         @struct = args.each_slice(2).each_with_object({}) do |(key, value), memo|
           memo[key.value] = value
