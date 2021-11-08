@@ -404,4 +404,19 @@ describe Dentaku::Calculator do
       end
     end
   end
+
+  describe 'list functions', :jneen do
+    it 'is missing but defaultable for empty lists' do
+      expect { e!('first([])') }.to raise_error(Dentaku::EmptyList)
+      expect { e!('last([])') }.to raise_error(Dentaku::EmptyList)
+
+      expect(e!('default(first([]), "banana")')).to eq 'banana'
+      expect(e!('default(last([]), 42)')).to eq 42
+    end
+
+    it 'returns the correct thing for nonempty lists' do
+      expect(e!('first([1,2,3])')).to eq 1
+      expect(e!('last([1,2,3])')).to eq 3
+    end
+  end
 end
