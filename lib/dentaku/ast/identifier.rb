@@ -17,17 +17,17 @@ module Dentaku
         @identifier = token.value.to_s.downcase
       end
 
-      def evaluate(&default_blk)
+      def evaluate
         return value unless cachable?
 
         Calculator.current.cache_for(self) do |cache|
           cache.trace do |tracer|
-            value_with_trace(tracer, &default_blk)
+            value_with_trace(tracer)
           end
         end
       end
 
-      def value_with_trace(trace, &default_blk)
+      def value_with_trace(trace)
         v, type = context[identifier]
         case v
         when Node
@@ -35,11 +35,7 @@ module Dentaku
         when NilClass
           trace.unsatisfied(identifier)
 
-          if default_blk
-            default_blk.call
-          else
-            raise UnboundVariableError.new([identifier])
-          end
+          raise UnboundVariableError.new([identifier])
         else
           if type == :default
             trace.unsatisfied(identifier)

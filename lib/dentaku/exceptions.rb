@@ -1,5 +1,8 @@
 module Dentaku
-  class UnboundVariableError < StandardError
+  class Missing < StandardError
+  end
+
+  class UnboundVariableError < Missing
     attr_reader :unbound_variables
 
     def initialize(unbound_variables)

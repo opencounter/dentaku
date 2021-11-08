@@ -7,17 +7,19 @@ module Dentaku
         "default(%a, %a) = %a"
       end
 
-      def initialize(identifier, default_value)
+      def initialize(expr, default_value)
         super
-        @identifier = identifier
+        @expr = expr
         @default_value = default_value
       end
 
       def value
         if Calculator.current.partial_eval?
-          @identifier.evaluate
+          @expr.evaluate
         else
-          @identifier.evaluate do
+          begin
+            @expr.evaluate
+          rescue Missing
             @default_value.evaluate
           end
         end
