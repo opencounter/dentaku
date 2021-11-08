@@ -405,7 +405,7 @@ describe Dentaku::Calculator do
     end
   end
 
-  describe 'list functions', :jneen do
+  describe 'list functions' do
     it 'is missing but defaultable for empty lists' do
       expect { e!('first([])') }.to raise_error(Dentaku::EmptyList)
       expect { e!('last([])') }.to raise_error(Dentaku::EmptyList)
