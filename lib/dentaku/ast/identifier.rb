@@ -35,7 +35,7 @@ module Dentaku
         when NilClass
           trace.unsatisfied(identifier)
 
-          raise UnboundVariableError.new([identifier])
+          raise UnboundVariableError.new(self, [identifier])
         else
           if type == :default
             trace.unsatisfied(identifier)
@@ -52,7 +52,7 @@ module Dentaku
         when Node
           v.evaluate
         when NilClass
-          raise UnboundVariableError.new([identifier])
+          raise UnboundVariableError.new(self, [identifier])
         else
           v
         end

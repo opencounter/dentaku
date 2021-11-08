@@ -197,7 +197,7 @@ module Dentaku
 
         if target && (target["input_checksum"] == input_checksum) && !target["value"].nil?
           if target['value'].nil?
-            raise UnboundVariableError.new(target["unsatisfied_identifiers"])
+            raise UnboundVariableError.new(nil, target["unsatisfied_identifiers"])
           else
             target["value"]
           end
