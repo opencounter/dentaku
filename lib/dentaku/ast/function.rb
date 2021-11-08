@@ -61,7 +61,7 @@ module Dentaku
         function = Class.new(self) do
           def value
             args = @args.map { |a| a.evaluate }
-            self.class.implementation.call(*args)
+            instance_exec(*args, &self.class.implementation)
           end
 
           singleton_class.class_eval do
