@@ -290,7 +290,7 @@ describe Dentaku::Calculator do
       END
       FORMULA
       expect { e!(formula, number: 2) }
-        .to raise_error("No block matched the switch value '2'")
+        .to raise_error(Dentaku::Missing, /had no value that was 2/)
     end
 
     it 'handles a default else statement' do

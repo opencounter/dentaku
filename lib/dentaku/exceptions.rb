@@ -19,4 +19,11 @@ module Dentaku
       super("oops, this list was empty: `#{ast.source}`")
     end
   end
+
+  class NoMatch < Missing
+    def initialize(ast, value)
+      @ast = ast
+      super("oops, this `case` statement had no value that was #{value.inspect}: `#{ast.source}`")
+    end
+  end
 end
