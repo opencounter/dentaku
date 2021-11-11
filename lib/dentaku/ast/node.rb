@@ -134,7 +134,7 @@ module Dentaku
         @_partial = Calculator.current.with_partial do
           evaluate
         end
-      rescue UnboundVariableError
+      rescue Missing
         @_partial = nil
       end
 

@@ -44,7 +44,7 @@ describe Dentaku::AST::Case do
     it 'raises an exception if the conditional is not matched' do
       node = described_class.new(switch, conditional1, conditional2)
       expect { calculator.evaluate!(node, input(fruit: 'orange')) }
-        .to raise_error("No block matched the switch value 'orange'")
+        .to raise_error(Dentaku::NoMatch, /had no value that was "orange"/)
     end
 
     it 'uses the else value if provided and conditional is not matched' do

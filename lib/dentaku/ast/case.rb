@@ -41,7 +41,7 @@ module Dentaku
         if @else
           return @else.evaluate
         else
-          raise "No block matched the switch value '#{switch_value}'"
+          raise NoMatch.new(self, switch_value)
         end
       end
 
