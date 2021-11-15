@@ -2,16 +2,6 @@ require 'dentaku/ast/function'
 
 module Dentaku
   module AST
-    class UndefinedFunctionMaker
-      def initialize(name)
-        @name = name
-      end
-
-      # yes this is an instance method
-      def new
-      end
-    end
-
     # function class for handling undefined functions. will result in type
     # errors later.
     class UndefinedFunction < Function
