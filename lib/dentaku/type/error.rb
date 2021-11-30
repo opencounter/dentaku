@@ -111,6 +111,13 @@ module Dentaku
       end
     end
 
+    # only used by AST::Invalid, @ast should be an instance of this class.
+    class ParseError < InvalidAST
+      def message
+        @ast.message
+      end
+    end
+
     class ErrorSet < StandardError
       attr_reader :errors
 

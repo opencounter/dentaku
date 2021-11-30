@@ -1,0 +1,29 @@
+module Dentaku
+  module AST
+    class Invalid < Node
+      attr_reader :message, :children
+      def initialize(message, *children)
+        @message = message
+        @children = children
+      end
+
+      def dependencies
+        @children.flat_map(&:dependencies)
+      end
+
+      def repr
+        if @children.empty?
+          "#ERR:#{message.inspect}"
+        else
+          "#ERR:#{message.inspect}(#{children.map(&:repr).join(', ')})"
+        end
+      end
+
+      def generate_constraints(context)
+        context.invalid_ast!(Type::ParseError, self)
+
+        @children.each { |c| c.generate_constraints(context) }
+      end
+    end
+  end
+end

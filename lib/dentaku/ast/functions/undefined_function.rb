@@ -11,8 +11,9 @@ module Dentaku
         # more or less like a sub*class* of Dentaku::AST::Function.
 
         attr_reader :function_name
-        def initialize(name)
+        def initialize(name, node=nil)
           @function_name = name
+          @function_node = node
         end
 
         # skip arity-checking in the parser - this is already an error state
@@ -30,8 +31,8 @@ module Dentaku
         end
       end
 
-      def self.named(func_name)
-        Factory.new(func_name)
+      def self.named(func_name, node=nil)
+        Factory.new(func_name, node)
       end
 
       attr_reader :function_name, :args
