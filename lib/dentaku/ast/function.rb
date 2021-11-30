@@ -25,8 +25,8 @@ module Dentaku
         name.to_s.downcase
       end
 
-      def self.get(name)
-        registry.fetch(normalize_name(name)) { UndefinedFunction.named(name) }
+      def self.get(name, node=nil)
+        registry.fetch(normalize_name(name)) { UndefinedFunction.named(name, node) }
       end
 
       def self.function_name

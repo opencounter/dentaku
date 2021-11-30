@@ -84,7 +84,7 @@ module Dentaku
       def expression_hash
         cases(
           syntax: ->(ast) {
-            ast.loc_range.inspect + ast.repr
+            ast.loc_range.repr + ast.repr
           },
           other: ->(*) { repr }
         )

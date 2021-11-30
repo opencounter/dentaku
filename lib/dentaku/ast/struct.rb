@@ -6,12 +6,11 @@ module Dentaku
       end
 
       def initialize(*args)
-        raise ParseError.new("Mismatched struct: #{args.map(&:value)}") unless args.length%2 == 0
-        raise ParseError.new("Values without keys: #{args.compact.map(&:inspect)}") if args.any?(&:nil?)
+        @keys = args.map(&:first)
 
-        @keys = args.each_slice(2).map { |(k, v)| k }
-        @struct = args.each_slice(2).each_with_object({}) do |(key, value), memo|
-          memo[key.value] = value
+        @struct = {}
+        args.each do |(k, v)|
+          @struct[k] = v
         end
       end
 
@@ -28,7 +27,7 @@ module Dentaku
       end
 
       def generate_constraints(context)
-        keys = @struct.keys.sort
+        keys = @keys.sort
         key_vars = keys.map do |key|
           Type::Expression.make_variable(key.to_sym)
         end

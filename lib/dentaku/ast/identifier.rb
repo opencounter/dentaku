@@ -13,8 +13,8 @@ module Dentaku
         Function.registry.keys.include?(@identifier)
       end
 
-      def initialize(token)
-        @identifier = token.value.to_s.downcase
+      def initialize(name)
+        @identifier = name.to_s.downcase
       end
 
       def evaluate

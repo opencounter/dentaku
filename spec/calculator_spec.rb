@@ -218,10 +218,10 @@ describe Dentaku::Calculator do
     end
 
     it "gracefully fails when keys aren't present" do
-      expect { e!('{a:1,b:2}') }.to raise_error(/Values without keys/)
+      expect { e!('{a:1,b:2}') }.to raise_error(/invalid key/)
     end
 
-    it 'allows trailing commas',:jneen do
+    it 'allows trailing commas' do
       result = e!("{a: 1, b: 2,}")
       expect(result[:a]).to eq(1)
       expect(result[:b]).to eq(2)

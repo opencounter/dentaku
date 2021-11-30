@@ -17,10 +17,9 @@ require 'dentaku/tracer'
 
 require 'dentaku'
 require 'dentaku/exceptions'
-require 'dentaku/token'
-require 'dentaku/tokenizer'
 require 'dentaku/dependency_resolver'
-require 'dentaku/parser'
+require 'dentaku/ast'
+require 'dentaku/syntax'
 
 module Dentaku
   class Calculator
@@ -115,7 +114,7 @@ module Dentaku
       return expression if expression.is_a?(AST::Node)
 
       @ast_cache.fetch(expression) {
-        Parser.new(Tokenizer.tokenize(expression)).parse.tap do |node|
+        Syntax.parse(expression).tap do |node|
           @ast_cache[expression] = node if Dentaku.cache_ast?
         end
       }

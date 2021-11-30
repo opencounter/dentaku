@@ -1,12 +1,8 @@
 module Dentaku
   module AST
     class Literal < Node
-      attr_reader :type
-
-      def initialize(token)
-        @token = token
-        @value = token.value
-        @type  = token.category
+      def initialize(value)
+        @value = value
       end
 
       def value
