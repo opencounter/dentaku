@@ -1,13 +1,12 @@
 require 'spec_helper'
-require 'dentaku/token'
-require 'dentaku/parser'
+require 'dentaku'
 
-describe Dentaku::Parser do
+describe Dentaku::Syntax::Parser do
   def self.should_not_parse(*expressions)
     describe "parse errors\n     " do
       expressions.each do |(expression, message)|
         it "#{expression}" do
-          expect{ parse_expression(expression) }.to raise_error(Dentaku::ParseError, %r{#{ message }})
+          expect{ parse_expression(expression) }.to raise_error(Dentaku::Type::ErrorSet)
         end
       end
     end
@@ -25,7 +24,7 @@ describe Dentaku::Parser do
   end
 
   def parse_expression(expression)
-    Dentaku::Parser.new(Dentaku::Tokenizer.tokenize(expression)).parse
+    Dentaku::Syntax.parse(expression)
   end
 
   let(:calculator) { Dentaku::Calculator.new }
