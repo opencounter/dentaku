@@ -1,8 +1,6 @@
 require 'spec_helper'
 require 'dentaku/ast/combinators'
 
-require 'dentaku/token'
-
 describe Dentaku::AST::Or do
   let(:calculator) { Dentaku::Calculator.new.tap { |c| c.cache = {} } }
 

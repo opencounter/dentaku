@@ -1,5 +1,4 @@
 require 'strscan'
-require 'dentaku/token'
 
 module Dentaku
   module Syntax
@@ -198,9 +197,8 @@ module Dentaku
           match /([[:alnum:]_]+\b):(?![[:alnum:]])/
         return med(:identifier, m.strip.downcase) if match /[[:alnum:]_:]+\b/
 
-        raise ParseError.new("unbalanced quote", location) if match /['"]/
-
-        raise ParseError.new("Unknown token starting with #{scanner.peek(3).inspect}", location)
+        return ini(:error, "unbalanced quote") if match /['"]/
+        return ini(:error, "Unknown character") if match(/./)
       end
 
       def unescape!(str)
