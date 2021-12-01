@@ -1,21 +1,7 @@
 require 'spec_helper'
 require 'dentaku/ast/combinators'
 
-require 'dentaku/token'
-
 describe Dentaku::AST::And do
-  let(:t) { Dentaku::AST::Logical.new Dentaku::Token.new(:logical, true)  }
-  let(:f) { Dentaku::AST::Logical.new Dentaku::Token.new(:logical, false) }
-
-  let(:five) { Dentaku::AST::Numeric.new Dentaku::Token.new(:numeric, 5) }
-
-  let(:calculator) { Dentaku::Calculator.new }
-
-  it 'performs logical AND' do
-    node = described_class.new(t, f)
-    expect(calculator.evaluate!(node)).to eq false
-  end
-
   describe 'branch favoring' do
     let(:calculator) { Dentaku::Calculator.new.tap { |c| c.cache = {} } }
     let(:expression) do

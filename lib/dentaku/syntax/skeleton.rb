@@ -6,6 +6,7 @@ module Dentaku
         def nested?(*) false; end
         def clause?(*) false; end
         def token?(*)  false; end
+        def error?(*)  false; end
 
         def match(matcher, &b)
           vars = matcher.match_vars(self)
@@ -82,6 +83,26 @@ module Dentaku
         end
       end
 
+      class Error < Base
+        def error?(*) true end
+
+        attr_reader :tokens, :message
+        def loc_range
+          Tokenizer::LocRange.between(@tokens.first, @tokens.last)
+        end
+
+        def initialize(tokens, message)
+          raise "bad error handling" if tokens.empty?
+
+          @tokens = tokens
+          @message = message
+        end
+
+        def repr
+          "{@ERR:#{@message.inspect} [#{@tokens.map(&:repr).join(' ')}]}"
+        end
+      end
+
       def self.parse(tokens)
         Skeleton::Parser.parse(tokens)
       end
@@ -97,6 +118,17 @@ module Dentaku
           @elems = []
         end
 
+        def unexpected_close_message
+          if @expected_close
+            expected_desc = Dentaku::Token::DESC[@expected_close]
+            expected_desc ||= @expected_close.to_s
+
+            "mismatched nesting: expected #{expected_desc}, got #{@token.desc}"
+          else
+            "extraneous closing #{@token.desc}"
+          end
+        end
+
         def parse(tokens)
           @last = nil
           @token = nil
@@ -105,12 +137,17 @@ module Dentaku
             @last = @token
             @token = tokens.next
             break if @token.is?(:eof)
-            # p :skel => [@last, @token, @elems]
 
-            if @expected_close && @token.is?(@expected_close)
+            if @token.is?(:error)
+              @elems << Error.new([@token], @token.value)
+            elsif @expected_close && @token.is?(@expected_close)
               return Nested.new(@open, @token, @elems)
+            elsif @token.close?
+              return Error.new([@token], unexpected_close_message)
             elsif @token.nest?
-              @elems << Parser.new(@token, @token.nest_pair).parse(tokens)
+              result = Parser.new(@token, @token.nest_pair).parse(tokens)
+              return result if result.error?
+              @elems << result
             else
               @elems << Token.new(@token)
             end
@@ -119,7 +156,7 @@ module Dentaku
           if @open.nil?
             return Root.new(@elems)
           else
-            error!(@token, "Unmatched nesting, expected #{@expected_close}")
+            return Error.new([@open], "unclosed #{@open.desc}")
           end
         end
       end

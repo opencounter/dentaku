@@ -198,7 +198,7 @@ module Dentaku
         return med(:identifier, m.strip.downcase) if match /[[:alnum:]_:]+\b/
 
         return ini(:error, "unbalanced quote") if match /['"]/
-        return ini(:error, "Unknown character") if match(/./)
+        return ini(:error, "Unknown token starting with `#{(m + scanner.peek(2))}'") if match(/./)
       end
 
       def unescape!(str)

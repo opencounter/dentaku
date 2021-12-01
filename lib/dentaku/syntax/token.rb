@@ -7,7 +7,24 @@ module Dentaku
       :case   => :end,
     }
 
-    CLAUSE = [:when, :then, :else]
+    CLOSE = Set.new(NEST.values)
+
+    CLAUSE = Set.new %i( when then else )
+
+    DESC = {
+      :lparen => 'parenthesis',
+      :rparen => 'parenthesis',
+      :lbrack => 'square bracket',
+      :rbrack => 'square bracket',
+      :lbrace => 'curly brace',
+      :rbrace => 'curly brace',
+      :case => 'CASE keyword',
+      :end => 'END keyword',
+    }
+
+    def desc
+      DESC.fetch(category) { category.to_s }
+    end
 
     attr_reader :category, :value
     attr_accessor :original, :source_name, :loc_range
@@ -19,6 +36,14 @@ module Dentaku
 
     def inspect
       "<Token :#{category}(#{value})@#{loc_range && loc_range.repr}>"
+    end
+
+    def repr
+      if @value
+        "#{category.inspect}(#{@value.inspect})#{loc_range && loc_range.repr}"
+      else
+        "#{category.inspect}#{loc_range && loc_range.repr}"
+      end
     end
 
     def source
@@ -57,6 +82,10 @@ module Dentaku
 
     def nest?
       NEST.key?(category)
+    end
+
+    def close?
+      CLOSE.include?(category)
     end
 
     def nest_pair

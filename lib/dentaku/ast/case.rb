@@ -18,7 +18,7 @@ module Dentaku
       end
 
       def children
-        [@switch, @clauses, @else].compact.flatten(1)
+        [@switch, @clauses, @else].compact.flatten
       end
 
       def value

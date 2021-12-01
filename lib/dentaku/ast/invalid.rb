@@ -7,6 +7,10 @@ module Dentaku
         @children = children
       end
 
+      def valid?
+        false
+      end
+
       def dependencies
         @children.flat_map(&:dependencies)
       end

@@ -5,7 +5,11 @@ module Dentaku
       extend Matcher::DSL
 
       def parse(skel)
-        parse_elems(skel.elems)
+        if skel.root?
+          parse_elems(skel.elems)
+        else
+          parse_elems([skel])
+        end
       end
 
     protected
@@ -63,6 +67,17 @@ module Dentaku
       # as a fancy `if`. In fact, `match` itself will return a boolean to indicate
       # whether it has matched, which is used here in `parse_comma_sep`.
       def parse_elems(elems)
+
+        # first: detect errors from the tokenizer or skeleton parser layers
+        # and split them apart
+        match elems, rsplit(~error, ~_, ~_) do |err, before, after|
+          # [jneen] this could also be a valid way of doing it, but i feel like we'd
+          # end up with a lot of useless error messages
+
+          # return invalid(err, err.message, parse_elems(before), parse_elems(after))
+          return invalid(err, err.message)
+        end
+
         # loosest precedence: AND / OR. note the `rsplit` - rightmost operators
         # should be on the outside.
         match elems, rsplit(~token(:combinator), ~__, ~__) do |op, before, after|
@@ -251,7 +266,7 @@ module Dentaku
 
         # i don't think there's a use case for CASE ELSE ... END but hey it'd
         # technically work. disallowing it here tho
-        return invalid case_node, 'a case statement must have at least one clause', children if clauses.empty?
+        return invalid case_node, 'a CASE statement must have at least one clause', *children if clauses.empty?
 
         pairs = make_pairs(rest)
 
@@ -271,10 +286,10 @@ module Dentaku
 
         else_exp = last && last[1]
         if last && !last[0].token?(:else)
-          else_exp = invalid last[0], 'expected an ELSE clause', else_exp
+          else_exp = invalid last[0], "hanging #{last[0].tok.category.to_s.upcase} clause", else_exp
         end
 
-        ast :Case, case_node, head, pairs, (last && last[1])
+        ast :Case, case_node, head, pairs, else_exp
       end
 
       # in_groups_of(2), but without rails
