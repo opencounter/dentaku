@@ -15,7 +15,7 @@ module Dentaku
       end
 
       def children
-        @keys + @struct.values
+        @struct.values
       end
 
       def value

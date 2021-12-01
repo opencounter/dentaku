@@ -23,6 +23,10 @@ module Dentaku
         []
       end
 
+      def valid?
+        children.all?(&:valid?)
+      end
+
       def satisfy_existing_dependencies
         existing_dependencies = context.keys & dependencies
 

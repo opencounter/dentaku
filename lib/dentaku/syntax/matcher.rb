@@ -108,11 +108,25 @@ module Dentaku
           @matcher = matcher
         end
 
+        def repr
+          "nested(#{open_type}, #{matcher.repr})"
+        end
+
         def test(skel, &b)
           skel = singleton(skel)
           fail! unless skel.nested?
           fail! unless skel.open.is?(@open_type)
           fail! unless @matcher.matches?(skel.elems, &b)
+        end
+      end
+
+      class IsError < Base
+        def repr
+          "error"
+        end
+
+        def test(skel, &b)
+          fail! unless singleton(skel).error?
         end
       end
 
@@ -287,6 +301,10 @@ module Dentaku
 
         def ignore
           Ignore.new
+        end
+
+        def error
+          IsError.new
         end
       end
     end

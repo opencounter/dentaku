@@ -32,6 +32,6 @@ describe Dentaku::AST::Node do
   private
 
   def make_node(expression)
-    Dentaku::Parser.new(Dentaku::Tokenizer.tokenize(expression)).parse
+    Dentaku::Syntax.parse(expression)
   end
 end
