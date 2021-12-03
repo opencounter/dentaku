@@ -34,7 +34,7 @@ module Dentaku
       end
 
       def repr
-        "#{left.repr} #{operator} #{right.repr}"
+        "(#{left.repr} #{operator} #{right.repr})"
       end
 
       def source
