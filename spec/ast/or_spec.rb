@@ -70,7 +70,7 @@ describe Dentaku::AST::Or do
       end
     end
 
-    describe 'partial_evaluation' do
+    describe 'partial_evaluation', :perf do
       let(:ident_count) { (ENV['PERF_SIZE'] || 100).to_i }
 
       context 'with default' do
