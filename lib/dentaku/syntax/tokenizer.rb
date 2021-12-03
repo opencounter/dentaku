@@ -14,6 +14,10 @@ module Dentaku
           @end = end_
         end
 
+        def as_json
+          [@begin.as_json, @end.as_json]
+        end
+
         def loc_range
           self
         end
@@ -35,6 +39,10 @@ module Dentaku
           @colno = colno
         end
 
+        def as_json
+          { byte: @byte, line: @lineno, col: @colno }
+        end
+
         def loc_range
           LocRange.new(self, self)
         end
@@ -49,50 +57,6 @@ module Dentaku
         :lbrack => :rbrack,
         :lbrace => :rbrace,
       }
-
-      NAMES = {
-        operator: {
-          '^'  => :pow,
-          '+'  => :add,
-          '-'  => :subtract,
-          '*'  => :multiply,
-          '/'  => :divide,
-          '%'  => :mod,
-          '..' => :range
-        }.freeze,
-        grouping: {
-          '(' => :open,
-          ')' => :close,
-          ',' => :comma,
-        }.freeze,
-        struct: {
-          '{' => :open,
-          '}' => :close,
-          ',' => :comma,
-        }.freeze,
-        list: {
-          '[' => :open,
-          ']' => :close,
-          ',' => :comma,
-        }.freeze,
-        case: {
-          'case' => :open,
-          'end' => :close,
-          'then' => :then,
-          'when' => :when,
-          'else' => :else,
-        }.freeze,
-        comparator: {
-          '<=' => :le,
-          '>=' => :ge,
-          '!=' => :ne,
-          '<>' => :ne,
-          '<'  => :lt,
-          '>'  => :gt,
-          '='  => :eq,
-          '==' => :eq,
-        }.freeze,
-      }.freeze
 
       attr_reader :tokens, :scanner
 
@@ -162,8 +126,8 @@ module Dentaku
         return med(:numeric, cast(m)) if match /(\d+(?:\.\d+)?|\.\d+)\b/
 
         # [jneen] idk why but the parentheses are considered match group 2 here
-        return med(:string, unescape!(m 2)) if match /"(.*?)"/
-        return med(:string, unescape!(m 2)) if match /'(.*?)'/
+        return med(:string, unescape!(m 2)) if match /"((?:\\.|[^\\])*?)"/
+        return med(:string, unescape!(m 2)) if match /'((?:\\.|[^\\])*?)'/
 
         return ini(:minus) if initial? && match(/[-]/)
         return ini(:exponential, m) if medial? && match(%r([*][*]|\^))
@@ -234,15 +198,15 @@ module Dentaku
       end
 
       def match(regexp)
-        m = @scanner.scan(/\A(#{ regexp })/i)
-        return false unless m
+        matched = @scanner.scan(/\A(#{ regexp })/i)
+        return false unless matched
 
-        newlines = m.scan(/\n/).size
+        newlines = matched.scan(/\n/).size
         @lineno += newlines
         if newlines > 0
-          @colno = find_colno(m[0])
+          @colno = find_colno(matched[0])
         else
-          @colno += find_colno(m[0])
+          @colno += find_colno(matched[0])
         end
 
         true

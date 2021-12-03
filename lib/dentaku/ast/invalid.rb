@@ -11,6 +11,10 @@ module Dentaku
         false
       end
 
+      def value
+        raise "invalid: #{self.inspect}"
+      end
+
       def dependencies
         @children.flat_map(&:dependencies)
       end

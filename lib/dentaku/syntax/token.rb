@@ -35,7 +35,7 @@ module Dentaku
     end
 
     def inspect
-      "<Token :#{category}(#{value})@#{loc_range && loc_range.repr}>"
+      "<Token :#{category}(#{value})#{loc_range && loc_range.repr}>"
     end
 
     def repr
@@ -49,6 +49,14 @@ module Dentaku
     def source
       return nil unless @original && @loc_range
       @loc_range.slice(@original)
+    end
+
+    def as_json(*)
+      {
+        token: category,
+        value: value,
+        location: loc_range.as_json
+      }
     end
 
     def begin

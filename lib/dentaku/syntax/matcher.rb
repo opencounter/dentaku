@@ -146,16 +146,17 @@ module Dentaku
         def test(skel, &b)
           list = multi(skel)
 
-          matched = false
-          before = []
-          after = []
-          list.each do |elem|
-            next after << elem if matched
-            next before << elem unless @split.matches?(elem, &b)
-            matched = true
+          matched = nil
+          list.each_with_index do |elem, index|
+            next unless @split.matches?(elem, &b)
+            matched = index
+            break
           end
 
           fail! unless matched
+          before = list[0...matched]
+          after = list[(matched+1)..-1]
+
           fail! unless @before.matches?(before, &b)
           fail! unless @after.matches?(after, &b)
         end
@@ -169,18 +170,21 @@ module Dentaku
         def test(skel, &b)
           list = multi(skel)
 
-          matched = false
-          before = []
-          after = []
+          matched = nil
+          index = list.size
           list.reverse_each do |elem|
-            next before << elem if matched
-            next after << elem unless @split.matches?(elem, &b)
-            matched = true
+            index -= 1
+            next unless @split.matches?(elem, &b)
+            matched = index
+            break
           end
 
-          fail! unless matched
-          fail! unless @before.matches?(before.reverse, &b)
-          fail! unless @after.matches?(after.reverse, &b)
+          fail! if matched.nil?
+          before = list[0...matched]
+          after = list[(matched+1)..-1]
+
+          fail! unless @before.matches?(before, &b)
+          fail! unless @after.matches?(after, &b)
         end
       end
 
@@ -251,7 +255,8 @@ module Dentaku
         end
 
         def token(type)
-          TokenType.new(type)
+          @__tokens ||= {}
+          @__tokens[type] ||= TokenType.new(type)
         end
 
         def nested(type, matcher=nil)
@@ -260,7 +265,7 @@ module Dentaku
         end
 
         def empty
-          Empty.new
+          @__empty ||= Empty.new
         end
 
         def lsplit(split, before, after)
@@ -284,11 +289,11 @@ module Dentaku
         end
 
         def _
-          Ignore.new
+          ignore
         end
 
         def __
-          NonEmpty.new
+          nonempty
         end
 
         def capture(matcher)
@@ -296,15 +301,15 @@ module Dentaku
         end
 
         def nonempty
-          NonEmpty.new
+          @__nonempty ||= NonEmpty.new
         end
 
         def ignore
-          Ignore.new
+          @__ignore ||= Ignore.new
         end
 
         def error
-          IsError.new
+          @__error ||= IsError.new
         end
       end
     end

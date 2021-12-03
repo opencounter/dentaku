@@ -127,6 +127,11 @@ module Dentaku
           end
         end
 
+        # next precedence: negation
+        match elems, starts(token(:minus), ~__) do |exp|
+          return ast :Negation, exp, parse_elems(exp)
+        end
+
         # next precedence: multiplicative expressions A * B, A / B, A % B
         match elems, rsplit(~token(:multiplicative), ~__, ~__) do |op, before, after|
           lhs = parse_elems(before)
@@ -155,11 +160,6 @@ module Dentaku
           fn_node = fn.new(*arg_nodes)
           fn_node.skeletons = elems
           return fn_node
-        end
-
-        # next precedence: negation
-        match elems, starts(token(:minus), ~__) do |exp|
-          return ast :Negation, exp, parse_elems(exp)
         end
 
         # final precedence: "singleton" expressions (entirely contained within
@@ -220,6 +220,7 @@ module Dentaku
 
         out = []
 
+        # lsplit on comma until it doesn't match anymore
         loop do
           match args, lsplit(token(:comma), ~nonempty, ~_) do |before, after|
             out << b.call(before)
@@ -227,14 +228,19 @@ module Dentaku
           end or break
         end
 
+        # if there is anymore, parse it out and add it on. otherwise,
+        # it's a trailing comma, so we ignore it.
         out << b.call(args) if args.any?
 
         out
       end
 
+      # there's a lot in this method but it's all fairly fundamental features
+      # of CASE. we're receiving one skeleton node that neatly wraps up the
+      # CASE...END grouping, but has everything else pretty much in a grab bag
+      # inside. so we have to find the WHEN/THEN/ELSE tokens and group them
+      # here
       def parse_case(case_node)
-        clauses = [[]]
-
         # separate into arrays of clauses, such that the WHEN/THEN/ELSE token
         # is at the front of the array.
         # e.g. [[ {token :when} {token :logical("true")} ],
@@ -246,6 +252,7 @@ module Dentaku
         #
         # Note this puts anything before the first clause in the first element -
         # this is conveniently the "head" or the inspected value
+        clauses = [[]]
         case_node.elems.each do |elem|
           clauses << [] if elem.clause?
           clauses.last << elem
@@ -255,7 +262,7 @@ module Dentaku
         # all other clauses guaranteed nonempty
         head = clauses.shift
         head = head.empty? ? nil : parse_elems(head)
-        rest = clauses.map { |h, *rest| [h, parse_elems(rest)] }
+        rest = clauses.map { |h, *r| [h, parse_elems(r)] }
 
         # for generating invalid nodes in case of error
         children = [head, *rest.map(&:last)].compact
@@ -268,25 +275,33 @@ module Dentaku
         # technically work. disallowing it here tho
         return invalid case_node, 'a CASE statement must have at least one clause', *children if clauses.empty?
 
+        # `rest` is even-sized now, so let's group them in pairs that *should*
+        # be when/then
         pairs = make_pairs(rest)
 
+        # make sure each pair is *actuall* when followed by then, and only
+        # grab the resulting AST
         pairs.map! do |(w, t)|
-          when_exp = if w[0].token?(:when)
-                     then w[1]
-                     else invalid w[0], 'expected a WHEN clause', w[1]
-                     end
+          when_tok, when_exp = w
+          unless when_tok.token?(:when)
+            when_exp = invalid(when_tok, 'expected a WHEN clause', when_exp)
+          end
 
-          then_exp = if t[0].token?(:then)
-                     then t[1]
-                     else invalid t[0], 'expected a THEN clause', t[1]
-                     end
+          then_tok, then_exp = t
+          unless then_tok.token?(:then)
+            then_exp = invalid(then_tok, 'expected a THEN clause', then_exp)
+          end
 
           [when_exp, then_exp]
         end
 
-        else_exp = last && last[1]
-        if last && !last[0].token?(:else)
-          else_exp = invalid last[0], "hanging #{last[0].tok.category.to_s.upcase} clause", else_exp
+        # if there was an odd clause at the end, make sure it's an ELSE
+        else_exp = nil
+        if last
+          else_tok, else_exp = last
+          unless else_tok.token?(:else)
+            else_exp = invalid else_tok, "hanging #{else_tok.tok.category.to_s.upcase} clause", else_exp
+          end
         end
 
         ast :Case, case_node, head, pairs, else_exp

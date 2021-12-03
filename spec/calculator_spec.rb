@@ -61,6 +61,7 @@ describe Dentaku::Calculator do
     expect(e!("// this is a comment\n35")).to eq(35)
     expect(e!("36\n// this is a comment")).to eq(36)
     expect(e!("false and false or true")).to eq(true)
+    expect(e!("max([1,2]) + 3")).to eq(5)
   end
 
   describe 'dependencies' do
