@@ -67,15 +67,8 @@ module Dentaku
       # as a fancy `if`. In fact, `match` itself will return a boolean to indicate
       # whether it has matched, which is used here in `parse_comma_sep`.
       def parse_elems(elems)
-
-        # first: detect errors from the tokenizer or skeleton parser layers
-        # and split them apart
-        match elems, rsplit(~error, ~_, ~_) do |err, before, after|
-          # [jneen] this could also be a valid way of doing it, but i feel like we'd
-          # end up with a lot of useless error messages
-
-          # return invalid(err, err.message, parse_elems(before), parse_elems(after))
-          return invalid(err, err.message)
+        if elems.size == 1
+          return parse_singleton(elems[0])
         end
 
         # loosest precedence: AND / OR. note the `rsplit` - rightmost operators
@@ -162,42 +155,57 @@ module Dentaku
           return fn_node
         end
 
-        # final precedence: "singleton" expressions (entirely contained within
-        # one nested skeleton node). These all use the `exactly(...)` matcher
-        # to make sure these are singletons.
-        match elems, exactly(~nested(:case)) do |case_node|
+        # finally: detect errors from the tokenizer or skeleton parser layers
+        # and split them apart
+        match elems, rsplit(~error, ~_, ~_) do |err, before, after|
+          # [jneen] this could also be a valid way of doing it, but i feel like we'd
+          # end up with a lot of useless error messages
+
+          # return invalid(err, err.message, parse_elems(before), parse_elems(after))
+          return invalid(err, err.message)
+        end
+
+
+        invalid elems, "unrecognized syntax"
+      end
+
+      # final precedence: "singleton" expressions (entirely contained within
+      # one nested skeleton node). These all use the `exactly(...)` matcher
+      # to make sure these are singletons.
+      def parse_singleton(single)
+        match single, ~nested(:case) do |case_node|
           return parse_case(case_node)
         end
 
-        match elems, exactly(~nested(:lbrack)) do |arr|
+        match single, exactly(~nested(:lbrack)) do |arr|
           return ast :List, arr, *parse_comma_sep(arr.elems)
         end
 
-        match elems, exactly(~nested(:lbrace)) do |struct|
+        match single, exactly(~nested(:lbrace)) do |struct|
           return parse_struct(struct)
         end
 
-        match elems, exactly(~nested(:lparen)) do |exp|
+        match single, exactly(~nested(:lparen)) do |exp|
           return parse_elems(exp.elems)
         end
 
-        match elems, exactly(~token(:identifier)) do |ident|
-          return ast :Identifier, elems, ident.value
+        match single, exactly(~token(:identifier)) do |ident|
+          return ast :Identifier, ident, ident.value
         end
 
-        match elems, exactly(~token(:string)) do |str|
+        match single, exactly(~token(:string)) do |str|
           return ast :String, str, str.value
         end
 
-        match elems, exactly(~token(:numeric)) do |num|
+        match single, exactly(~token(:numeric)) do |num|
           return ast :Numeric, num, num.value
         end
 
-        match elems, exactly(~token(:logical)) do |log|
+        match single, exactly(~token(:logical)) do |log|
           return ast :Logical, log, log.value
         end
 
-        invalid elems, "unrecognized syntax"
+        return invalid single, "unrecognized syntax"
       end
 
       def parse_struct(struct)
