@@ -7,10 +7,9 @@ module Dentaku
         "default(%a, %a) = %a"
       end
 
-      def initialize(expr, default_value)
+      def initialize(*)
         super
-        @expr = expr
-        @default_value = default_value
+        @expr, @default_value = @args
       end
 
       def value
