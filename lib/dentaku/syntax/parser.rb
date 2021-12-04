@@ -150,6 +150,7 @@ module Dentaku
         match elems, exactly(~token(:identifier), ~nested(:lparen)) do |func, args|
           fn = AST::Function.get(func.value, func)
           arg_nodes = parse_comma_sep(args.elems)
+
           fn_node = fn.new(*arg_nodes)
           fn_node.skeletons = elems
           return fn_node
@@ -177,32 +178,36 @@ module Dentaku
           return parse_case(case_node)
         end
 
-        match single, exactly(~nested(:lbrack)) do |arr|
+        match single, ~nested(:lbrack) do |arr|
           return ast :List, arr, *parse_comma_sep(arr.elems)
         end
 
-        match single, exactly(~nested(:lbrace)) do |struct|
+        match single, ~nested(:lbrace) do |struct|
           return parse_struct(struct)
         end
 
-        match single, exactly(~nested(:lparen)) do |exp|
+        match single, ~nested(:lparen) do |exp|
           return parse_elems(exp.elems)
         end
 
-        match single, exactly(~token(:identifier)) do |ident|
+        match single, ~token(:identifier) do |ident|
           return ast :Identifier, ident, ident.value
         end
 
-        match single, exactly(~token(:string)) do |str|
+        match single, ~token(:string) do |str|
           return ast :String, str, str.value
         end
 
-        match single, exactly(~token(:numeric)) do |num|
+        match single, ~token(:numeric) do |num|
           return ast :Numeric, num, num.value
         end
 
-        match single, exactly(~token(:logical)) do |log|
+        match single, ~token(:logical) do |log|
           return ast :Logical, log, log.value
+        end
+
+        match single, ~error do |err|
+          return invalid err, err.message
         end
 
         return invalid single, "unrecognized syntax"

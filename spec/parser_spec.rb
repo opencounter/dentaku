@@ -40,6 +40,9 @@ describe Dentaku::Syntax::Parser do
           END
         WHEN faz THEN 1
         END", Dentaku::AST::Case)
+
+    # this is not a parse error, it's a type error
+    valid("IF(true, 3)", Dentaku::AST::Function)
   end
 
 

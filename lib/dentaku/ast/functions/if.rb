@@ -9,11 +9,9 @@ module Dentaku
         "if(:bool, %a, %a) = %a"
       end
 
-      def initialize(predicate, left, right)
+      def initialize(*)
         super
-        @predicate = predicate
-        @left      = left
-        @right     = right
+        @predicate, @left, @right = @args
       end
 
       def value
