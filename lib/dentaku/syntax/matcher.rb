@@ -114,8 +114,7 @@ module Dentaku
 
         def test(skel, &b)
           skel = singleton(skel)
-          fail! unless skel.nested?
-          fail! unless skel.open.is?(@open_type)
+          fail! unless skel.nested?(@open_type)
           fail! unless @matcher.matches?(skel.elems, &b)
         end
       end

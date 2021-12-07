@@ -6,9 +6,23 @@ module Dentaku
 
       def parse(skel)
         if skel.root?
-          parse_elems(skel.elems)
+          parse_expr(skel.elems)
         else
-          parse_elems([skel])
+          parse_expr([skel])
+        end
+      end
+
+      class PartialInfix
+        def initialize(skel, op, lhs)
+          @skel = skel
+          @op = op
+          @lhs = lhs
+        end
+
+        def finish(rhs)
+          ast = @op.new(@lhs, rhs)
+          ast.skeletons = skel
+          return ast
         end
       end
 
@@ -66,26 +80,60 @@ module Dentaku
       # and data structure unpacking. It's helpful to read each `match` statement
       # as a fancy `if`. In fact, `match` itself will return a boolean to indicate
       # whether it has matched, which is used here in `parse_comma_sep`.
-      def parse_elems(elems)
-        if elems.size == 1
-          return parse_singleton(elems[0])
-        end
 
-        # loosest precedence: AND / OR. note the `rsplit` - rightmost operators
-        # should be on the outside.
+      EXPR_PRECEDENCE = [
+        :combinator,
+        :comparator,
+        :range,
+        :additive,
+        :minus,
+        :multiplicative,
+        :singleton,
+      ]
+
+      COMMA_PRECEDENCE = [
+        :comma,
+        *EXPR_PRECEDENCE
+      ]
+
+      def nest_precedence(p)
+        methods = p.map { |m| method("parse_#{m}") }
+        methods.reduce do |a, b|
+          lambda { |elems| b.call(elems, &a) || a.call(elems) }
+        end
+      end
+
+      def expr_precedence
+        @expr_precedence ||= nest_precedence(EXPR_PRECEDENCE)
+      end
+
+      def comma_precedence
+        @comma_precedence ||= nest_precedence(COMMA_PRECEDENCE)
+      end
+
+      def parse_expr(elems)
+        return parse_singleton(elems) if elems.size == 1
+        return parse_minus(elems) if elems.size == 2
+        return parse_combinator(elems)
+      end
+
+      def parse_combinator(elems)
         match elems, rsplit(~token(:combinator), ~__, ~__) do |op, before, after|
-          lhs = parse_elems(before)
-          rhs = parse_elems(after)
+          lhs = parse_combinator(before)
+          rhs = parse_comparator(after)
 
           class_ = op.value == :and ? :And : :Or
 
           return ast class_, elems, lhs, rhs
         end
 
-        # next precedence: comparator ops: < > = != etc
+        return parse_comparator(elems)
+      end
+
+      def parse_comparator(elems)
         match elems, lsplit(~token(:comparator), ~__, ~__) do |op, before, after|
-          lhs = parse_elems(before)
-          rhs = parse_elems(after)
+          lhs = parse_comparator(before)
+          rhs = parse_range(after)
 
           op_class = case op.value
           when :<= then :LessThanOrEqual
@@ -100,18 +148,30 @@ module Dentaku
           return ast op_class, elems, lhs, rhs
         end
 
-        # next precedence: range expressions A..B
+        return parse_range(elems)
+      end
+
+      # loosest precedence: AND / OR. note the `rsplit` - rightmost operators
+      # should be on the outside.
+
+      # next precedence: comparator ops: < > = != etc
+      # next precedence: range expressions A..B
+      def parse_range(elems)
         match elems, lsplit(token(:range), ~__, ~__) do |before, after|
-          lhs = parse_elems(before)
-          rhs = parse_elems(after)
+          lhs = parse_additive(before)
+          rhs = parse_range(after)
 
           return ast :Range, elems, lhs, rhs
         end
 
+        return parse_additive(elems)
+      end
+
+      def parse_additive(elems)
         # next precedence: additive expressions A + B, A - B
         match elems, rsplit(~token(:additive), ~__, ~__) do |op, before, after|
-          lhs = parse_elems(before)
-          rhs = parse_elems(after)
+          lhs = parse_additive(before)
+          rhs = parse_multiplicative(after)
 
           return case op.value
           when '-' then ast :Subtraction, elems, lhs, rhs
@@ -120,15 +180,14 @@ module Dentaku
           end
         end
 
-        # next precedence: negation
-        match elems, starts(token(:minus), ~__) do |exp|
-          return ast :Negation, exp, parse_elems(exp)
-        end
+        return parse_multiplicative(elems)
+      end
 
+      def parse_multiplicative(elems, &recurse)
         # next precedence: multiplicative expressions A * B, A / B, A % B
         match elems, rsplit(~token(:multiplicative), ~__, ~__) do |op, before, after|
-          lhs = parse_elems(before)
-          rhs = parse_elems(after)
+          lhs = parse_multiplicative(before)
+          rhs = parse_exponential(after)
 
           return case op.value
           when '*' then ast :Multiplication, elems, lhs, rhs
@@ -138,14 +197,31 @@ module Dentaku
           end
         end
 
+        return parse_exponential(elems)
+      end
+
+      def parse_exponential(elems)
         # next precedence: exponential expressions A ** B, A ^ B
-        match elems, lsplit(~token(:exponential), ~__, ~__) do |op, before, after|
-          lhs = parse_elems(before)
-          rhs = parse_elems(after)
+        match elems, rsplit(~token(:exponential), ~__, ~__) do |op, before, after|
+          lhs = parse_exponential(before)
+          rhs = parse_minus(after)
 
           return ast :Exponentiation, elems, lhs, rhs
         end
 
+        return parse_minus(elems)
+      end
+
+      def parse_minus(elems)
+        # next precedence: negation
+        match elems, starts(token(:minus), ~__) do |exp|
+          return ast :Negation, exp, parse_minus(exp)
+        end
+
+        return parse_funcall(elems)
+      end
+
+      def parse_funcall(elems)
         # next precedence: function calls
         match elems, exactly(~token(:identifier), ~nested(:lparen)) do |func, args|
           fn = AST::Function.get(func.value, func)
@@ -156,8 +232,10 @@ module Dentaku
           return fn_node
         end
 
-        # finally: detect errors from the tokenizer or skeleton parser layers
-        # and split them apart
+        return parse_check_error(elems)
+      end
+
+      def parse_check_error(elems)
         match elems, rsplit(~error, ~_, ~_) do |err, before, after|
           # [jneen] this could also be a valid way of doing it, but i feel like we'd
           # end up with a lot of useless error messages
@@ -166,50 +244,33 @@ module Dentaku
           return invalid(err, err.message)
         end
 
-
-        invalid elems, "unrecognized syntax"
+        # otherwise start the precedence chain!
+        return parse_singleton(elems)
       end
 
-      # final precedence: "singleton" expressions (entirely contained within
-      # one nested skeleton node). These all use the `exactly(...)` matcher
-      # to make sure these are singletons.
-      def parse_singleton(single)
-        match single, ~nested(:case) do |case_node|
-          return parse_case(case_node)
+      def parse_singleton(elems)
+        if elems.size > 1
+          return invalid elems, 'unrecognized syntax'
         end
 
-        match single, ~nested(:lbrack) do |arr|
-          return ast :List, arr, *parse_comma_sep(arr.elems)
+        if elems.empty?
+          # TODO: track the last nonempty parent
+          return invalid [], 'empty expression'
         end
 
-        match single, ~nested(:lbrace) do |struct|
-          return parse_struct(struct)
-        end
+        node = elems.first
 
-        match single, ~nested(:lparen) do |exp|
-          return parse_elems(exp.elems)
-        end
+        return ast :Identifier, node, node.value if node.token?(:identifier)
+        return ast :String, node, node.value if node.token?(:string)
+        return ast :Numeric, node, node.value if node.token?(:numeric)
+        return ast :Logical, node, node.value if node.token?(:logical)
 
-        match single, ~token(:identifier) do |ident|
-          return ast :Identifier, ident, ident.value
-        end
+        return parse_case(node) if node.nested?(:case)
+        return ast :List, node, *parse_comma_sep(node.elems) if node.nested?(:lbrack)
+        return parse_struct(node) if node.nested?(:lbrace)
+        return parse_expr(node.elems) if node.nested?(:lparen)
 
-        match single, ~token(:string) do |str|
-          return ast :String, str, str.value
-        end
-
-        match single, ~token(:numeric) do |num|
-          return ast :Numeric, num, num.value
-        end
-
-        match single, ~token(:logical) do |log|
-          return ast :Logical, log, log.value
-        end
-
-        match single, ~error do |err|
-          return invalid err, err.message
-        end
-
+        return invalid node, node.message if node.error?
         return invalid single, "unrecognized syntax"
       end
 
@@ -221,7 +282,7 @@ module Dentaku
           key, *rest = segment
           next [key.repr, invalid(key, 'invalid key')] unless key.token?(:key)
 
-          [key.value, parse_elems(rest)]
+          [key.value, parse_expr(rest)]
         end
 
         ast :Struct, struct, *pairs
@@ -229,7 +290,7 @@ module Dentaku
 
       # parse a comma separated list
       def parse_comma_sep(args, &b)
-        b ||= method(:parse_elems)
+        b ||= method(:parse_expr)
 
         out = []
 
@@ -274,11 +335,8 @@ module Dentaku
         # head is possibly empty, for CASE WHEN ... THEN ... END
         # all other clauses guaranteed nonempty
         head = clauses.shift
-        head = head.empty? ? nil : parse_elems(head)
-        rest = clauses.map { |h, *r| [h, parse_elems(r)] }
-
-        # for generating invalid nodes in case of error
-        children = [head, *rest.map(&:last)].compact
+        head = head.empty? ? nil : parse_expr(head)
+        rest = clauses.map { |h, *r| [h, parse_expr(r)] }
 
         # once head is popped, there should be an even number of clauses, except
         # possibly for the singular ELSE clause at the end
@@ -286,7 +344,10 @@ module Dentaku
 
         # i don't think there's a use case for CASE ELSE ... END but hey it'd
         # technically work. disallowing it here tho
-        return invalid case_node, 'a CASE statement must have at least one clause', *children if clauses.empty?
+        if clauses.empty?
+          children = [head, *rest.map(&:last)].compact
+          return invalid case_node, 'a CASE statement must have at least one clause', *children if clauses.empty?
+        end
 
         # `rest` is even-sized now, so let's group them in pairs that *should*
         # be when/then

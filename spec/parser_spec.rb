@@ -65,6 +65,6 @@ describe Dentaku::Syntax::Parser do
     invalid("CASE foo WHEN baz THEN 3 IF(true, 1, 2) WHEN baz THEN 3 END", /unrecognized syntax/)
     invalid("([)]", /expected square bracket, got parenthesis/)
     invalid("field:$money", /Unknown token starting with `[$]mo'/)
-    invalid("case 1 when 2 then 3 else end", /unrecognized syntax/)
+    invalid("case 1 when 2 then 3 else end", /empty expression/)
   end
 end
