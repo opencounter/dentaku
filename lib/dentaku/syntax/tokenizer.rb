@@ -52,12 +52,6 @@ module Dentaku
         end
       end
 
-      MATCH = {
-        :lparen => :rparen,
-        :lbrack => :rbrack,
-        :lbrace => :rbrace,
-      }
-
       attr_reader :tokens, :scanner
 
       def self.tokenize(source_name, string)
@@ -68,7 +62,10 @@ module Dentaku
         @tokens = []
         @source_name = source_name
         @input = string.to_s
-        @scanner = StringScanner.new(@input)
+
+        # [jneen] fixed_anchor requires at least ruby 2.6
+        @scanner = StringScanner.new(@input, fixed_anchor: true)
+
         @initial = true
       end
 
@@ -82,6 +79,8 @@ module Dentaku
         @lineno = 1
         @colno = 1
         until scanner.eos?
+          skip_whitespace_and_comments
+
           start = self.location
           category, value = self.scan
           t = Token.new(category, value)
@@ -96,8 +95,7 @@ module Dentaku
     protected
 
       def find_colno(str)
-        str =~ /^.*\z/ or return 0
-        $&.size
+        str.rpartition("\n").last.size
       end
 
       def initial?
@@ -112,29 +110,17 @@ module Dentaku
         @scanner[groupnum]
       end
 
+      def skip_whitespace_and_comments
+        match %r(
+          (?: \s+
+            | //.*?$
+            | /[*].*?[*]/
+          )+
+        )mx
+      end
+
       def scan
-        loop do
-          next if match /\s+/
-          next if match /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//
-          next if match %r(//.*?$)
-          break
-        end
-
         return ini(:eof) if @scanner.eos?
-
-        # literals and operators
-        return med(:numeric, cast(m)) if match /(\d+(?:\.\d+)?|\.\d+)\b/
-
-        # [jneen] idk why but the parentheses are considered match group 2 here
-        return med(:string, unescape!(m 2)) if match /"((?:\\.|[^\\])*?)"/
-        return med(:string, unescape!(m 2)) if match /'((?:\\.|[^\\])*?)'/
-
-        return ini(:minus) if initial? && match(/[-]/)
-        return ini(:exponential, m) if medial? && match(%r([*][*]|\^))
-        return ini(:additive, m) if medial? && match(/[+-]/)
-        return ini(:range) if medial? && match(/[.][.]/)
-        return ini(:multiplicative, m) if medial? && match(%r([*/%]))
-        return med(:logical, m.strip.downcase == 'true') if match /(true|false)\b/i
 
         # nests and commas
         return ini(:comma)  if match /,/m
@@ -152,12 +138,24 @@ module Dentaku
         return ini(:when) if match /when\b/i
         return ini(:else) if match /else\b/i
 
+        # literals and operators
+        return med(:logical, m.strip.downcase == 'true') if match /(true|false)\b/i
+        return med(:numeric, cast(m)) if match /(\d+(?:\.\d+)?|\.\d+)\b/
+        return med(:string, unescape!(m 1)) if match /"((?:\\.|[^\\])*?)"/
+        return med(:string, unescape!(m 1)) if match /'((?:\\.|[^\\])*?)'/
+        return ini(:minus) if initial? && match(/[-]/)
+        return ini(:exponential, m) if match(%r([*][*]|\^))
+        return ini(:additive, m) if match(/[+-]/)
+        return ini(:range) if match(/[.][.]/)
+        return ini(:multiplicative, m) if match(%r([*/%]))
+
+
         # infix ops
         return ini(:comparator, m.to_sym) if match /<=|>=|!=|<>|<|>|==|=/
         return ini(:combinator, m.strip.downcase.to_sym) if match /(and|or)\b/i
 
         # general identifiers
-        return med(:key, (m 2).strip.to_sym) if \
+        return med(:key, (m 1).strip.to_sym) if \
           match /([[:alnum:]_]+\b):(?![[:alnum:]])/
         return med(:identifier, m.strip.downcase) if match /[[:alnum:]_:]+\b/
 
@@ -198,10 +196,10 @@ module Dentaku
       end
 
       def match(regexp)
-        matched = @scanner.scan(/\A(#{ regexp })/i)
+        matched = @scanner.scan(regexp)
         return false unless matched
 
-        newlines = matched.scan(/\n/).size
+        newlines = matched.count("\n")
         @lineno += newlines
         if newlines > 0
           @colno = find_colno(matched[0])

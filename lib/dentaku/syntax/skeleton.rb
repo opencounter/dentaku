@@ -21,7 +21,9 @@ module Dentaku
       end
 
       class Nested < Base
-        def nested?(*) true; end
+        def nested?(open_type)
+          @open.category == open_type
+        end
 
         attr_reader :open, :close, :elems
         def initialize(open, close, elems)

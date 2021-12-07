@@ -15,8 +15,8 @@ module Dentaku
         raise "invalid: #{self.inspect}"
       end
 
-      def dependencies
-        @children.flat_map(&:dependencies)
+      def dependencies(context={})
+        @children.flat_map { |c| c.dependencies(context) }
       end
 
       def repr

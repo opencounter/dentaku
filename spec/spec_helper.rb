@@ -1,6 +1,8 @@
 require 'pry'
 require 'dentaku'
 
+PERF_SIZE = (ENV['PERF_SIZE'] || 5).to_i
+
 # automatically create a token stream from bare values
 def token_stream(*args)
   args.map.with_index do |value, index|
