@@ -30,6 +30,7 @@ module Dentaku
           UndefinedFunction.new(@function_name, args)
         end
 
+        # mimics Node.make(...)
         def make(skels, *args)
           n = UndefinedFunction.new(@function_name, args)
           n.skeletons = skels

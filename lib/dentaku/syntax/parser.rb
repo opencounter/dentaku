@@ -21,31 +21,34 @@ module Dentaku
 
       def parse_expr(elems)
         if elems.empty?
-          binding.pry
-          raise "pls check for empty expressions before calling parse_expr"
+          # [jneen] while the caller can provide a proper location pointer for
+          # an empty expression, it's impossible once we get to here and only have
+          # an empty list. this is why it's the caller's responsibility to make
+          # sure the argument to parse_expr is nonempty.
+          raise "DENTAKU BUG: check for empty expressions before calling parse_expr"
         end
 
-        return parse_singleton(elems) if elems.size == 1
-        return parse_minus(elems) if elems.size == 2
         return parse_combinator(elems)
       end
 
       def parse_combinator(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:combinator) } \
-          || (return parse_comparator(elems))
+        before, op, after = rpart(elems) { |e| e.token?(:combinator) }
+        return parse_comparator(elems) if op.nil?
 
-        lhs = parse_combinator(before)
-        rhs = parse_comparator(after)
+
+        lhs = nonempty!(op, before) { parse_combinator(before) }
+        rhs = nonempty!(op, after) { parse_comparator(after) }
 
         (op.value == :and ? AST::And : AST::Or).make(elems, lhs, rhs)
       end
 
+      # next precedence: comparator ops: < > = != etc
       def parse_comparator(elems)
-        before, op, after = lpart(elems) { |e| e.token?(:comparator) } \
-          || (return parse_range(elems))
+        before, op, after = rpart(elems) { |e| e.token?(:comparator) }
+        return parse_range(elems) if op.nil?
 
-        lhs = parse_comparator(before)
-        rhs = parse_range(after)
+        lhs = nonempty!(op, before) { parse_comparator(before) }
+        rhs = nonempty!(op, after) { parse_range(after) }
 
         op_class = case op.value
         when :<= then AST::LessThanOrEqual
@@ -60,27 +63,23 @@ module Dentaku
         op_class.make(elems, lhs, rhs)
       end
 
-      # loosest precedence: AND / OR. note the `rsplit` - rightmost operators
-      # should be on the outside.
-
-      # next precedence: comparator ops: < > = != etc
       # next precedence: range expressions A..B
       def parse_range(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:range) } \
-          || (return parse_additive(elems))
+        before, op, after = rpart(elems) { |e| e.token?(:range) }
+        return parse_additive(elems) if op.nil?
 
-        lhs = parse_additive(before)
-        rhs = parse_range(after)
+        lhs = nonempty!(op, before) { parse_additive(before) }
+        rhs = nonempty!(op, after) { parse_range(after) }
 
         AST::Range.make(elems, lhs, rhs)
       end
 
       def parse_additive(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:additive) } \
-          || (return parse_multiplicative(elems))
+        before, op, after = rpart(elems) { |e| e.token?(:additive) }
+        return parse_multiplicative(elems) if op.nil?
 
-        lhs = parse_additive(before)
-        rhs = parse_multiplicative(after)
+        lhs = nonempty!(op, before) { parse_additive(before) }
+        rhs = nonempty!(op, after) { parse_multiplicative(after) }
 
         return case op.value
         when '-' then AST::Subtraction.make(elems, lhs, rhs)
@@ -92,11 +91,11 @@ module Dentaku
       end
 
       def parse_multiplicative(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:multiplicative) } \
-          || (return parse_exponential(elems))
+        before, op, after = rpart(elems) { |e| e.token?(:multiplicative) }
+        return parse_exponential(elems) if op.nil?
 
-        lhs = parse_multiplicative(before)
-        rhs = parse_exponential(after)
+        lhs = nonempty!(op, before) { parse_multiplicative(before) }
+        rhs = nonempty!(op, after) { parse_exponential(after) }
 
         case op.value
         when '*' then AST::Multiplication.make(elems, lhs, rhs)
@@ -107,11 +106,11 @@ module Dentaku
       end
 
       def parse_exponential(elems)
-        before, op, after = rpart(elems) { |x| x.token?(:exponential) } \
-          || (return parse_minus(elems))
+        before, op, after = rpart(elems) { |x| x.token?(:exponential) }
+        return parse_minus(elems) if op.nil?
 
-        lhs = parse_exponential(before)
-        rhs = parse_minus(after)
+        lhs = nonempty!(op, before) { parse_exponential(before) }
+        rhs = nonempty!(op, after) { parse_minus(after) }
 
         AST::Exponentiation.make(elems, lhs, rhs)
       end
@@ -119,7 +118,7 @@ module Dentaku
       def parse_minus(elems)
         return parse_funcall(elems) unless elems.first.token?(:minus)
         first, *rest = elems
-        return AST::Negation.make(elems, parse_minus(rest))
+        return nonempty!(first, rest) { AST::Negation.make(elems, parse_minus(rest)) }
       end
 
       def parse_funcall(elems)
@@ -140,17 +139,29 @@ module Dentaku
         before, comma, after = lpart(elems) { |e| e.token?(:comma) }
 
         if comma
-          before_exp = before.any? ? parse_expr(before) : nil
-          after_exp = after.any? ? parse_expr(after) : nil
+          before_exp = before.any? ? parse_singleton(before) : nil
+          after_exp = after.any? ? parse_check_error(after) : nil
           return invalid(comma, "stray comma", before_exp, after_exp) if comma
         end
 
         parse_singleton(elems)
       end
 
+      # the end of the precedence chain. here we expect to have handled all
+      # infix operators or expressions that could span more than one skeleton
+      # node.
       def parse_singleton(elems)
+        if elems.empty?
+          # [jneen] same as the check in parse_expr, but for all the parse_*
+          # methods above that *could* have drilled down to empty. it's important
+          # that they handle the empty case above where there is error reporting
+          # information available before stranding us here with an empty list.
+          raise "DENTAKU BUG: check for empty expressions before calling parse_expr"
+        end
+
         if elems.size > 1
-          return invalid elems, 'unrecognized syntax'
+          individual = elems.map { |e| parse_singleton([e]) }
+          return invalid elems, 'too many expressions: missing a comma or operator?', *individual
         end
 
         node = elems.first
@@ -191,10 +202,10 @@ module Dentaku
 
         out = []
 
-        # lsplit on comma until it doesn't match anymore
         loop do
-          before, comma, after = lpart(args) { |a| a.token?(:comma) } || (break)
-          out << b.call(before)
+          before, comma, after = lpart(args) { |a| a.token?(:comma) }
+          break if comma.nil?
+          out << nonempty!(comma, before) { b.call(before) }
           args = after
         end
 
@@ -309,13 +320,16 @@ module Dentaku
         [list[0...index], list[index], list[index+1..-1]]
       end
 
-      def ast(name, node, *args)
-        node = [node] unless node.is_a?(Array)
-        AST.const_get(name).new(*args).tap { |n| n.skeletons = node }
+      # helper to make sure a segment is nonempty before proceeding. returns
+      # an invalid node with the given reference elems if the expression is
+      # empty.
+      def nonempty!(ref_elems, elems)
+        return invalid ref_elems, "empty expression" if elems.empty?
+        yield
       end
 
       def invalid(node, message, *children)
-        ast :Invalid, node, message, *children
+        AST::Invalid.make(node, message, *children)
       end
     end
   end

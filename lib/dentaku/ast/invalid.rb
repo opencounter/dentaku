@@ -1,5 +1,6 @@
 module Dentaku
   module AST
+    # [jneen] a node that represents a syntax error
     class Invalid < Node
       attr_reader :message, :children
       def initialize(message, *children)
