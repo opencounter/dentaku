@@ -66,5 +66,10 @@ describe Dentaku::Syntax::Parser do
     invalid("([)]", /expected square bracket, got parenthesis/)
     invalid("field:$money", /Unknown token starting with `[$]mo'/)
     invalid("case 1 when 2 then 3 else end", /empty ELSE clause/)
+    invalid("a * b(c, d), (e)", /stray comma/)
+
+    # this one catches *both* errors
+    invalid("a * b(c, d), ()", /stray comma/)
+    invalid("a * b(c, d), ()", /empty expression/)
   end
 end
