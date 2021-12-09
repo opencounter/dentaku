@@ -87,12 +87,16 @@ module Dentaku
       def repr
         out = ''
         out << 'CASE '
-        out << @switch.repr if @switch
+        out << "SWITCH(#{@switch.repr})" if @switch
         @clauses.each do |(when_, then_)|
+          out << "\n"
           out << ' WHEN ' << when_.repr
+          out << "\n"
           out << ' THEN ' << then_.repr
         end
+        out << "\n"
         out << ' ELSE ' << @else.repr if @else
+        out << "\n"
         out << ' END'
 
         out
