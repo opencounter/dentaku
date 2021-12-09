@@ -6,7 +6,7 @@ module Dentaku
 
       def parse(skel)
         if skel.root?
-          parse_expr(skel.elems)
+          parse_elems_of(skel)
         else
           parse_expr([skel])
         end
@@ -111,44 +111,51 @@ module Dentaku
         @comma_precedence ||= nest_precedence(COMMA_PRECEDENCE)
       end
 
+      def parse_elems_of(node)
+        return invalid node, "empty expression" if node.elems.empty?
+
+        parse_expr(node.elems)
+      end
+
       def parse_expr(elems)
+        if elems.empty?
+          binding.pry
+          raise "pls check for empty expressions before calling parse_expr"
+        end
+
         return parse_singleton(elems) if elems.size == 1
         return parse_minus(elems) if elems.size == 2
         return parse_combinator(elems)
       end
 
       def parse_combinator(elems)
-        match elems, rsplit(~token(:combinator), ~__, ~__) do |op, before, after|
-          lhs = parse_combinator(before)
-          rhs = parse_comparator(after)
+        before, op, after = rpart(elems) { |e| e.token?(:combinator) } \
+          || (return parse_comparator(elems))
 
-          class_ = op.value == :and ? :And : :Or
+        lhs = parse_combinator(before)
+        rhs = parse_comparator(after)
 
-          return ast class_, elems, lhs, rhs
-        end
-
-        return parse_comparator(elems)
+        (op.value == :and ? AST::And : AST::Or).make(elems, lhs, rhs)
       end
 
       def parse_comparator(elems)
-        match elems, lsplit(~token(:comparator), ~__, ~__) do |op, before, after|
-          lhs = parse_comparator(before)
-          rhs = parse_range(after)
+        before, op, after = lpart(elems) { |e| e.token?(:comparator) } \
+          || (return parse_range(elems))
 
-          op_class = case op.value
-          when :<= then :LessThanOrEqual
-          when :>= then :GreaterThanOrEqual
-          when :< then :LessThan
-          when :> then :GreaterThan
-          when :!=, :'<>' then :NotEqual
-          when :==, :'=' then :Equal
-          else return invalid op, 'unknown comparison operator', lhs, rhs
-          end
+        lhs = parse_comparator(before)
+        rhs = parse_range(after)
 
-          return ast op_class, elems, lhs, rhs
+        op_class = case op.value
+        when :<= then AST::LessThanOrEqual
+        when :>= then AST::GreaterThanOrEqual
+        when :< then AST::LessThan
+        when :> then AST::GreaterThan
+        when :!=, :'<>' then AST::NotEqual
+        when :==, :'=' then AST::Equal
+        else return invalid op, 'unknown comparison operator', lhs, rhs
         end
 
-        return parse_range(elems)
+        op_class.make(elems, lhs, rhs)
       end
 
       # loosest precedence: AND / OR. note the `rsplit` - rightmost operators
@@ -157,95 +164,77 @@ module Dentaku
       # next precedence: comparator ops: < > = != etc
       # next precedence: range expressions A..B
       def parse_range(elems)
-        match elems, lsplit(token(:range), ~__, ~__) do |before, after|
-          lhs = parse_additive(before)
-          rhs = parse_range(after)
+        before, op, after = rpart(elems) { |e| e.token?(:range) } \
+          || (return parse_additive(elems))
 
-          return ast :Range, elems, lhs, rhs
-        end
+        lhs = parse_additive(before)
+        rhs = parse_range(after)
 
-        return parse_additive(elems)
+        AST::Range.make(elems, lhs, rhs)
       end
 
       def parse_additive(elems)
-        # next precedence: additive expressions A + B, A - B
-        match elems, rsplit(~token(:additive), ~__, ~__) do |op, before, after|
-          lhs = parse_additive(before)
-          rhs = parse_multiplicative(after)
+        before, op, after = rpart(elems) { |e| e.token?(:additive) } \
+          || (return parse_multiplicative(elems))
 
-          return case op.value
-          when '-' then ast :Subtraction, elems, lhs, rhs
-          when '+' then ast :Addition, elems, lhs, rhs
-          else invalid op, 'unknown additive operation', lhs, rhs
-          end
+        lhs = parse_additive(before)
+        rhs = parse_multiplicative(after)
+
+        return case op.value
+        when '-' then AST::Subtraction.make(elems, lhs, rhs)
+        when '+' then AST::Addition.make(elems, lhs, rhs)
+        else invalid op, 'unknown additive operation', lhs, rhs
         end
 
         return parse_multiplicative(elems)
       end
 
-      def parse_multiplicative(elems, &recurse)
-        # next precedence: multiplicative expressions A * B, A / B, A % B
-        match elems, rsplit(~token(:multiplicative), ~__, ~__) do |op, before, after|
-          lhs = parse_multiplicative(before)
-          rhs = parse_exponential(after)
+      def parse_multiplicative(elems)
+        before, op, after = rpart(elems) { |e| e.token?(:multiplicative) } \
+          || (return parse_exponential(elems))
 
-          return case op.value
-          when '*' then ast :Multiplication, elems, lhs, rhs
-          when '/' then ast :Division, elems, lhs, rhs
-          when '%' then ast :Modulo, elems, lhs, rhs
-          else invalid op, 'unknown multiplicative operation', lhs, rhs
-          end
+        lhs = parse_multiplicative(before)
+        rhs = parse_exponential(after)
+
+        case op.value
+        when '*' then AST::Multiplication.make(elems, lhs, rhs)
+        when '/' then AST::Division.make(elems, lhs, rhs)
+        when '%' then AST::Modulo.make(elems, lhs, rhs)
+        else invalid op, 'unknown multiplicative operation', lhs, rhs
         end
-
-        return parse_exponential(elems)
       end
 
       def parse_exponential(elems)
-        # next precedence: exponential expressions A ** B, A ^ B
-        match elems, rsplit(~token(:exponential), ~__, ~__) do |op, before, after|
-          lhs = parse_exponential(before)
-          rhs = parse_minus(after)
+        before, op, after = rpart(elems) { |x| x.token?(:exponential) } \
+          || (return parse_minus(elems))
 
-          return ast :Exponentiation, elems, lhs, rhs
-        end
+        lhs = parse_exponential(before)
+        rhs = parse_minus(after)
 
-        return parse_minus(elems)
+        AST::Exponentiation.make(elems, lhs, rhs)
       end
 
       def parse_minus(elems)
-        # next precedence: negation
-        match elems, starts(token(:minus), ~__) do |exp|
-          return ast :Negation, exp, parse_minus(exp)
-        end
-
-        return parse_funcall(elems)
+        return parse_funcall(elems) unless elems.first.token?(:minus)
+        first, *rest = elems
+        return AST::Negation.make(elems, parse_minus(rest))
       end
 
       def parse_funcall(elems)
-        # next precedence: function calls
-        match elems, exactly(~token(:identifier), ~nested(:lparen)) do |func, args|
-          fn = AST::Function.get(func.value, func)
-          arg_nodes = parse_comma_sep(args.elems)
+        return parse_check_error(elems) unless elems.size == 2
+        func, args = elems
+        return parse_check_error(elems) unless func.token?(:identifier)
+        return parse_check_error(elems) unless args.nested?(:lparen)
 
-          fn_node = fn.new(*arg_nodes)
-          fn_node.skeletons = elems
-          return fn_node
-        end
-
-        return parse_check_error(elems)
+        fn = AST::Function.get(func.value, func)
+        fn.make(elems, *parse_comma_sep(args.elems))
       end
 
       def parse_check_error(elems)
-        match elems, rsplit(~error, ~_, ~_) do |err, before, after|
-          # [jneen] this could also be a valid way of doing it, but i feel like we'd
-          # end up with a lot of useless error messages
+        before, err, after = lpart(elems, &:error?) \
+          || (return parse_singleton(elems))
 
-          # return invalid(err, err.message, parse_elems(before), parse_elems(after))
-          return invalid(err, err.message)
-        end
-
-        # otherwise start the precedence chain!
-        return parse_singleton(elems)
+        invalid err, err.message
       end
 
       def parse_singleton(elems)
@@ -253,22 +242,17 @@ module Dentaku
           return invalid elems, 'unrecognized syntax'
         end
 
-        if elems.empty?
-          # TODO: track the last nonempty parent
-          return invalid [], 'empty expression'
-        end
-
         node = elems.first
 
-        return ast :Identifier, node, node.value if node.token?(:identifier)
-        return ast :String, node, node.value if node.token?(:string)
-        return ast :Numeric, node, node.value if node.token?(:numeric)
-        return ast :Logical, node, node.value if node.token?(:logical)
+        return AST::Identifier.make(node, node.value) if node.token?(:identifier)
+        return AST::String.make(node, node.value) if node.token?(:string)
+        return AST::Numeric.make(node, node.value) if node.token?(:numeric)
+        return AST::Logical.make(node, node.value) if node.token?(:logical)
 
         return parse_case(node) if node.nested?(:case)
-        return ast :List, node, *parse_comma_sep(node.elems) if node.nested?(:lbrack)
+        return AST::List.make(node, *parse_comma_sep(node.elems)) if node.nested?(:lbrack)
         return parse_struct(node) if node.nested?(:lbrace)
-        return parse_expr(node.elems) if node.nested?(:lparen)
+        return parse_elems_of(node) if node.nested?(:lparen)
 
         return invalid node, node.message if node.error?
         return invalid single, "unrecognized syntax"
@@ -290,16 +274,17 @@ module Dentaku
 
       # parse a comma separated list
       def parse_comma_sep(args, &b)
+        return [] if args.empty?
+
         b ||= method(:parse_expr)
 
         out = []
 
         # lsplit on comma until it doesn't match anymore
         loop do
-          match args, lsplit(token(:comma), ~nonempty, ~_) do |before, after|
-            out << b.call(before)
-            args = after
-          end or break
+          before, comma, after = lpart(args) { |a| a.token?(:comma) } || (break)
+          out << b.call(before)
+          args = after
         end
 
         # if there is anymore, parse it out and add it on. otherwise,
@@ -336,22 +321,29 @@ module Dentaku
         # all other clauses guaranteed nonempty
         head = clauses.shift
         head = head.empty? ? nil : parse_expr(head)
-        rest = clauses.map { |h, *r| [h, parse_expr(r)] }
+        clauses.map! do |head, *rest|
+          exp = if rest.empty?
+            invalid head, "empty #{head.tok.desc.upcase} clause"
+          else
+            parse_expr(rest)
+          end
+
+          [head, exp]
+        end
 
         # once head is popped, there should be an even number of clauses, except
         # possibly for the singular ELSE clause at the end
-        last = (rest.pop if clauses.size.odd?)
+        last = (clauses.pop if clauses.size.odd?)
 
         # i don't think there's a use case for CASE ELSE ... END but hey it'd
         # technically work. disallowing it here tho
         if clauses.empty?
-          children = [head, *rest.map(&:last)].compact
-          return invalid case_node, 'a CASE statement must have at least one clause', *children if clauses.empty?
+          return invalid case_node, 'a CASE statement must have at least one clause'if clauses.empty?
         end
 
         # `rest` is even-sized now, so let's group them in pairs that *should*
         # be when/then
-        pairs = make_pairs(rest)
+        pairs = make_pairs(clauses)
 
         # make sure each pair is *actuall* when followed by then, and only
         # grab the resulting AST
@@ -384,13 +376,26 @@ module Dentaku
       # in_groups_of(2), but without rails
       # [a, b, c, d, e, f] => [[a, b], [c, d], [e, f]]
       def make_pairs(arr)
-        out = []
+        # pre-allocate the entire array since we know its size
+        out = Array.new(arr.size/2) { [nil, nil] }
         arr.each_with_index do |e, i|
-          out << [] if i.even?
-          out.last << e
+          j, k = i.divmod(2)
+          out[j][k] = e
         end
 
         out
+      end
+
+      def rpart(list, &pred)
+        index = list.rindex(&pred) or return nil
+
+        [list[0...index], list[index], list[index+1..-1]]
+      end
+
+      def lpart(list, &pred)
+        index = list.index(&pred) or return nil
+
+        [list[0...index], list[index], list[index+1..-1]]
       end
 
       def ast(name, node, *args)
