@@ -1,7 +1,6 @@
 require 'dentaku/syntax/token'
 require 'dentaku/syntax/tokenizer'
 require 'dentaku/syntax/skeleton'
-require 'dentaku/syntax/matcher'
 require 'dentaku/syntax/parser'
 
 module Dentaku

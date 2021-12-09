@@ -2,7 +2,6 @@ module Dentaku
   module Syntax
     module Parser
       extend self
-      extend Matcher::DSL
 
       def parse(skel)
         if skel.root?
@@ -12,104 +11,7 @@ module Dentaku
         end
       end
 
-      class PartialInfix
-        def initialize(skel, op, lhs)
-          @skel = skel
-          @op = op
-          @lhs = lhs
-        end
-
-        def finish(rhs)
-          ast = @op.new(@lhs, rhs)
-          ast.skeletons = skel
-          return ast
-        end
-      end
-
     protected
-
-      # parse an array of skeleton nodes into a real AST
-      # elems : [Syntax::Skeleton]
-      # see skeleton.rb for the skeleton syntax
-      #
-      # HOW TO USE THE MATCHING DSL
-      # (see matcher.rb for the implementation)
-      #
-      # match(nodes, matcher, &block_if_matched)
-      #
-      # will call the block only if the given nodes match the pattern. it will
-      # split out certain captured elements (marked with ~) and provide those
-      # as arguments to the block.
-      #
-      # types of patterns are:
-      #
-      # token(:my_cool_token)  - matches a single-token node of the given type
-      # nested(:my_open_token) - matches a nested node opened by a token of
-      #                          the given type
-      # _ OR ignore            - matches anything at all
-      # __ OR nonempty         - matches anything at all, provided there is at least
-      #                          one node to match
-      # exactly(a, b, c, ...)  - matches a sequence of nodes that each individually
-      #                          match the given patterns, with no extra nodes
-      #                          hanging around
-      #
-      # lsplit(split, before, after) - matches a sequence of tokens that can be
-      #                                split by the leftmost match of `split`,
-      #                                and will additionally match `before` and
-      #                                `after` patterns to whatever comes before
-      #                                and after the split node. note that the
-      #                                split node can only be one node, so this
-      #                                won't work with exactly(...) or similar.
-      #
-      # rsplit(split, before, after) - same as lsplit but searches from the right
-      #
-      # starts(token, after)   - matches a sequence of tokens that begins with the
-      #                          given start token, and matches a pattern against
-      #                          the rest of the sequence
-      #
-      # ends(prefix, last)     - same as starts(...) but matches the last token
-      #
-      # capture(matcher)
-      # OR
-      # ~matcher               - matches a node or sequence against the matcher
-      #                          but captures the value to be passed into a
-      #                          block argument
-      #
-      # NOTE: this is still very much a manual parser! The matching DSL is just
-      # a way of factoring out what would otherwise be a lot of tedious if/else
-      # and data structure unpacking. It's helpful to read each `match` statement
-      # as a fancy `if`. In fact, `match` itself will return a boolean to indicate
-      # whether it has matched, which is used here in `parse_comma_sep`.
-
-      EXPR_PRECEDENCE = [
-        :combinator,
-        :comparator,
-        :range,
-        :additive,
-        :minus,
-        :multiplicative,
-        :singleton,
-      ]
-
-      COMMA_PRECEDENCE = [
-        :comma,
-        *EXPR_PRECEDENCE
-      ]
-
-      def nest_precedence(p)
-        methods = p.map { |m| method("parse_#{m}") }
-        methods.reduce do |a, b|
-          lambda { |elems| b.call(elems, &a) || a.call(elems) }
-        end
-      end
-
-      def expr_precedence
-        @expr_precedence ||= nest_precedence(EXPR_PRECEDENCE)
-      end
-
-      def comma_precedence
-        @comma_precedence ||= nest_precedence(COMMA_PRECEDENCE)
-      end
 
       def parse_elems_of(node)
         return invalid node, "empty expression" if node.elems.empty?
