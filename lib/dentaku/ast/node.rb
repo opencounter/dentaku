@@ -6,6 +6,12 @@ module Dentaku
       attr_accessor :type
       attr_accessor :skeletons
 
+      def self.make(skels, *a)
+        n = new(*a)
+        n.skeletons = [skels].flatten(1)
+        n
+      end
+
       def loc_range
         Syntax::Tokenizer::LocRange.between(skeletons.first, skeletons.last)
       end

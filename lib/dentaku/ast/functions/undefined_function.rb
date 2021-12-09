@@ -29,6 +29,12 @@ module Dentaku
         def new(*args)
           UndefinedFunction.new(@function_name, args)
         end
+
+        def make(skels, *args)
+          n = UndefinedFunction.new(@function_name, args)
+          n.skeletons = skels
+          n
+        end
       end
 
       def self.named(func_name, node=nil)
