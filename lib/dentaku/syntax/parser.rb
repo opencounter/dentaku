@@ -233,8 +233,11 @@ module Dentaku
         # this is conveniently the "head" or the inspected value
         clauses = [[]]
         case_node.elems.each do |elem|
-          clauses << [] if elem.clause?
-          clauses.last << elem
+          if elem.clause?
+            clauses << [elem]
+          else
+            clauses.last << elem
+          end
         end
 
         # head is possibly empty, for CASE WHEN ... THEN ... END
@@ -261,7 +264,7 @@ module Dentaku
           return invalid case_node, 'a CASE statement must have at least one clause'if clauses.empty?
         end
 
-        # `rest` is even-sized now, so let's group them in pairs that *should*
+        # `clauses` is even-sized now, so let's group them in pairs that *should*
         # be when/then
         pairs = make_pairs(clauses)
 
