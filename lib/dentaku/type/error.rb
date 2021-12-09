@@ -111,7 +111,8 @@ module Dentaku
       end
     end
 
-    # only used by AST::Invalid, @ast should be an instance of this class.
+    # @ast should be an instance of AST::Invalid. Only used by
+    # AST::Invalid#generate_constraints
     class ParseError < InvalidAST
       def message
         @ast.message
