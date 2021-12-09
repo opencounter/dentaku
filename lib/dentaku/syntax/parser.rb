@@ -181,8 +181,6 @@ module Dentaku
       end
 
       def parse_struct(struct)
-        return ast :Struct, struct if struct.elems.empty?
-
         pairs = parse_comma_sep(struct.elems) do |segment|
           next ['_', invalid(struct, 'empty struct segment')] if segment.empty?
           key, *rest = segment
@@ -191,7 +189,7 @@ module Dentaku
           [key.value, parse_expr(rest)]
         end
 
-        ast :Struct, struct, *pairs
+        AST::Struct.make(struct, *pairs)
       end
 
       # parse a comma separated list
@@ -292,7 +290,7 @@ module Dentaku
           end
         end
 
-        ast :Case, case_node, head, pairs, else_exp
+        AST::Case.make(case_node, head, pairs, else_exp)
       end
 
       # in_groups_of(2), but without rails
