@@ -231,10 +231,19 @@ module Dentaku
       end
 
       def parse_check_error(elems)
-        before, err, after = lpart(elems, &:error?) \
-          || (return parse_singleton(elems))
+        before, err, after = lpart(elems, &:error?)
 
-        invalid err, err.message
+        return invalid(err, err.message) if err
+
+        before, comma, after = lpart(elems) { |e| e.token?(:comma) }
+
+        if comma
+          before_exp = before.any? ? parse_expr(before) : nil
+          after_exp = after.any? ? parse_expr(after) : nil
+          return invalid(comma, "stray comma", before_exp, after_exp) if comma
+        end
+
+        parse_singleton(elems)
       end
 
       def parse_singleton(elems)
