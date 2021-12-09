@@ -43,12 +43,15 @@ describe Dentaku::Syntax::Parser do
 
     # this is not a parse error, it's a type error
     valid("IF(true, 3)", Dentaku::AST::Function)
+
+    valid("[a,b,]", Dentaku::AST::List)
+    valid("f(a,b,)", Dentaku::AST::Function)
   end
 
 
   describe 'invalid expressions' do
-    invalid("foo bar", /unrecognized syntax/i)
-    invalid("IF(true, 3, 4) IF(true, 3, 4)", /unrecognized syntax/i)
+    invalid("foo bar", /too many expressions/i)
+    invalid("IF(true, 3, 4) IF(true, 3, 4)", /too many expressions/i)
 
     invalid("(1 + 2 * 5", /unclosed parenthesis/i)
     invalid("((1 + 2 * 5)", /unclosed parenthesis/i)
@@ -62,7 +65,7 @@ describe Dentaku::Syntax::Parser do
     invalid("CASE foo WHEN baz THEN 3 WHEN faz END", /hanging WHEN clause/)
     invalid("CASE foo WHEN baz THEN 3 WHEN faz 3 END", /hanging WHEN clause/)
     invalid("CASE foo END", /a CASE statement must have at least one clause/)
-    invalid("CASE foo WHEN baz THEN 3 IF(true, 1, 2) WHEN baz THEN 3 END", /unrecognized syntax/)
+    invalid("CASE foo WHEN baz THEN 3 IF(true, 1, 2) WHEN baz THEN 3 END", /too many expressions/)
     invalid("([)]", /expected square bracket, got parenthesis/)
     invalid("field:$money", /Unknown token starting with `[$]mo'/)
     invalid("case 1 when 2 then 3 else end", /empty ELSE clause/)
@@ -71,5 +74,19 @@ describe Dentaku::Syntax::Parser do
     # this one catches *both* errors
     invalid("a * b(c, d), ()", /stray comma/)
     invalid("a * b(c, d), ()", /empty expression/)
+
+    invalid("f(a,,b)", /empty expression/)
+    invalid("f(,a,b)", /empty expression/)
+    invalid("f(a,,)", /empty expression/)
+    invalid("[a,,b]", /empty expression/)
+    invalid("[,a,b]", /empty expression/)
+    invalid("[a,,]", /empty expression/)
+    invalid("OR 1", /empty expression/)
+    invalid("1 OR", /empty expression/)
+    invalid("= 2", /empty expression/)
+    invalid("2 = ", /empty expression/)
+    invalid("3+", /empty expression/)
+    invalid("4..", /empty expression/)
+    invalid("3+2/", /empty expression/)
   end
 end
