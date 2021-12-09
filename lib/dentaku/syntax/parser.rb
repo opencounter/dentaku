@@ -298,6 +298,7 @@ module Dentaku
 
       # in_groups_of(2), but without rails
       # [a, b, c, d, e, f] => [[a, b], [c, d], [e, f]]
+      # arr guaranteed to be even size before calling.
       def make_pairs(arr)
         # pre-allocate the entire array since we know its size
         out = Array.new(arr.size/2) { [nil, nil] }
@@ -309,16 +310,18 @@ module Dentaku
         out
       end
 
+      # rpart and lpart attempt to split a list on an element that passes
+      # a predicate. they can be *very* fast using Array#index and Array#rindex.
       def rpart(list, &pred)
         index = list.rindex(&pred) or return nil
 
-        [list[0...index], list[index], list[index+1..-1]]
+        [list.take(index), list[index], list.drop(index+1)]
       end
 
       def lpart(list, &pred)
         index = list.index(&pred) or return nil
 
-        [list[0...index], list[index], list[index+1..-1]]
+        [list.take(index), list[index], list.drop(index+1)]
       end
 
       # helper to make sure a segment is nonempty before proceeding. returns
