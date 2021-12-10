@@ -183,10 +183,11 @@ module Dentaku
       def parse_struct(struct)
         pairs = parse_comma_sep(struct.elems) do |segment|
           next ['_', invalid(struct, 'empty struct segment')] if segment.empty?
-          key, *rest = segment
+          key = segment.shift
           next [key.repr, invalid(key, 'invalid key')] unless key.token?(:key)
+          next [key.value, invalid(key, 'empty expression')] if segment.empty?
 
-          [key.value, parse_expr(rest)]
+          [key.value, parse_expr(segment)]
         end
 
         AST::Struct.make(struct, *pairs)
