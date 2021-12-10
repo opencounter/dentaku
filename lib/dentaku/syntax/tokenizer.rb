@@ -140,7 +140,7 @@ module Dentaku
         return ini(:else) if match /else\b/i
 
         # literals and operators
-        return med(:logical, m.strip.downcase == 'true') if match /(true|false)\b/i
+        return med(:logical, m.downcase == 'true') if match /(true|false)\b/i
         return med(:numeric, cast(m)) if match /(\d+(?:\.\d+)?|\.\d+)\b/
         return med(:string, unescape!(m 1)) if match /"((?:\\.|[^\\])*?)"/
         return med(:string, unescape!(m 1)) if match /'((?:\\.|[^\\])*?)'/
@@ -153,12 +153,12 @@ module Dentaku
 
         # infix ops
         return ini(:comparator, m.to_sym) if match /<=|>=|!=|<>|<|>|==|=/
-        return ini(:combinator, m.strip.downcase.to_sym) if match /(and|or)\b/i
+        return ini(:combinator, m.downcase.to_sym) if match /(and|or)\b/i
 
         # general identifiers
-        return med(:key, (m 1).strip.to_sym) if \
+        return med(:key, (m 1).to_sym) if \
           match /([[:alnum:]_]+\b):(?![[:alnum:]])/
-        return med(:identifier, m.strip.downcase) if match /[[:alnum:]_:]+\b/
+        return med(:identifier, m.downcase) if match /[[:alnum:]_:]+\b/
 
         return ini(:error, "unbalanced quote") if match /['"]/
         return ini(:error, "Unknown token starting with `#{(m + scanner.peek(2))}'") if match(/./)
