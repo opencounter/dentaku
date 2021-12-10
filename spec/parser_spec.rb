@@ -88,5 +88,6 @@ describe Dentaku::Syntax::Parser do
     invalid("3+", /empty expression/)
     invalid("4..", /empty expression/)
     invalid("3+2/", /empty expression/)
+    invalid("{a:}", /empty expression/)
   end
 end
