@@ -106,6 +106,7 @@ module Dentaku
         !@initial
       end
 
+      # super-short-form way of accessing the last match or match group
       def m(groupnum=0)
         @scanner[groupnum]
       end
