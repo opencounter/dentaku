@@ -13,8 +13,6 @@ require 'dentaku/type/syntax'
 require 'dentaku/type/expression'
 require "dentaku/type/declared"
 
-require 'dentaku/tracer'
-
 require 'dentaku'
 require 'dentaku/exceptions'
 require 'dentaku/dependency_resolver'
