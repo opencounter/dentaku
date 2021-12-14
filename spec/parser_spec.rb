@@ -58,10 +58,12 @@ describe Dentaku::Syntax::Parser do
     invalid("(1 + 2 * 5))", /extraneous closing parenthesis/i)
     invalid("1 + 2 * 5))", /extraneous closing parenthesis/i)
     invalid('"foo', /unbalanced quote/i)
+
     invalid('(1,2,[1]', /unclosed parenthesis/i)
     invalid('[1,2', /unclosed square bracket/i)
     invalid('{a: 1, b: {a: 1}', /unclosed curly brace/i)
     invalid("CASE foo WHEN baz THEN 3 WHEN faz THEN 1 ", /unclosed CASE keyword/)
+
     invalid("CASE foo WHEN baz THEN 3 WHEN faz END", /hanging WHEN clause/)
     invalid("CASE foo WHEN baz THEN 3 WHEN faz 3 END", /hanging WHEN clause/)
     invalid("CASE foo END", /a CASE statement must have at least one clause/)

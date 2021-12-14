@@ -35,7 +35,6 @@ module Dentaku
         before, op, after = rpart(elems) { |e| e.token?(:combinator) }
         return parse_comparator(elems) if op.nil?
 
-
         lhs = nonempty!(op, before) { parse_combinator(before) }
         rhs = nonempty!(op, after) { parse_comparator(after) }
 
