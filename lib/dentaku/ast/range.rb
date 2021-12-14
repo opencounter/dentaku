@@ -10,7 +10,7 @@ module Dentaku
       # must return something responding to ===, in this case a
       # regular ruby Range.
       def value
-        (left.value..right.value)
+        (left.evaluate..right.evaluate)
       end
 
       def generate_constraints!(context)
