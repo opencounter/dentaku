@@ -14,7 +14,7 @@ module Dentaku
           @end = end_
         end
 
-        def as_json
+        def as_json(*)
           [@begin.as_json, @end.as_json]
         end
 
@@ -39,7 +39,7 @@ module Dentaku
           @colno = colno
         end
 
-        def as_json
+        def as_json(*)
           { byte: @byte, line: @lineno, col: @colno }
         end
 

@@ -6,7 +6,7 @@ module Dentaku
         return []
       end
 
-      def as_json
+      def as_json(*)
         {
           error_type: self.class.name.split(':').last,
           message: message,
