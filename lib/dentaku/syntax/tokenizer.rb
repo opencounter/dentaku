@@ -12,6 +12,7 @@ module Dentaku
         def initialize(begin_, end_)
           @begin = begin_
           @end = end_
+          raise "invalid loc_range #{@begin.inspect}..#{@end.inspect}" unless @begin.is_a?(Location) && @end.is_a?(Location)
         end
 
         def as_json(*)
@@ -23,7 +24,11 @@ module Dentaku
         end
 
         def index_range
-          (@start.byte..@end.byte)
+          (@begin.index...@end.index)
+        end
+
+        def byte_range
+          (@begin.byte...@end.byte)
         end
 
         def slice(str)
@@ -36,15 +41,16 @@ module Dentaku
       end
 
       class Location
-        attr_reader :byte, :lineno, :colno
-        def initialize(byte, lineno, colno)
+        attr_reader :byte, :index, :lineno, :colno
+        def initialize(byte, index, lineno, colno)
           @byte = byte
+          @index = index
           @lineno = lineno
           @colno = colno
         end
 
         def as_json(*)
-          { byte: @byte, line: @lineno, col: @colno }
+          { byte: @byte, index: @index, line: @lineno, col: @colno }
         end
 
         def loc_range
@@ -80,6 +86,7 @@ module Dentaku
       def call(&b)
         return enum_for(:call) unless block_given?
 
+        @index = 0
         @lineno = 1
         @colno = 1
         until scanner.eos?
@@ -205,6 +212,9 @@ module Dentaku
         matched = @scanner.scan(regexp)
         return false unless matched
 
+        # keep track of the character index independently of the byte index
+        @index += matched.size
+
         newlines = matched.count("\n")
         @lineno += newlines
         if newlines > 0
@@ -217,7 +227,7 @@ module Dentaku
       end
 
       def location
-        Location.new(@scanner.pos, @lineno, @colno)
+        Location.new(@scanner.pos, @index, @lineno, @colno)
       end
     end
   end
