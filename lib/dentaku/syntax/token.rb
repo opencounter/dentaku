@@ -84,8 +84,7 @@ module Dentaku
     end
 
     def ==(other)
-      (category.nil? || other.category.nil? || category == other.category) &&
-      (value.nil?    || other.value.nil?    || value    == other.value)
+      @category == other.category && @value == other.value
     end
 
     def nest?
