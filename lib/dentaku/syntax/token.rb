@@ -106,9 +106,5 @@ module Dentaku
     def eof?
       category == :eof
     end
-
-    def checksum
-      Zlib.crc32()
-    end
   end
 end

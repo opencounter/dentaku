@@ -107,20 +107,12 @@ module Dentaku
         end
       end
 
-      def checksum
-        @checksum ||= Zlib.crc32(source).to_s
-      end
-
       def evaluate
         if instance_variable_defined?(:@_partial) && !@_partial.nil?
           return @_partial
         end
 
-        return value if Calculator.current.partial_eval? || !cachable?
-
-        Calculator.current.cache_for(self) do |cache|
-          cache.getset { |tracer| value }
-        end
+        value
       end
 
       def cachable?

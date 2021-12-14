@@ -2,7 +2,8 @@ require 'spec_helper'
 require 'dentaku/ast/functions/default'
 
 describe Dentaku::AST::Default do
-  let(:calculator) { Dentaku::Calculator.new.tap { |c| c.cache = {} } }
+  let(:tracer) { Dentaku::HashTracer.new }
+  let(:calculator) { Dentaku::Calculator.new.tap { |c| c.tracer = tracer } }
   let(:expression) do
     'default(a, 100)'
   end
@@ -26,7 +27,7 @@ describe Dentaku::AST::Default do
 
     it "surfaces identifiers" do
       evaluation
-      calculator.cache_for(ast).target["unsatisfied_identifiers"].include?("a")
+      expect(tracer.unsatisfied).to include("a")
     end
   end
 end

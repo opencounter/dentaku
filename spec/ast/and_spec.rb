@@ -3,7 +3,8 @@ require 'dentaku/ast/combinators'
 
 describe Dentaku::AST::And do
   describe 'branch favoring' do
-    let(:calculator) { Dentaku::Calculator.new.tap { |c| c.cache = {} } }
+    let(:tracer) { Dentaku::HashTracer.new }
+    let(:calculator) { Dentaku::Calculator.new.tap { |c| c.tracer = tracer } }
     let(:expression) do
       'a AND b AND c AND D'
     end
@@ -15,8 +16,8 @@ describe Dentaku::AST::And do
     context 'with no dependents' do
       it 'should evaluate in order' do
         expect { evaluation }.to raise_error(Dentaku::UnboundVariableError)
-        expect(calculator.cache.unsatisfied_identifiers).to include("a")
-        expect(calculator.cache.unsatisfied_identifiers).not_to include("b")
+        expect(tracer.unsatisfied).to include("a")
+        expect(tracer.unsatisfied).not_to include("b")
       end
     end
 
@@ -26,8 +27,8 @@ describe Dentaku::AST::And do
 
         it 'should evaluate existing branches first' do
           expect(evaluation).to be false
-          expect(calculator.cache.unsatisfied_identifiers).to be_empty
-          expect(calculator.cache.satisfied_identifiers).to include(key)
+          expect(tracer.unsatisfied).to be_empty
+          expect(tracer.satisfied).to include(key)
         end
       end
     end
@@ -37,9 +38,9 @@ describe Dentaku::AST::And do
 
       it "should keep a as a dependency even though it isn't touched" do
         expect(evaluation).to be false
-        expect(calculator.cache.unsatisfied_identifiers).to be_empty
-        expect(calculator.cache.satisfied_identifiers).to include("b")
-        expect(calculator.cache.satisfied_identifiers).to include("a")
+        expect(tracer.unsatisfied).to be_empty
+        expect(tracer.satisfied).to include("b")
+        expect(tracer.satisfied).to include("a")
       end
     end
 
@@ -49,8 +50,8 @@ describe Dentaku::AST::And do
 
       it 'should still hide the unsatisfied dependencies' do
         expect(evaluation).to be false
-        expect(calculator.cache.unsatisfied_identifiers).to be_empty
-        expect(calculator.cache.satisfied_identifiers).to eql Set['b']
+        expect(tracer.unsatisfied).to be_empty
+        expect(tracer.satisfied).to eql Set['b']
       end
     end
   end

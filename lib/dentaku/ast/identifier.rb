@@ -17,43 +17,19 @@ module Dentaku
         @identifier = name.to_s.downcase
       end
 
-      def evaluate
-        return value unless cachable?
-
-        Calculator.current.cache_for(self) do |cache|
-          cache.trace do |tracer|
-            value_with_trace(tracer)
-          end
-        end
-      end
-
-      def value_with_trace(trace)
-        v, type = context[identifier]
-        case v
-        when Node
-          v.evaluate
-        when NilClass
-          trace.unsatisfied(identifier)
-
-          raise UnboundVariableError.new(self, [identifier])
-        else
-          if type == :default
-            trace.unsatisfied(identifier)
-          else
-            trace.satisfied(identifier)
-          end
-          v
-        end
-      end
-
       def value
         v, type = context[identifier]
         case v
         when Node
           v.evaluate
         when NilClass
+          if !Calculator.current.partial_eval?
+            Calculator.current.trace(:unsatisfied, identifier)
+          end
+
           raise UnboundVariableError.new(self, [identifier])
         else
+          Calculator.current.trace(:satisfied, identifier)
           v
         end
       end
