@@ -1,4 +1,5 @@
 require_relative 'ast/node'
+require_relative 'ast/invalid'
 require_relative 'ast/nil'
 require_relative 'ast/numeric'
 require_relative 'ast/range'

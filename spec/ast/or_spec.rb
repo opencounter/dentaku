@@ -1,8 +1,6 @@
 require 'spec_helper'
 require 'dentaku/ast/combinators'
 
-require 'dentaku/token'
-
 describe Dentaku::AST::Or do
   let(:calculator) { Dentaku::Calculator.new.tap { |c| c.cache = {} } }
 
@@ -71,23 +69,21 @@ describe Dentaku::AST::Or do
     end
 
     describe 'partial_evaluation', :perf do
-      let(:ident_count) { (ENV['PERF_SIZE'] || 100).to_i }
-
       context 'with default' do
         let(:expression) do
-          (0...ident_count).to_a.map { |i| "default(f#{i}, false)" }.join(" OR ")
+          (0...PERF_SIZE).to_a.map { |i| "default(f#{i}, false)" }.join(" OR ")
         end
 
         it 'hits all idents but doesnt overflow' do
           expect(evaluation).to be false
           expect(calculator.cache.satisfied_identifiers).to be_empty
-          expect(calculator.cache.unsatisfied_identifiers.size).to eql(ident_count)
+          expect(calculator.cache.unsatisfied_identifiers.size).to eql(PERF_SIZE)
         end
       end
 
       context 'without default', :perf do
         let(:expression) do
-          (0...ident_count).to_a.map { |i| "f#{i}" }.join(" OR ")
+          (0...PERF_SIZE).to_a.map { |i| "f#{i}" }.join(" OR ")
         end
 
         it 'finishes after the first unknown ident' do

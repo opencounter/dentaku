@@ -111,6 +111,14 @@ module Dentaku
       end
     end
 
+    # @ast should be an instance of AST::Invalid. Only used by
+    # AST::Invalid#generate_constraints
+    class ParseError < InvalidAST
+      def message
+        @ast.message
+      end
+    end
+
     class ErrorSet < StandardError
       attr_reader :errors
 

@@ -4,8 +4,17 @@ module Dentaku
       # type annotation to be added later
       # by the type checker
       attr_accessor :type
-      attr_accessor :begin_token
-      attr_accessor :end_token
+      attr_accessor :skeletons
+
+      def self.make(skels, *a)
+        n = new(*a)
+        n.skeletons = [skels].flatten(1)
+        n
+      end
+
+      def loc_range
+        Syntax::Tokenizer::LocRange.between(skeletons.first, skeletons.last)
+      end
 
       def self.precedence
         0
@@ -18,6 +27,10 @@ module Dentaku
 
       def dependencies(context={})
         []
+      end
+
+      def valid?
+        children.all?(&:valid?)
       end
 
       def satisfy_existing_dependencies
@@ -35,16 +48,6 @@ module Dentaku
       def constraints(context)
         generate_constraints(context)
         context.constraints
-      end
-
-      def loc_range
-        return [] unless begin_token && end_token
-        [begin_token.begin_location, end_token.end_location]
-      end
-
-      def index_range
-        return nil unless begin_token && end_token
-        (begin_token.index_range.begin..end_token.index_range.end)
       end
 
       def generate_constraints(context)

@@ -11,30 +11,23 @@ module Dentaku
         1
       end
 
-      def initialize(*nodes)
-        @switch = nodes.shift if nodes.first.is_a?(AST::CaseSwitchVariable)
-
-        @conditions = nodes
-
-        @else = @conditions.pop if @conditions.last.is_a?(AST::CaseElse)
-
-        @conditions.each do |condition|
-          unless condition.is_a?(AST::CaseConditional)
-            raise ParseError.new("`#{condition.repr rescue condition.inspect}' is not a valid CASE condition", condition)
-          end
-        end
+      def initialize(switch, clauses, else_)
+        @switch = switch
+        @clauses = clauses
+        @else = else_
       end
 
       def children
-        [@switch, @conditions, @else].compact.flatten(1)
+        [@switch, @clauses, @else].compact.flatten
       end
 
       def value
         switch_value = @switch.nil? ? true : @switch.evaluate
 
-        @conditions.each do |condition|
-          if condition.when.evaluate === switch_value
-            return condition.then.evaluate
+        @clauses.each do |clause|
+          when_, then_ = clause
+          if when_.evaluate === switch_value
+            return then_.evaluate
           end
         end
 
@@ -48,40 +41,40 @@ module Dentaku
       def dependencies(context={})
         out = []
         out << @switch.dependencies(context) if @switch
-        out << @conditions.flat_map { |c| c.dependencies(context) }
+        out << @clauses.flatten.map { |c| c.dependencies(context) }
         out << @else.dependencies(context) if @else
         out.flatten
       end
 
       def generate_constraints(context)
         result_type = Type::Expression.make_variable('case')
-        @switch.node.generate_constraints(context) if @switch
+        @switch.generate_constraints(context) if @switch
 
-        @conditions.each_with_index do |condition, index|
-          condition.when.node.generate_constraints(context)
+        @clauses.each_with_index do |(when_, then_), index|
+          when_.generate_constraints(context)
           if @switch.nil?
-            context.add_constraint!([:syntax, condition.when.node],
+            context.add_constraint!([:syntax, when_],
                                     [:concrete, :bool],
                                     [:case_when, self, index])
-          elsif condition.when.node.is_a?(AST::Range)
-            context.add_constraint!([:syntax, @switch.node],
+          elsif when_.is_a?(AST::Range)
+            context.add_constraint!([:syntax, @switch],
                                     [:concrete, :numeric],
                                     [:case_when_range, self, index])
           else
-            context.add_constraint!([:syntax, @switch.node],
-                                    [:syntax, condition.when.node],
+            context.add_constraint!([:syntax, @switch],
+                                    [:syntax, when_],
                                     [:case_when, self, index])
           end
 
-          condition.then.node.generate_constraints(context)
-          context.add_constraint!([:syntax, condition.then.node],
+          then_.generate_constraints(context)
+          context.add_constraint!([:syntax, then_],
                                   result_type,
                                   [:case_then, self, index])
         end
 
         if @else
-          @else.node.generate_constraints(context)
-          context.add_constraint!([:syntax, @else.node],
+          @else.generate_constraints(context)
+          context.add_constraint!([:syntax, @else],
                                   result_type,
                                   [:case_else, self])
         end
@@ -93,9 +86,17 @@ module Dentaku
 
       def repr
         out = ''
-        out << 'CASE ' unless @switch
-        children.each { |c| out << c.repr << "\n" }
+        out << 'CASE '
+        out << "SWITCH(#{@switch.repr})\n" if @switch
+        @clauses.each do |(when_, then_)|
+          out << '(WHEN ' << when_.repr
+          out << ' THEN ' << then_.repr << ')'
+          out << "\n"
+        end
+        out << 'ELSE ' << @else.repr if @else
+        out << "\n"
         out << 'END'
+
         out
       end
     end
