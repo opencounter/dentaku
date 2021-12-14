@@ -16,6 +16,10 @@ module Dentaku
         Syntax::Tokenizer::LocRange.between(skeletons.first, skeletons.last)
       end
 
+      def index_range
+        loc_range.index_range
+      end
+
       def self.precedence
         0
       end

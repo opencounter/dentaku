@@ -22,6 +22,10 @@ module Dentaku
           self
         end
 
+        def index_range
+          (@start.byte..@end.byte)
+        end
+
         def slice(str)
           str.byteslice(begin_.byte, end_.byte)
         end
