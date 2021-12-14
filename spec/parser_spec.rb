@@ -75,12 +75,12 @@ describe Dentaku::Syntax::Parser do
     invalid("a * b(c, d), ()", /stray comma/)
     invalid("a * b(c, d), ()", /empty expression/)
 
-    invalid("f(a,,b)", /empty expression/)
-    invalid("f(,a,b)", /empty expression/)
-    invalid("f(a,,)", /empty expression/)
-    invalid("[a,,b]", /empty expression/)
-    invalid("[,a,b]", /empty expression/)
-    invalid("[a,,]", /empty expression/)
+    invalid("f(a,,b)", /stray comma/)
+    invalid("f(,a,b)", /stray comma/)
+    invalid("f(a,,)", /stray comma/)
+    invalid("[a,,b]", /stray comma/)
+    invalid("[,a,b]", /stray comma/)
+    invalid("[a,,]", /stray comma/)
     invalid("OR 1", /empty expression/)
     invalid("1 OR", /empty expression/)
     invalid("= 2", /empty expression/)
@@ -89,5 +89,6 @@ describe Dentaku::Syntax::Parser do
     invalid("4..", /empty expression/)
     invalid("3+2/", /empty expression/)
     invalid("{a:}", /empty expression/)
+    invalid("{a:,,b: c}", /stray comma/)
   end
 end

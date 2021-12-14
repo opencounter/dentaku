@@ -139,9 +139,10 @@ module Dentaku
         before, comma, after = lpart(elems) { |e| e.token?(:comma) }
 
         if comma
-          before_exp = before.any? ? parse_singleton(before) : nil
-          after_exp = after.any? ? parse_check_error(after) : nil
-          return invalid(comma, "stray comma", before_exp, after_exp) if comma
+          children = []
+          children << parse_singleton(before) if before.any?
+          children << parse_singleton(after) if after.any?
+          return invalid(comma, "stray comma", *children) if comma
         end
 
         parse_singleton(elems)
@@ -177,13 +178,14 @@ module Dentaku
         return parse_elems_of(node) if node.nested?(:lparen)
 
         return invalid node, node.message if node.error?
-        return invalid single, "unrecognized syntax"
+        return invalid node, "???"
       end
 
       def parse_struct(struct)
         pairs = parse_comma_sep(struct.elems) do |segment|
           next ['_', invalid(struct, 'empty struct segment')] if segment.empty?
           key = segment.shift
+          next ['_', invalid(key, 'stray comma')] if key.token?(:comma)
           next [key.repr, invalid(key, 'invalid key')] unless key.token?(:key)
           next [key.value, invalid(key, 'empty expression')] if segment.empty?
 
@@ -204,7 +206,13 @@ module Dentaku
         loop do
           before, comma, after = lpart(args) { |a| a.token?(:comma) }
           break if comma.nil?
-          out << nonempty!(comma, before) { b.call(before) }
+
+          if before.empty?
+            out << b.call([comma])
+          else
+            out << b.call(before)
+          end
+
           args = after
         end
 
@@ -262,7 +270,7 @@ module Dentaku
         # i don't think there's a use case for CASE ELSE ... END but hey it'd
         # technically work. disallowing it here tho
         if clauses.empty?
-          return invalid case_node, 'a CASE statement must have at least one clause'if clauses.empty?
+          return invalid case_node, 'a CASE statement must have at least one clause' if clauses.empty?
         end
 
         # `clauses` is even-sized now, so let's group them in pairs that *should*
