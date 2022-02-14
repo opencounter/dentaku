@@ -63,11 +63,6 @@ module Dentaku
       yield expression if block_given?
     end
 
-    def evaluate_with_trace(expression, data={})
-      @tracer = Tracer.new
-      [evaluate!(expression, data), @tracer]
-    end
-
     # [jneen] because with_partial { ... } blocks can nest, we can't
     # simply use a boolean here - it would reset the state too early.
     # a counter is an easy way to allow nesting.

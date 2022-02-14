@@ -18,11 +18,11 @@ module Dentaku
       end
 
       def value
-        v, type = context[identifier]
-        case v
+        value = context[identifier]
+        case value
         when Node
-          v.evaluate
-        when NilClass
+          value.evaluate
+        when nil
           if !Calculator.current.partial_eval?
             Calculator.current.trace(:unsatisfied, identifier)
           end
@@ -30,7 +30,7 @@ module Dentaku
           raise UnboundVariableError.new(self, [identifier])
         else
           Calculator.current.trace(:satisfied, identifier)
-          v
+          value
         end
       end
 
@@ -51,7 +51,7 @@ module Dentaku
         @identifier
       end
 
-      private
+    private
 
       def dependencies_of(node)
         node.respond_to?(:dependencies) ? node.dependencies : []
