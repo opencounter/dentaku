@@ -16,6 +16,14 @@ module Dentaku
         Syntax::Tokenizer::LocRange.between(skeletons.first, skeletons.last)
       end
 
+      def full_original_source
+        skeletons.first.first_token.original
+      end
+
+      def original_source
+        full_original_source && loc_range.slice(full_original_source)
+      end
+
       def index_range
         loc_range.index_range
       end

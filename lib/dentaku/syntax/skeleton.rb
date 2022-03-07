@@ -8,6 +8,14 @@ module Dentaku
         def token?(*)  false; end
         def error?(*)  false; end
 
+        def first_token
+          raise "abstract"
+        end
+
+        def last_token
+          raise "abstract"
+        end
+
         def match(matcher, &b)
           vars = matcher.match_vars(self)
           return false unless vars
@@ -32,6 +40,10 @@ module Dentaku
           @elems = elems
         end
 
+        def first_token
+          @open
+        end
+
         def loc_range
           Tokenizer::LocRange.between(@open, @close)
         end
@@ -49,6 +61,14 @@ module Dentaku
           @elems = elems
         end
 
+        def first_token
+          @elems.first
+        end
+
+        def last_token
+          @elems.last
+        end
+
         def repr
           "{root #{@elems.map(&:repr).join(' ')}}"
         end
@@ -58,6 +78,14 @@ module Dentaku
         attr_reader :tok
         def initialize(tok)
           @tok = tok
+        end
+
+        def first_token
+          @tok
+        end
+
+        def last_token
+          @tok
         end
 
         def clause?
@@ -98,6 +126,14 @@ module Dentaku
 
           @tokens = tokens
           @message = message
+        end
+
+        def first_token
+          @tokens.first
+        end
+
+        def last_token
+          @tokens.last
         end
 
         def repr
