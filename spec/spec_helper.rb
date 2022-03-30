@@ -27,7 +27,7 @@ class InputHash < Hash
     out = super
     out = nil if out.is_a?(Missing)
 
-    [out, :user]
+    out
   end
 end
 
