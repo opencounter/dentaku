@@ -23,7 +23,7 @@ require 'dentaku/syntax'
 
 module Dentaku
   class Calculator
-    attr_reader :result, :tokenizer, :cache, :current_node_cache
+    attr_reader :result, :tokenizer, :cache, :current_node_cache, :partial_cache
     attr_accessor :memory
     attr_writer :current_node_cache
     attr_accessor :tracer
@@ -33,6 +33,7 @@ module Dentaku
       # @tokenizer = Tokenizer.new
       @ast_cache = ast_cache
       @partial_eval_depth = 0
+      @partial_cache = {}
     end
 
     THREAD_KEY = :dentaku_current_calculator

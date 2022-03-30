@@ -115,10 +115,17 @@ module Dentaku
         end
       end
 
+      def partial_cache
+        Calculator.current.partial_cache
+      end
+
+      def partial_cache_key
+        self.object_id
+      end
+
       def evaluate
-        if instance_variable_defined?(:@_partial) && !@_partial.nil?
-          return @_partial
-        end
+        cached = partial_cache[partial_cache_key]
+        return cached unless cached.nil?
 
         value
       end
@@ -134,15 +141,15 @@ module Dentaku
       # expressions, so as to not report missing identifiers in branches
       # that do not matter to the expression.
       def partial_evaluate
-        if instance_variable_defined?(:@_partial)
-          return @_partial
+        if partial_cache.key?(partial_cache_key)
+          return partial_cache[partial_cache_key]
         end
 
-        @_partial = Calculator.current.with_partial do
+        partial_cache[partial_cache_key] = Calculator.current.with_partial do
           evaluate
         end
       rescue Missing
-        @_partial = nil
+        partial_cache[partial_cache_key] = nil
       end
 
       def context
