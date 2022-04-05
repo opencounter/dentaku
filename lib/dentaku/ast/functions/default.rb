@@ -13,23 +13,12 @@ module Dentaku
       end
 
       def value
-        if Calculator.current.partial_eval?
-          @expr.evaluate
-        else
-          begin
-            @expr.evaluate
-          rescue Missing
-            @default_value.evaluate
-          end
-        end
-      end
+        return @expr.evaluate if Calculator.current.partial_eval?
 
-      # Don't cache values, but still make a cache key so child identifiers are reported
-      def evaluate
-        Calculator.current.cache_for(self) do |cache|
-          cache.trace do
-            value
-          end
+        begin
+          @expr.evaluate
+        rescue Missing
+          @default_value.evaluate
         end
       end
     end

@@ -16,6 +16,14 @@ module Dentaku
         Syntax::Tokenizer::LocRange.between(skeletons.first, skeletons.last)
       end
 
+      def full_original_source
+        skeletons.first.first_token.original
+      end
+
+      def original_source
+        full_original_source && loc_range.slice(full_original_source)
+      end
+
       def index_range
         loc_range.index_range
       end
@@ -107,20 +115,19 @@ module Dentaku
         end
       end
 
-      def checksum
-        @checksum ||= Zlib.crc32(source).to_s
+      def partial_cache
+        Calculator.current.partial_cache
+      end
+
+      def partial_cache_key
+        self.object_id
       end
 
       def evaluate
-        if instance_variable_defined?(:@_partial) && !@_partial.nil?
-          return @_partial
-        end
+        cached = partial_cache[partial_cache_key]
+        return cached unless cached.nil?
 
-        return value if Calculator.current.partial_eval? || !cachable?
-
-        Calculator.current.cache_for(self) do |cache|
-          cache.getset { |tracer| value }
-        end
+        value
       end
 
       def cachable?
@@ -134,15 +141,15 @@ module Dentaku
       # expressions, so as to not report missing identifiers in branches
       # that do not matter to the expression.
       def partial_evaluate
-        if instance_variable_defined?(:@_partial)
-          return @_partial
+        if partial_cache.key?(partial_cache_key)
+          return partial_cache[partial_cache_key]
         end
 
-        @_partial = Calculator.current.with_partial do
+        partial_cache[partial_cache_key] = Calculator.current.with_partial do
           evaluate
         end
       rescue Missing
-        @_partial = nil
+        partial_cache[partial_cache_key] = nil
       end
 
       def context
