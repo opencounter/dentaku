@@ -142,6 +142,7 @@ module Dentaku
         return med(:rbrace) if match /[}]/
         return ini(:lbrack) if match /\[/
         return med(:rbrack) if match /\]/
+        return ini(:rarrow) if match %r(=>)
 
         # case
         return ini(:case) if match /case\b/i

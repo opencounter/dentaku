@@ -2,19 +2,21 @@ require 'spec_helper'
 require 'dentaku'
 
 describe Dentaku::Syntax::Parser do
-  def self.invalid(expression, message, *a)
+  def self.invalid(expression, message, *a, &b)
     it "is invalid: <#{expression}> - #{message}", *a do
       ast = parse_expression(expression)
       expect(ast).not_to be_valid
       expect(ast.repr).to match(message)
+      b && instance_exec(ast, &b)
     end
   end
 
-  def self.valid(expression, class_, *a)
+  def self.valid(expression, class_, *a, &b)
     it "is valid: (#{expression})", *a do
       ast = parse_expression(expression)
       expect(ast).to be_valid
       expect(ast).to be_a(class_)
+      b && instance_exec(ast, &b)
     end
   end
 
@@ -23,6 +25,22 @@ describe Dentaku::Syntax::Parser do
   end
 
   let(:calculator) { Dentaku::Calculator.new }
+
+  describe 'lambdas' do
+    valid('a => 1', Dentaku::AST::Lambda) do |lam|
+      expect(lam.arguments).to eq(['a'])
+    end
+
+    valid('a => b and c', Dentaku::AST::Lambda) do |lam|
+      expect(lam.body.repr.downcase).to match(/and/)
+    end
+
+    valid('[a => 1, b => 2, c => 3]', Dentaku::AST::List) do |list|
+      list.elements.each do |el|
+        expect(el).to be_a Dentaku::AST::Lambda
+      end
+    end
+  end
 
   describe 'valid expressions' do
     valid("{ a: TRUE, b: false }", Dentaku::AST::Struct)

@@ -28,7 +28,21 @@ module Dentaku
           raise "DENTAKU BUG: check for empty expressions before calling parse_expr"
         end
 
-        return parse_combinator(elems)
+        return parse_lambda(elems)
+      end
+
+      def parse_lambda(elems)
+        before, op, after = lpart(elems) { |e| e.token?(:rarrow) }
+        return parse_combinator(elems) if op.nil?
+
+        return invalid op, 'missing lambda arguments' if before.empty?
+
+        before.map! do |arg|
+          return invalid arg, 'lambda arguments must be names' unless arg.token?(:identifier)
+          arg.value
+        end
+
+        AST::Lambda.make(elems, before, parse_expr(after))
       end
 
       def parse_combinator(elems)
