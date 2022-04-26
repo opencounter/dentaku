@@ -5,6 +5,7 @@ module Dentaku
         nil
       end
 
+      attr_reader :elements
       def initialize(*elements)
         @elements = elements
       end
