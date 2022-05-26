@@ -56,6 +56,10 @@ module Dentaku
       def resolve(reverse_scope={})
         cases(
           param: ->(name, arguments) {
+            if !DECLARED_TYPES.key?(name)
+              raise "undeclared type: #{self.repr}"
+            end
+
             Type.declared(DECLARED_TYPES[name].new(arguments.map(&:resolve)))
           },
           variable: -> (name, uniq) {

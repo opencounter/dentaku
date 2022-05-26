@@ -12,8 +12,51 @@ module Dentaku
         @body = body
       end
 
+      def children
+        [@body]
+      end
+
       def repr
         "(#{@arguments.join(" ")} => #{@body.repr})"
+      end
+
+      def generate_constraints(context)
+        el_types = @arguments.map { |a| Type::Expression.make_variable('arg') }
+        ret_type = Type::Expression.make_variable('ret')
+        context.add_constraint!([:syntax, self], [:param, :lambda, [ret_type, *el_types]], Type::Reason.literal(self))
+
+        context.with_environment(Hash[@arguments.zip(el_types)]) do
+          context.add_constraint!([:syntax, @body], ret_type, Type::Reason.lambda_return(@body))
+          @body.generate_constraints(context)
+        end
+      end
+
+      def free_vars
+        @free_vars ||= free_vars_for(self)
+      end
+
+      def capture_env
+        Calculator.current.env.slice(free_vars)
+      end
+
+      def value
+        closure = self.capture_env
+        lambda do |*args|
+          env = closure.merge(Hash[@arguments.zip(args)])
+
+          Calculator.current.with_env(env) do
+            @body.evaluate
+          end
+        end
+      end
+
+    private
+      def free_vars_for(node)
+        case node
+        when AST::Identifier then node.identifier
+        when AST::Lambda then free_vars(node.body) - node.arguments
+        else node.children.flat_map(&method(:free_vars))
+        end
       end
     end
   end

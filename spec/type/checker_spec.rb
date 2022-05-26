@@ -125,12 +125,38 @@ describe 'Type Checker' do
     end
   end
 
-  context 'wrong number of arguments', :focus do
+  context 'wrong number of arguments' do
     it 'fails nicely' do
       ast, checker = process_expression('min(1, 2)')
       expect { checker.check!(ast) }
         .to raise_error(Dentaku::Type::ErrorSet,
                         /WrongNumberOfArguments for min[(][.][.][.][)]: expected 1, got 2/)
+    end
+  end
+
+  context 'lambda' do
+    let(:list_numeric) { Dentaku::Type.build { |t| t.list(t.numeric) } }
+    let(:list_string) { Dentaku::Type.build { |t| t.list(t.string) } }
+
+    it 'checks lambda' do
+      ast, checker = process_expression('each([1, 2, 3], x => x + 1)')
+      checker.check!(ast, expected_type: list_numeric)
+    end
+
+    it 'checks lambda of different types' do
+      ast, checker = process_expression <<-EXPR
+        each([true, false, true], x => if(x, "true", "false"))
+      EXPR
+
+      checker.check!(ast, expected_type: list_string)
+    end
+
+    it 'checks multi arg lambda' do
+      ast, checker = process_expression <<-EXPR
+        roll(true, [true, false], so_far new => if(new, so_far, new))
+      EXPR
+
+      checker.check!(ast, expected_type: Dentaku::Type.build(&:bool))
     end
   end
 
