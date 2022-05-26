@@ -104,6 +104,11 @@ module Dentaku
           param: ->(name, arguments) {
             if arguments.empty?
               ":#{name}"
+            elsif name == :list && arguments.size == 1
+              "[#{arguments[0].repr}]"
+            elsif name == :lambda && arguments.size >= 2
+              arg_repr = arguments[1..].map(&:repr).join(' ')
+              ":lambda(#{arg_repr} => #{arguments[0].repr})"
             else
               ":#{name}(#{arguments.map(&:repr).join(' ')})"
             end

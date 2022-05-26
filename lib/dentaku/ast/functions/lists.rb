@@ -11,3 +11,7 @@ Dentaku::AST::Function.register('last([%a]) = %a', ->(list) {
 
   list.last
 })
+
+Dentaku::AST::Function.register('map([%a], \%a => %b) = %b', ->(list, lam) {
+  list.map(&lam)
+})

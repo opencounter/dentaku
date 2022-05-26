@@ -34,7 +34,11 @@ module Dentaku
           scanner = StringScanner.new(string)
 
           until scanner.eos?
-            if scanner.scan /[=]/
+            if scanner.scan /[\s,]+/
+              # pass
+            elsif scanner.scan %r/=>/
+              yield new(:RARROW)
+            elsif scanner.scan /[=]/
               yield new(:EQ)
             elsif scanner.scan /[(]/
               yield new(:LPAREN)
@@ -48,6 +52,8 @@ module Dentaku
               yield new(:LCURLY)
             elsif scanner.scan /\}/
               yield new(:RCURLY)
+            elsif scanner.scan /\\/
+              yield new(:BACKSLASH)
             elsif scanner.scan /(\w+):/
               yield new(:KEY, scanner[1])
             elsif scanner.scan /%(\w+)/
@@ -56,8 +62,6 @@ module Dentaku
               yield new(:PARAM, scanner[1])
             elsif scanner.scan /\w+/
               yield new(:NAME, scanner[0])
-            elsif scanner.scan /[\s,]+/
-              # pass
             else
               raise "invalid thing!"
             end
@@ -156,6 +160,10 @@ module Dentaku
             else
               Expression.concrete(param_name.to_sym)
             end
+          elsif check!(:BACKSLASH)
+            args = parse_types(:RARROW)
+            body = parse_type_inner
+            Expression.param(:lambda, [body, *args])
           elsif check!(:LBRACK)
             list_type = parse_type_inner
             expect!(:RBRACK)
