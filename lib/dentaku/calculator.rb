@@ -34,6 +34,31 @@ module Dentaku
       @ast_cache = ast_cache
       @partial_eval_depth = 0
       @partial_cache = {}
+      @bindings = []
+    end
+
+    def bind(env)
+      @bindings << env
+      yield
+    ensure
+      @bindings.pop
+    end
+
+    def capture_env(vars)
+      out = {}
+      vars.each do |var|
+        out[var] = self[var]
+      end
+
+      out
+    end
+
+    def [](var)
+      @bindings.reverse_each do |env|
+        return env[var] if env.key?(var)
+      end
+
+      memory[var]
     end
 
     THREAD_KEY = :dentaku_current_calculator

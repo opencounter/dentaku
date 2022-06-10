@@ -35,16 +35,12 @@ module Dentaku
         @free_vars ||= free_vars_for(self)
       end
 
-      def capture_env
-        Calculator.current.env.slice(free_vars)
-      end
-
       def value
-        closure = self.capture_env
+        closure = Calculator.current.capture_env(free_vars)
         lambda do |*args|
           env = closure.merge(Hash[@arguments.zip(args)])
 
-          Calculator.current.with_env(env) do
+          Calculator.current.bind(env) do
             @body.evaluate
           end
         end
@@ -54,8 +50,8 @@ module Dentaku
       def free_vars_for(node)
         case node
         when AST::Identifier then node.identifier
-        when AST::Lambda then free_vars(node.body) - node.arguments
-        else node.children.flat_map(&method(:free_vars))
+        when AST::Lambda then free_vars_for(node.body) - node.arguments
+        else node.children.flat_map(&method(:free_vars_for))
         end
       end
     end

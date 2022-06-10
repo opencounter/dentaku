@@ -153,7 +153,7 @@ module Dentaku
       end
 
       def context
-        Calculator.current.memory
+        Calculator.current
       end
 
       protected

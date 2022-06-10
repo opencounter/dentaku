@@ -64,6 +64,21 @@ describe Dentaku::Calculator do
     expect(e!("max([1,2]) + 3")).to eq(5)
   end
 
+  it 'evaluates lambdas' do
+    expect(e!("each([1,2,3], x => x+1)")).to eq([2, 3, 4])
+    expect(e!(<<-EXPR)).to eq(['t', 'f', 't'])
+      each([true, false, true], x => if(x, "t", "f"))
+    EXPR
+
+    expect(e!(<<-EXPR)).to eq(6)
+      roll(0, [1, 2, 3],
+           x y =>
+
+           x + y
+      )
+    EXPR
+  end
+
   describe 'dependencies' do
     it "finds dependencies in a generic statement" do
       expect(calculator.dependencies("bob + dole / 3")).to eq(['bob', 'dole'])
