@@ -143,6 +143,7 @@ module Dentaku
         return ini(:lbrack) if match /\[/
         return med(:rbrack) if match /\]/
         return ini(:rarrow) if match %r(=>)
+        return med(:dot)    if match /[.]/
 
         # case
         return ini(:case) if match /case\b/i
@@ -168,7 +169,7 @@ module Dentaku
         return ini(:combinator, m.downcase.to_sym) if match /(and|or)\b/i
 
         # general identifiers
-        return med(:key, m(1).to_sym) if match /([[:alnum:]_]+\b):(?![[:alnum:]])/
+        return med(:key, m(1)) if match /([[:alnum:]_]+\b):(?![[:alnum:]])/
         return med(:identifier, m.downcase) if match /[[:alnum:]_:]+\b/
 
         return ini(:error, "unbalanced quote") if match /['"]/

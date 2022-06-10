@@ -129,9 +129,23 @@ module Dentaku
       end
 
       def parse_minus(elems)
-        return parse_funcall(elems) unless elems.first.token?(:minus)
+        return parse_access(elems) unless elems.first.token?(:minus)
         first, *rest = elems
         return nonempty!(first, rest) { AST::Negation.make(elems, parse_minus(rest)) }
+      end
+
+      def parse_access(elems)
+        before, op, after = rpart(elems) { |e| e.token?(:dot) }
+        return parse_funcall(elems) if op.nil?
+
+        valid = after.size == 1 && after[0].token?(:identifier)
+        return invalid(op, "must use an identifier after a dot") unless valid
+
+        accessor = after[0].value
+
+        lhs = nonempty!(op, before) { parse_access(before) }
+
+        AST::Accessor.make(elems, lhs, accessor)
       end
 
       def parse_funcall(elems)
