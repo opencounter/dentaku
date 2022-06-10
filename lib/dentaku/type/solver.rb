@@ -102,7 +102,48 @@ module Dentaku
           end
 
           @solution_set.add_solution(constraint)
+          @solution_set.map_constraints!(&method(:simplify))
         end
+      end
+
+      def substitute(constraint)
+        simplify(@solution_set.raw_substitute(expr.rhs), constraint)
+      end
+
+      def simplify(constraint)
+        constraint.map_rhs do |expr|
+          simplify_expr(constraint, expr)
+        end
+      end
+
+      def simplify_expr(constraint, expr)
+        default = -> { expr.map { |e| simplify_expr(constraint, e) } }
+
+        expr.cases(
+          key_of: ->(struct, key) {
+            struct.cases(
+              param: -> { simplify_error!(expr) },
+              struct: ->(keys, types) {
+                idx = keys.find_index(key)
+                return simplify_error!(expr, KeyError.new(constraint)) if idx.nil?
+
+                simplify_expr(constraint, types[idx])
+              },
+              other: default
+            )
+          },
+          other: default
+        )
+      end
+
+      def simplify_error!(expr, error)
+        if @debug
+          puts "!> can't simplify #{expr.repr}"
+        end
+
+        @errors << error
+
+        Expression.make_variable('invalid')
       end
 
       def error!(constraint)

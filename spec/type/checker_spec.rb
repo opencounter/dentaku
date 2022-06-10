@@ -83,6 +83,22 @@ describe 'Type Checker' do
     end
   end
 
+  context 'accessor syntax' do
+    it 'checks' do
+      ast, checker = process_expression('{ a: 1 }.a')
+
+      checker.check!(ast)
+    end
+
+    it 'detects bad accesses' do
+      ast, checker = process_expression('{ a: 1 }.b')
+
+      expect {
+        checker.check!(ast, debug: true)
+      }.to raise_error(Dentaku::Type::ErrorSet, /could not look up [.]b/i)
+    end
+  end
+
   should_not_type_check(
     "1..3 == 2",
     "1 + 'foo'",

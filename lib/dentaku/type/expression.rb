@@ -7,6 +7,7 @@ module Dentaku
         struct: [:keys, :types],
         variable: [:name, :uniq],
         var: [:name],
+        key_of: [:expr, :key],
       )
 
       def self.concrete(name)
@@ -39,6 +40,9 @@ module Dentaku
           },
           struct: ->(keys, types) {
             Expression.struct(keys, types.map(&blk))
+          },
+          key_of: ->(expr, key) {
+            Expression.key_of(blk.call(expr), key)
           },
           other: self
         )
@@ -122,9 +126,9 @@ module Dentaku
           struct: -> (keys, values) {
             "{#{keys.zip(values).map { |(k, v)| "#{k}: #{v.repr}" }.join(', ')}}"
           },
+          key_of: ->(expr, key) { "(#{expr.repr}).#{key}" }
         )
       end
-
     end
   end
 end

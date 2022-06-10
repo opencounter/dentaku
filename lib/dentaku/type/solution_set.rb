@@ -7,7 +7,7 @@ module Dentaku
 
       def substitute(expr)
         fetch(expr) do
-          expr.map(&method(:substitute))
+          expr.map { |e| substitute(e) }
         end
       end
 
@@ -48,6 +48,12 @@ module Dentaku
         @solutions.keys.each do |key|
           constraint = @solutions[key]
           @solutions[key] = constraint.map_rhs(&blk)
+        end
+      end
+
+      def map_constraints!(&blk)
+        @solutions.keys.each do |key|
+          @solutions[key] = blk.call(@solutions[key])
         end
       end
 

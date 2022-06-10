@@ -11,6 +11,8 @@ module Dentaku
         # argument spec of a function
         arg: [:ast, :index],
 
+        accessor: [:ast, :key],
+
         # known type of an operator
         operator: [:ast, :side],
 
@@ -71,6 +73,7 @@ module Dentaku
           retval: ->(ast) { "return value of #{ast.function_name}" },
           arg: ->(ast, index) { "argument ##{index} of #{ast.function_name}" },
           operator: ->(ast, side) { "#{side_name(side)} of #{ast.operator}" },
+          accessor: ->(ast, key) { "a lookup of .#{key} on #{ast.repr}" },
           identifier: ->(ast) { "the type of `#{ast.repr}'" },
           list_member: ->(ast, *) { "elements of #{ast.repr} must all be the same type" },
           destructure: ->(constraint, index) { "inferred from #{constraint.repr}" },
