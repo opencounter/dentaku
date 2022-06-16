@@ -2,10 +2,14 @@ module Dentaku
   module AST
     # [jneen] a node that represents a syntax error
     class Invalid < Node
-      attr_reader :message, :children
-      def initialize(message, *children)
-        @message = message
+      attr_reader :text, :children
+      def initialize(text, *children)
+        @text = text
         @children = children
+      end
+
+      def message
+        "syntax error: #{@text}: #{original_source.inspect}"
       end
 
       def valid?
