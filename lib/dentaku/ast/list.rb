@@ -18,10 +18,6 @@ module Dentaku
         @elements.map { |el| el.evaluate }
       end
 
-      def dependencies(context={})
-        @elements.flat_map { |val| val.dependencies(context) }
-      end
-
       def generate_constraints(context)
         element_type = Type::Expression.make_variable('el')
         context.add_constraint!([:syntax, self], [:param, :list, [element_type]], [:literal, self])

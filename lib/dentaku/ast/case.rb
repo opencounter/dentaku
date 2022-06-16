@@ -28,14 +28,6 @@ module Dentaku
         end
       end
 
-      def dependencies(context={})
-        out = []
-        out << @switch.dependencies(context) if @switch
-        out << @clauses.flatten.map { |c| c.dependencies(context) }
-        out << @else.dependencies(context) if @else
-        out.flatten
-      end
-
       def generate_constraints(context)
         result_type = Type::Expression.make_variable('case')
         @switch.generate_constraints(context) if @switch

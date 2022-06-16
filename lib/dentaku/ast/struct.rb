@@ -22,10 +22,6 @@ module Dentaku
         Hash[@struct.map {|k,v| [k, v.evaluate]}]
       end
 
-      def dependencies(context={})
-        @struct.values.flat_map { |val| val.dependencies(context) }
-      end
-
       def generate_constraints(context)
         keys = @keys.sort
         key_vars = keys.map do |key|

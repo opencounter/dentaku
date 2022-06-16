@@ -16,8 +16,15 @@ module Dentaku
         [@body]
       end
 
+      def each_identifier
+        body.each_identifier do |i|
+          yield i unless @arguments.include?(i)
+        end
+      end
+
       def repr
-        "(#{@arguments.join(" ")} => #{@body.repr})"
+        args = @arguments.map { |a| "?#{a}" }.join(' ')
+        "(#{args} => #{@body.repr})"
       end
 
       def generate_constraints(context)

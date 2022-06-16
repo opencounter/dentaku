@@ -34,8 +34,8 @@ module Dentaku
         end
       end
 
-      def dependencies(context={})
-        context.has_key?(identifier) ? dependencies_of(context[identifier]) : [identifier]
+      def each_identifier
+        yield @identifier
       end
 
       def generate_constraints(context)
@@ -49,12 +49,6 @@ module Dentaku
 
       def repr
         @identifier
-      end
-
-    private
-
-      def dependencies_of(node)
-        node.respond_to?(:dependencies) ? node.dependencies : []
       end
     end
   end

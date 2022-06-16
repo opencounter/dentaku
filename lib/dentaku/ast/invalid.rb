@@ -20,10 +20,6 @@ module Dentaku
         raise "invalid: #{self.inspect}"
       end
 
-      def dependencies(context={})
-        @children.flat_map { |c| c.dependencies(context) }
-      end
-
       def repr
         if @children.empty?
           "#ERR:#{message.inspect}"

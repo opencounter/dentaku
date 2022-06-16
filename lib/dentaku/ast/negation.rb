@@ -37,10 +37,6 @@ module Dentaku
       def self.right_associative?
         true
       end
-
-      def dependencies(context={})
-        @node.dependencies(context)
-      end
     end
   end
 end

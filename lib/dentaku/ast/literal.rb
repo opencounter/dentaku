@@ -9,10 +9,6 @@ module Dentaku
         @value
       end
 
-      def dependencies(*)
-        []
-      end
-
       def generate_constraints(context)
         context.add_constraint!([:syntax, self], [:concrete, value_type], [:literal, self])
       end

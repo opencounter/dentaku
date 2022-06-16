@@ -114,7 +114,7 @@ module Dentaku
     end
 
     def dependencies(expression)
-      ast(expression).dependencies(memory)
+      ast(expression).dependencies
     end
 
     def ast(expression)

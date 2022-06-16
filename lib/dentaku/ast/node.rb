@@ -33,8 +33,16 @@ module Dentaku
         arity < 0 ? nil : arity
       end
 
-      def dependencies(context={})
-        []
+      def dependencies(context=:deprecated)
+        if context != :deprecated
+          warn 'calling Node#dependencies with an argument is deprecated.'
+        end
+
+        Set.new(enum_for(:each_identifier)).sort
+      end
+
+      def each_identifier(&b)
+        children.map { |c| c.each_identifier(&b) }
       end
 
       def valid?
