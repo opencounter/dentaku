@@ -94,7 +94,7 @@ describe 'Type Checker' do
       ast, checker = process_expression('{ a: 1 }.b')
 
       expect {
-        checker.check!(ast, debug: true)
+        checker.check!(ast)
       }.to raise_error(Dentaku::Type::ErrorSet, /could not look up [.]b/i)
     end
   end
@@ -151,12 +151,10 @@ describe 'Type Checker' do
   end
 
   context 'lambda' do
-    let(:list_numeric) { Dentaku::Type.build { |t| t.list(t.numeric) } }
-    let(:list_string) { Dentaku::Type.build { |t| t.list(t.string) } }
-
     it 'checks lambda' do
       ast, checker = process_expression('each([1, 2, 3], ?x => x + 1)')
-      checker.check!(ast, expected_type: list_numeric)
+      checker.check!(ast)
+      expect(ast.type.repr).to eql('[:numeric]')
     end
 
     it 'checks lambda of different types' do
@@ -164,7 +162,9 @@ describe 'Type Checker' do
         each([true, false, true], ?x => if(x, "true", "false"))
       EXPR
 
-      checker.check!(ast, expected_type: list_string)
+      checker.check!(ast)
+
+      expect(ast.type.repr).to eql('[:string]')
     end
 
     it 'checks multi arg lambda' do
@@ -172,15 +172,19 @@ describe 'Type Checker' do
         roll(true, [true, false], ?so_far ?new => if(new, so_far, new))
       EXPR
 
-      checker.check!(ast, expected_type: Dentaku::Type.build(&:bool))
+      checker.check!(ast)
+
+      expect(ast.type.repr).to eql(':bool')
     end
 
-    it 'checks lists of lambdas', :jneen do
+    it 'checks lists of lambdas' do
       ast, checker = process_expression <<~EXPR
         each([?x => x+1, ?x => x+2, ?x => x+3], ?f => each([1,2,3], f))
       EXPR
 
-      checker.check!(ast, debug: true)
+      checker.check!(ast)
+
+      expect(ast.type.repr).to eql('[[:numeric]]')
     end
   end
 
