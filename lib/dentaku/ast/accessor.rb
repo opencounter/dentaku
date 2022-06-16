@@ -10,6 +10,12 @@ module Dentaku
         [@expr]
       end
 
+      def value
+        struct = @expr.evaluate
+
+        struct[@accessor]
+      end
+
       def generate_constraints(context)
         @expr.generate_constraints(context)
         lookup = Type::Expression.key_of(Type::Expression.syntax(@expr), @accessor)
