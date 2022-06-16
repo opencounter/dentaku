@@ -24,11 +24,6 @@ module Dentaku
         context.add_constraint!([:syntax, right], [:concrete, :numeric], [:range_element, self, :right])
       end
 
-      # higher than comparators (5) lower than any kind of math (10+)
-      def self.precedence
-        8
-      end
-
       def repr
         "#{left.repr}..#{right.repr}"
       end

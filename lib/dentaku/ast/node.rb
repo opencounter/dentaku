@@ -28,10 +28,6 @@ module Dentaku
         loc_range.index_range
       end
 
-      def self.precedence
-        0
-      end
-
       def self.arity
         arity = instance_method(:initialize).arity
         arity < 0 ? nil : arity

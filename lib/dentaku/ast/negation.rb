@@ -38,10 +38,6 @@ module Dentaku
         true
       end
 
-      def self.precedence
-        40
-      end
-
       def dependencies(context={})
         @node.dependencies(context)
       end

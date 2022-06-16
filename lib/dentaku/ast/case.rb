@@ -1,10 +1,6 @@
 module Dentaku
   module AST
     class Case < Node
-      def self.precedence
-        1
-      end
-
       def initialize(switch, clauses, else_)
         @switch = switch
         @clauses = clauses

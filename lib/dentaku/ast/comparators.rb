@@ -3,10 +3,6 @@ require_relative 'operation'
 module Dentaku
   module AST
     class Comparator < Operation
-      def self.precedence
-        5
-      end
-
       def types
         [:numeric, :numeric, :bool]
       end
