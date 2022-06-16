@@ -123,7 +123,13 @@ module Dentaku
         expr.cases(
           key_of: ->(struct, key) {
             struct.cases(
-              param: -> { simplify_error!(expr) },
+              param: ->(name, args) {
+                as_struct = DECLARED_TYPES[name].structable
+
+                simplify_error!(expr, KeyError.new(constraint)) unless as_struct.key?(key)
+
+                Expression.from_sexpr(as_struct[key])
+              },
               struct: ->(keys, types) {
                 idx = keys.find_index(key)
                 return simplify_error!(expr, KeyError.new(constraint)) if idx.nil?
