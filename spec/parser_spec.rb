@@ -27,15 +27,15 @@ describe Dentaku::Syntax::Parser do
   let(:calculator) { Dentaku::Calculator.new }
 
   describe 'lambdas' do
-    valid('a => 1', Dentaku::AST::Lambda) do |lam|
+    valid('?a => 1', Dentaku::AST::Lambda) do |lam|
       expect(lam.arguments).to eq(['a'])
     end
 
-    valid('a => b and c', Dentaku::AST::Lambda) do |lam|
+    valid('?a => b and c', Dentaku::AST::Lambda) do |lam|
       expect(lam.body.repr.downcase).to match(/and/)
     end
 
-    valid('[a => 1, b => 2, c => 3]', Dentaku::AST::List) do |list|
+    valid('[?a => 1, ?b => 2, ?c => 3]', Dentaku::AST::List) do |list|
       list.elements.each do |el|
         expect(el).to be_a Dentaku::AST::Lambda
       end

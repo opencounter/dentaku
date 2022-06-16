@@ -38,7 +38,7 @@ module Dentaku
         return invalid op, 'missing lambda arguments' if before.empty?
 
         before.map! do |arg|
-          return invalid arg, 'lambda arguments must be names' unless arg.token?(:identifier)
+          return invalid arg, 'lambda arguments must be a name with a question mark' unless arg.token?(:binder)
           arg.value
         end
 

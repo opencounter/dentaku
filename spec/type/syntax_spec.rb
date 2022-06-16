@@ -54,7 +54,7 @@ describe Dentaku::Type::Syntax do
   end
 
   it 'parses lambdas' do
-    expr = Dentaku::Type::Syntax.parse_type('\:int => :string')
+    expr = Dentaku::Type::Syntax.parse_type('?:int => :string')
     expect(expr).to be_param
     expect(expr.name).to be :lambda
     expect(expr.arguments.size).to be 2

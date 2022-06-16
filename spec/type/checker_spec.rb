@@ -155,13 +155,13 @@ describe 'Type Checker' do
     let(:list_string) { Dentaku::Type.build { |t| t.list(t.string) } }
 
     it 'checks lambda' do
-      ast, checker = process_expression('each([1, 2, 3], x => x + 1)')
+      ast, checker = process_expression('each([1, 2, 3], ?x => x + 1)')
       checker.check!(ast, expected_type: list_numeric)
     end
 
     it 'checks lambda of different types' do
       ast, checker = process_expression <<-EXPR
-        each([true, false, true], x => if(x, "true", "false"))
+        each([true, false, true], ?x => if(x, "true", "false"))
       EXPR
 
       checker.check!(ast, expected_type: list_string)
@@ -169,10 +169,18 @@ describe 'Type Checker' do
 
     it 'checks multi arg lambda' do
       ast, checker = process_expression <<-EXPR
-        roll(true, [true, false], so_far new => if(new, so_far, new))
+        roll(true, [true, false], ?so_far ?new => if(new, so_far, new))
       EXPR
 
       checker.check!(ast, expected_type: Dentaku::Type.build(&:bool))
+    end
+
+    it 'checks lists of lambdas', :jneen do
+      ast, checker = process_expression <<~EXPR
+        each([?x => x+1, ?x => x+2, ?x => x+3], ?f => each([1,2,3], f))
+      EXPR
+
+      checker.check!(ast, debug: true)
     end
   end
 

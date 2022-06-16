@@ -169,6 +169,7 @@ module Dentaku
         return ini(:combinator, m.downcase.to_sym) if match /(and|or)\b/i
 
         # general identifiers
+        return med(:binder, m(1)) if match /[?]([[:alnum:]][[:alnum:]_:]*)\b/
         return med(:key, m(1)) if match /([[:alnum:]_]+\b):(?![[:alnum:]])/
         return med(:identifier, m.downcase) if match /[[:alnum:]_:]+\b/
 
