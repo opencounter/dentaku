@@ -13,6 +13,11 @@ module Dentaku
         (left.evaluate..right.evaluate)
       end
 
+      # for repr purposes only
+      def operator
+        '..'
+      end
+
       def generate_constraints!(context)
         context.add_constraint!([:syntax, self], [:concrete, :range], [:literal, self])
         context.add_constraint!([:syntax, left], [:concrete, :numeric], [:range_element, self, :left])

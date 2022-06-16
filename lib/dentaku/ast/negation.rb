@@ -15,6 +15,11 @@ module Dentaku
         @node.evaluate * -1
       end
 
+      # used only for repr purposes
+      def operator
+        '-'
+      end
+
       def generate_constraints(context)
         context.add_constraint!([:syntax, self], [:concrete, :numeric], [:operator, self, :return])
         context.add_constraint!([:syntax, @node], [:concrete, :numeric], [:operator, self, :left])

@@ -32,7 +32,7 @@ module Dentaku
         end
 
         def slice(str)
-          str.byteslice(@begin.byte, @end.byte)
+          str.byteslice(byte_range)
         end
 
         def repr
