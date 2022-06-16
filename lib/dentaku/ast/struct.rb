@@ -32,10 +32,15 @@ module Dentaku
           Type::Expression.make_variable(key.to_sym)
         end
 
+        keys.each do |key|
+          @struct[key].generate_constraints(context)
+        end
+
+        return unless @struct.values.all?(&:valid?)
+
         context.add_constraint!([:syntax, self], [:struct, keys, key_vars], [:literal, self])
         keys.zip(key_vars) do |key, key_var|
           context.add_constraint!([:syntax, @struct[key]], key_var, [:struct_key, self, key])
-          @struct[key].generate_constraints(context)
         end
       end
 
