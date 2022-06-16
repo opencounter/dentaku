@@ -45,18 +45,6 @@ module Dentaku
         children.all?(&:valid?)
       end
 
-      def satisfy_existing_dependencies
-        existing_dependencies = context.keys & dependencies
-
-        Calculator.current.cache_for(self) do |cache|
-          cache.trace do |tracer|
-            existing_dependencies.each do |dep|
-              tracer.satisfied(dep)
-            end
-          end
-        end
-      end
-
       def constraints(context)
         generate_constraints(context)
         context.constraints
