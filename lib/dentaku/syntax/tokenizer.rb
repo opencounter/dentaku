@@ -143,7 +143,6 @@ module Dentaku
         return ini(:lbrack) if match /\[/
         return med(:rbrack) if match /\]/
         return ini(:rarrow) if match %r(=>)
-        return med(:dot)    if match /[.]/
 
         # case
         return ini(:case) if match /case\b/i
@@ -161,6 +160,7 @@ module Dentaku
         return ini(:exponential, m) if match /[*][*]|\^/
         return ini(:additive, m) if match /[+-]/
         return ini(:range) if match /[.][.]/
+        return med(:dot)   if match /[.]/
         return ini(:multiplicative, m) if match %r([*/%])
 
 
