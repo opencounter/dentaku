@@ -228,8 +228,8 @@ describe Dentaku::Calculator do
   describe 'struct' do
     it 'handles struct' do
       result = e!('{code: field:code, value: val*10}', 'field:code': '23', val: 10)
-      expect(result[:code]).to eq('23')
-      expect(result[:value]).to eq(100)
+      expect(result['code']).to eq('23')
+      expect(result['value']).to eq(100)
     end
 
     it 'handles empty struct' do
@@ -243,12 +243,12 @@ describe Dentaku::Calculator do
 
     it 'allows trailing commas' do
       result = e!("{a: 1, b: 2,}")
-      expect(result[:a]).to eq(1)
-      expect(result[:b]).to eq(2)
+      expect(result['a']).to eq(1)
+      expect(result['b']).to eq(2)
 
       result = e!("{a: 1, b: 2,//comment\n}")
-      expect(result[:a]).to eq(1)
-      expect(result[:b]).to eq(2)
+      expect(result['a']).to eq(1)
+      expect(result['b']).to eq(2)
     end
   end
 
