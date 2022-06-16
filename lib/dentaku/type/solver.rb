@@ -39,6 +39,7 @@ module Dentaku
       def solve_for?(expression)
         return true if expression.syntax?
         return true if expression.variable? && !@free_vars_set.include?(expression.expression_hash)
+        return true if expression.key_of?
         return false
       end
 
