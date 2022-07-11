@@ -1,4 +1,5 @@
 require_relative 'node'
+require 'set'
 
 module Dentaku
   module AST
@@ -56,9 +57,9 @@ module Dentaku
     private
       def free_vars_for(node)
         case node
-        when AST::Identifier then node.identifier
+        when AST::Identifier then Set.new([node.identifier])
         when AST::Lambda then free_vars_for(node.body) - node.arguments
-        else node.children.flat_map(&method(:free_vars_for))
+        else node.children.map(&method(:free_vars_for)).inject(&:|) || Set.new
         end
       end
     end
