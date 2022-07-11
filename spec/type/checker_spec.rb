@@ -83,6 +83,22 @@ describe 'Type Checker' do
     end
   end
 
+  context 'accessor syntax' do
+    it 'checks' do
+      ast, checker = process_expression('{ a: 1 }.a')
+
+      checker.check!(ast)
+    end
+
+    it 'detects bad accesses' do
+      ast, checker = process_expression('{ a: 1 }.b')
+
+      expect {
+        checker.check!(ast)
+      }.to raise_error(Dentaku::Type::ErrorSet, /could not look up [.]b/i)
+    end
+  end
+
   should_not_type_check(
     "1..3 == 2",
     "1 + 'foo'",
@@ -125,12 +141,50 @@ describe 'Type Checker' do
     end
   end
 
-  context 'wrong number of arguments', :focus do
+  context 'wrong number of arguments' do
     it 'fails nicely' do
       ast, checker = process_expression('min(1, 2)')
       expect { checker.check!(ast) }
         .to raise_error(Dentaku::Type::ErrorSet,
                         /WrongNumberOfArguments for min[(][.][.][.][)]: expected 1, got 2/)
+    end
+  end
+
+  context 'lambda' do
+    it 'checks lambda' do
+      ast, checker = process_expression('each([1, 2, 3], ?x => x + 1)')
+      checker.check!(ast)
+      expect(ast.type.repr).to eql('[:numeric]')
+    end
+
+    it 'checks lambda of different types' do
+      ast, checker = process_expression <<-EXPR
+        each([true, false, true], ?x => if(x, "true", "false"))
+      EXPR
+
+      checker.check!(ast)
+
+      expect(ast.type.repr).to eql('[:string]')
+    end
+
+    it 'checks multi arg lambda' do
+      ast, checker = process_expression <<-EXPR
+        roll(true, [true, false], ?so_far ?new => if(new, so_far, new))
+      EXPR
+
+      checker.check!(ast)
+
+      expect(ast.type.repr).to eql(':bool')
+    end
+
+    it 'checks lists of lambdas' do
+      ast, checker = process_expression <<~EXPR
+        each([?x => x+1, ?x => x+2, ?x => x+3], ?f => each([1,2,3], f))
+      EXPR
+
+      checker.check!(ast)
+
+      expect(ast.type.repr).to eql('[[:numeric]]')
     end
   end
 

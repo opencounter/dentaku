@@ -30,7 +30,7 @@ describe Dentaku::Type::Syntax do
     expect(expr.name).to eql('foo')
     expect(expr.arg_types.size).to be 1
     expect(expr.arg_types[0].repr).to eql("{id: :string, code: :string}")
-    expect(expr.return_type.repr).to eql("{zones: :list({id: :string, code: :string, rule: {id: :numeric, name: :string, slug: :string, rule_type: :string, description: :string}, slug: :string, admin_name: :string, is_overlay: :bool, permission: {id: :numeric, code: :string, name: :string, slug: :string, category: :string, priority: :numeric, description: :string, display_name: :string, display_verb: :string, municipal_code_url: :string}, description: :string, display_name: :string, municipal_code_url: :string, development_standards_url: :string}), parcels: :list({key: :string, value: :string})}")
+    expect(expr.return_type.repr).to eql("{zones: [{id: :string, code: :string, rule: {id: :numeric, name: :string, slug: :string, rule_type: :string, description: :string}, slug: :string, admin_name: :string, is_overlay: :bool, permission: {id: :numeric, code: :string, name: :string, slug: :string, category: :string, priority: :numeric, description: :string, display_name: :string, display_verb: :string, municipal_code_url: :string}, description: :string, display_name: :string, municipal_code_url: :string, development_standards_url: :string}], parcels: [{key: :string, value: :string}]}")
   end
 
   it 'parses type' do
@@ -51,6 +51,20 @@ describe Dentaku::Type::Syntax do
 
     expect(expr.arguments[0].arguments.length).to be 1
     expect(expr.arguments[0].arguments[0].name).to eql(:numeric)
+  end
+
+  it 'parses lambdas' do
+    expr = Dentaku::Type::Syntax.parse_type('?:int => :string')
+    expect(expr).to be_param
+    expect(expr.name).to be :lambda
+    expect(expr.arguments.size).to be 2
+
+    # slightly counterintuitive - return type comes first
+    expect(expr.arguments[0]).to be_param
+    expect(expr.arguments[0].name).to be :string
+
+    expect(expr.arguments[1]).to be_param
+    expect(expr.arguments[1].name).to be :int
   end
 
   it 'parses struct type' do

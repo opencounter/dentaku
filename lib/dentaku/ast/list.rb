@@ -5,6 +5,7 @@ module Dentaku
         nil
       end
 
+      attr_reader :elements
       def initialize(*elements)
         @elements = elements
       end
@@ -15,10 +16,6 @@ module Dentaku
 
       def value
         @elements.map { |el| el.evaluate }
-      end
-
-      def dependencies(context={})
-        @elements.flat_map { |val| val.dependencies(context) }
       end
 
       def generate_constraints(context)

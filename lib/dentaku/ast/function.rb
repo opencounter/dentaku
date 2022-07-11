@@ -17,10 +17,6 @@ module Dentaku
         @args
       end
 
-      def dependencies(context={})
-        @args.flat_map { |a| a.dependencies(context) }
-      end
-
       def self.normalize_name(name)
         name.to_s.downcase
       end

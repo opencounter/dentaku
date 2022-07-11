@@ -28,33 +28,25 @@ module Dentaku
         loc_range.index_range
       end
 
-      def self.precedence
-        0
-      end
-
       def self.arity
         arity = instance_method(:initialize).arity
         arity < 0 ? nil : arity
       end
 
-      def dependencies(context={})
-        []
+      def dependencies(context=:deprecated)
+        if context != :deprecated
+          warn 'calling Node#dependencies with an argument is deprecated.'
+        end
+
+        Set.new(enum_for(:each_identifier)).sort
+      end
+
+      def each_identifier(&b)
+        children.map { |c| c.each_identifier(&b) }
       end
 
       def valid?
         children.all?(&:valid?)
-      end
-
-      def satisfy_existing_dependencies
-        existing_dependencies = context.keys & dependencies
-
-        Calculator.current.cache_for(self) do |cache|
-          cache.trace do |tracer|
-            existing_dependencies.each do |dep|
-              tracer.satisfied(dep)
-            end
-          end
-        end
       end
 
       def constraints(context)
@@ -153,7 +145,7 @@ module Dentaku
       end
 
       def context
-        Calculator.current.memory
+        Calculator.current
       end
 
       protected

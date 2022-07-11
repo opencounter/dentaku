@@ -64,6 +64,25 @@ describe Dentaku::Calculator do
     expect(e!("max([1,2]) + 3")).to eq(5)
   end
 
+  it 'evaluates lambdas' do
+    expect(e!("each([1,2,3], ?x => x+1)")).to eq([2, 3, 4])
+    expect(e!(<<-EXPR)).to eq(['t', 'f', 't'])
+      each([true, false, true], ?x => if(x, "t", "f"))
+    EXPR
+
+    expect(e!(<<-EXPR)).to eq(['t', 'f', 't'])
+      each([true, false, true], ?x => case when x then 't' else 'f' end)
+    EXPR
+
+    expect(e!(<<-EXPR)).to eq([1,2,3])
+      each([{a: 1}, {a: 2}, {a: 3}], ?x => x.a)
+    EXPR
+
+    expect(e!(<<-EXPR)).to eq(6)
+      roll(0, [1, 2, 3], ?x ?y => x + y)
+    EXPR
+  end
+
   describe 'dependencies' do
     it "finds dependencies in a generic statement" do
       expect(calculator.dependencies("bob + dole / 3")).to eq(['bob', 'dole'])
@@ -209,8 +228,8 @@ describe Dentaku::Calculator do
   describe 'struct' do
     it 'handles struct' do
       result = e!('{code: field:code, value: val*10}', 'field:code': '23', val: 10)
-      expect(result[:code]).to eq('23')
-      expect(result[:value]).to eq(100)
+      expect(result['code']).to eq('23')
+      expect(result['value']).to eq(100)
     end
 
     it 'handles empty struct' do
@@ -224,12 +243,12 @@ describe Dentaku::Calculator do
 
     it 'allows trailing commas' do
       result = e!("{a: 1, b: 2,}")
-      expect(result[:a]).to eq(1)
-      expect(result[:b]).to eq(2)
+      expect(result['a']).to eq(1)
+      expect(result['b']).to eq(2)
 
       result = e!("{a: 1, b: 2,//comment\n}")
-      expect(result[:a]).to eq(1)
-      expect(result[:b]).to eq(2)
+      expect(result['a']).to eq(1)
+      expect(result['b']).to eq(2)
     end
   end
 

@@ -11,6 +11,8 @@ module Dentaku
         # argument spec of a function
         arg: [:ast, :index],
 
+        accessor: [:ast, :key],
+
         # known type of an operator
         operator: [:ast, :side],
 
@@ -53,6 +55,9 @@ module Dentaku
         # marks the entire type of the CASE statement
         case_return: [:ast],
 
+        # marks the return type of a LAMBDA expression
+        lambda_return: [:ast],
+
         # an external constraint that specifies the expected type
         # of the whole expression
         root: [:ast],
@@ -68,6 +73,7 @@ module Dentaku
           retval: ->(ast) { "return value of #{ast.function_name}" },
           arg: ->(ast, index) { "argument ##{index} of #{ast.function_name}" },
           operator: ->(ast, side) { "#{side_name(side)} of #{ast.operator}" },
+          accessor: ->(ast, key) { "a lookup of .#{key} on #{ast.repr}" },
           identifier: ->(ast) { "the type of `#{ast.repr}'" },
           list_member: ->(ast, *) { "elements of #{ast.repr} must all be the same type" },
           destructure: ->(constraint, index) { "inferred from #{constraint.repr}" },
@@ -77,6 +83,7 @@ module Dentaku
           case_when_range: ->(ast, index) { "numeric CASE statement using ranges" },
           case_else: ->(ast) { "ELSE branch of a CASE statement" },
           case_return: ->(ast) { "the return type of a CASE statement" },
+          lambda_return: ->(ast) { "the return type of a lambda" },
           root: ->(*) { "expected type of the whole expression" },
           range_element: ->(ast, side) { "#{side_name(side)} of a range" },
           other: ->(*) { "#{_name}:#{@_values.inspect}" },

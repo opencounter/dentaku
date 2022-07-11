@@ -18,19 +18,43 @@ module Dentaku
     end
 
     class DeclaredType
-      def self.arity; raise "abstract"; end
-      def arity; self.class.arity; end
+      class << self
+        def inspect
+          "DeclaredType(:#{type_name}/#{arity})"
+        end
 
-      def self.type_name; raise "abstract"; end
+        def arity; raise "abstract"; end
+        def type_name; raise "abstract"; end
+
+        def structable(keys={})
+          @structable_keys ||= {}
+
+          keys.each do |k, v|
+            @structable_keys[k.to_s] = v
+          end
+
+          @structable_keys
+        end
+
+        def structable?
+          !!@structable_keys
+        end
+      end
+
+      def arity; self.class.arity; end
       def type_name; self.class.type_name; end
 
       attr_reader :args
       def initialize(args)
-        unless args.size == arity
-          raise "wrong number of type args for #{type_name} (expected #{arity}, got #{args.size})"
-        end
-
         @args = args
+
+        check_arity!
+      end
+
+      def check_arity!
+        unless @args.size == arity
+          raise "wrong number of type args for #{type_name} (expected #{arity}, got #{@args.size})"
+        end
       end
 
       def repr
@@ -58,6 +82,19 @@ module Dentaku
     end
 
     declare(:pair, 2)
+
+    declare(:lambda, -1) do
+      # override
+      def check_arity!
+        if @args.size < 2
+          raise "wrong number of arguments for lambda (must be > 2, got #{args.size})"
+        end
+      end
+
+      def repr
+        "\\#{@args[1..].map(&:repr).join(' ')} => #{args[0].repr}"
+      end
+    end
 
 
   end

@@ -32,7 +32,7 @@ module Dentaku
         end
 
         def slice(str)
-          str.byteslice(@begin.byte, @end.byte)
+          str.byteslice(byte_range)
         end
 
         def repr
@@ -142,6 +142,7 @@ module Dentaku
         return med(:rbrace) if match /[}]/
         return ini(:lbrack) if match /\[/
         return med(:rbrack) if match /\]/
+        return ini(:rarrow) if match %r(=>)
 
         # case
         return ini(:case) if match /case\b/i
@@ -159,6 +160,7 @@ module Dentaku
         return ini(:exponential, m) if match /[*][*]|\^/
         return ini(:additive, m) if match /[+-]/
         return ini(:range) if match /[.][.]/
+        return med(:dot)   if match /[.]/
         return ini(:multiplicative, m) if match %r([*/%])
 
 
@@ -167,7 +169,8 @@ module Dentaku
         return ini(:combinator, m.downcase.to_sym) if match /(and|or)\b/i
 
         # general identifiers
-        return med(:key, m(1).to_sym) if match /([[:alnum:]_]+\b):(?![[:alnum:]])/
+        return med(:binder, m(1)) if match /[?]([[:alnum:]][[:alnum:]_:]*)\b/
+        return med(:key, m(1)) if match /([[:alnum:]_]+\b):(?![[:alnum:]])/
         return med(:identifier, m.downcase) if match /[[:alnum:]_:]+\b/
 
         return ini(:error, "unbalanced quote") if match /['"]/

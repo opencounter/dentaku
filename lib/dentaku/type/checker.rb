@@ -5,6 +5,7 @@ module Dentaku
 
       def initialize(&resolver)
         @resolver = resolver
+        @bindings = []
       end
 
       def reset!
@@ -12,7 +13,23 @@ module Dentaku
         @invalid_asts = []
       end
 
+      def with_environment(env)
+        @bindings << env
+        yield
+      ensure
+        @bindings.pop
+      end
+
       def resolve_identifier(identifier)
+        name = identifier.identifier
+        @bindings.reverse_each do |env|
+          return env[name] if env.key?(name)
+        end
+
+        resolve_external_identifier(identifier)
+      end
+
+      def resolve_external_identifier(identifier)
         type = @resolver.call(identifier)
 
         if type.nil?

@@ -83,12 +83,7 @@ module Dentaku
       end
     end
 
-    class TypeMismatch < Error
-      attr_reader :constraint
-      def initialize(constraint)
-        @constraint = constraint
-      end
-
+    module HasConstraint
       def locations
         @locations ||= extract_ranges(@constraint.ast_nodes)
       end
@@ -100,6 +95,55 @@ module Dentaku
           when Token, AST::Node then cause.loc_range
           end
         end
+      end
+    end
+
+    class KeyError < Error
+      include HasConstraint
+
+      attr_reader :constraint
+      def initialize(constraint)
+        @constraint = constraint
+        raise "invalid KeyError" unless @constraint.rhs.key_of?
+        raise "invalid KeyError" unless @constraint.rhs.expr.struct?
+      end
+
+      def missing_key
+        @constraint.rhs.key
+      end
+
+      def available_keys
+        @constraint.rhs.expr.keys
+      end
+
+      def additional_json
+        { constraint: @constraint.to_sexpr }
+      end
+
+      def message
+        missing = ".#{missing_key}"
+        available = available_keys.map { |k| ".#{k}" }
+
+        available_sentence = case available.size
+        when 0 then "empty struct"
+        when 1 then "only available key is #{available[0]}"
+        when 2 then "available keys are #{available[0]} and #{available[1]}"
+        else
+          available[-1] = "and #{available[-1]}"
+          "available keys are #{available.join(', ')}"
+        end
+
+        available[-1] = "and #{available[-1]}" if available.size
+        "KeyError: Could not look up #{missing} - #{available_sentence}. Caused by #{@constraint.repr_with_reason}"
+      end
+    end
+
+    class TypeMismatch < Error
+      include HasConstraint
+
+      attr_reader :constraint
+      def initialize(constraint)
+        @constraint = constraint
       end
 
       def message

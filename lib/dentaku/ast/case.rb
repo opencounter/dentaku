@@ -1,16 +1,6 @@
-require_relative 'case/case_conditional'
-require_relative 'case/case_when'
-require_relative 'case/case_then'
-require_relative 'case/case_switch_variable'
-require_relative 'case/case_else'
-
 module Dentaku
   module AST
     class Case < Node
-      def self.precedence
-        1
-      end
-
       def initialize(switch, clauses, else_)
         @switch = switch
         @clauses = clauses
@@ -36,14 +26,6 @@ module Dentaku
         else
           raise NoMatch.new(self, switch_value)
         end
-      end
-
-      def dependencies(context={})
-        out = []
-        out << @switch.dependencies(context) if @switch
-        out << @clauses.flatten.map { |c| c.dependencies(context) }
-        out << @else.dependencies(context) if @else
-        out.flatten
       end
 
       def generate_constraints(context)

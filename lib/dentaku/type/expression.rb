@@ -7,6 +7,7 @@ module Dentaku
         struct: [:keys, :types],
         variable: [:name, :uniq],
         var: [:name],
+        key_of: [:expr, :key],
       )
 
       def self.concrete(name)
@@ -40,6 +41,9 @@ module Dentaku
           struct: ->(keys, types) {
             Expression.struct(keys, types.map(&blk))
           },
+          key_of: ->(expr, key) {
+            Expression.key_of(blk.call(expr), key)
+          },
           other: self
         )
       end
@@ -56,6 +60,10 @@ module Dentaku
       def resolve(reverse_scope={})
         cases(
           param: ->(name, arguments) {
+            if !DECLARED_TYPES.key?(name)
+              raise "undeclared type: #{self.repr}"
+            end
+
             Type.declared(DECLARED_TYPES[name].new(arguments.map(&:resolve)))
           },
           variable: -> (name, uniq) {
@@ -104,6 +112,11 @@ module Dentaku
           param: ->(name, arguments) {
             if arguments.empty?
               ":#{name}"
+            elsif name == :list && arguments.size == 1
+              "[#{arguments[0].repr}]"
+            elsif name == :lambda && arguments.size >= 2
+              arg_repr = arguments[1..].map(&:repr).join(' ')
+              ":lambda(#{arg_repr} => #{arguments[0].repr})"
             else
               ":#{name}(#{arguments.map(&:repr).join(' ')})"
             end
@@ -113,9 +126,9 @@ module Dentaku
           struct: -> (keys, values) {
             "{#{keys.zip(values).map { |(k, v)| "#{k}: #{v.repr}" }.join(', ')}}"
           },
+          key_of: ->(expr, key) { "(#{expr.repr}).#{key}" }
         )
       end
-
     end
   end
 end

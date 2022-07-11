@@ -28,29 +28,17 @@ module Dentaku
       def operator
         :+
       end
-
-      def self.precedence
-        10
-      end
     end
 
     class Subtraction < Arithmetic
       def operator
         :-
       end
-
-      def self.precedence
-        10
-      end
     end
 
     class Multiplication < Arithmetic
       def operator
         :*
-      end
-
-      def self.precedence
-        20
       end
     end
 
@@ -65,29 +53,17 @@ module Dentaku
 
         cast(cast(left.evaluate) / r)
       end
-
-      def self.precedence
-        20
-      end
     end
 
     class Modulo < Arithmetic
       def operator
         :%
       end
-
-      def self.precedence
-        20
-      end
     end
 
     class Exponentiation < Arithmetic
       def operator
         :**
-      end
-
-      def self.precedence
-        30
       end
     end
   end

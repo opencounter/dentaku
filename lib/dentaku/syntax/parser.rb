@@ -28,7 +28,21 @@ module Dentaku
           raise "DENTAKU BUG: check for empty expressions before calling parse_expr"
         end
 
-        return parse_combinator(elems)
+        return parse_lambda(elems)
+      end
+
+      def parse_lambda(elems)
+        before, op, after = lpart(elems) { |e| e.token?(:rarrow) }
+        return parse_combinator(elems) if op.nil?
+
+        return invalid op, 'missing lambda arguments' if before.empty?
+
+        before.map! do |arg|
+          return invalid arg, 'lambda arguments must be a name with a question mark' unless arg.token?(:binder)
+          arg.value
+        end
+
+        AST::Lambda.make(elems, before, parse_expr(after))
       end
 
       def parse_combinator(elems)
@@ -115,9 +129,23 @@ module Dentaku
       end
 
       def parse_minus(elems)
-        return parse_funcall(elems) unless elems.first.token?(:minus)
+        return parse_access(elems) unless elems.first.token?(:minus)
         first, *rest = elems
         return nonempty!(first, rest) { AST::Negation.make(elems, parse_minus(rest)) }
+      end
+
+      def parse_access(elems)
+        before, op, after = rpart(elems) { |e| e.token?(:dot) }
+        return parse_funcall(elems) if op.nil?
+
+        valid = after.size == 1 && after[0].token?(:identifier)
+        return invalid(op, "must use an identifier after a dot") unless valid
+
+        accessor = after[0].value
+
+        lhs = nonempty!(op, before) { parse_access(before) }
+
+        AST::Accessor.make(elems, lhs, accessor)
       end
 
       def parse_funcall(elems)

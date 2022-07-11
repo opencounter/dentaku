@@ -21,10 +21,6 @@ module Dentaku
         @left.begin_token
       end
 
-      def dependencies(context={})
-        (left.dependencies(context) + right.dependencies(context)).uniq
-      end
-
       def types
         raise 'Abstract'
       end

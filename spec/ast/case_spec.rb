@@ -11,7 +11,7 @@ describe Dentaku::AST::Case do
     DENTAKU
 
     it 'gathers dependencies from switch and conditionals' do
-      expect(node.dependencies).to eq(['fruit', 'tax', 'fallback'])
+      expect(node.dependencies).to eq(['fallback', 'fruit', 'tax'])
     end
   end
 end
