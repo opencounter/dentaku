@@ -42,7 +42,9 @@ module Dentaku
           arg.value
         end
 
-        AST::Lambda.make(elems, before, parse_expr(after))
+        body = nonempty!(op, after) { parse_lambda(after) }
+
+        AST::Lambda.make(elems, before, body)
       end
 
       def parse_combinator(elems)

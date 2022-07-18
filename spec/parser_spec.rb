@@ -110,5 +110,6 @@ describe Dentaku::Syntax::Parser do
     invalid("3+2/", /empty expression/)
     invalid("{a:}", /empty expression/)
     invalid("{a:,,b: c}", /stray comma/)
+    invalid("?a =>", /empty expression/)
   end
 end
