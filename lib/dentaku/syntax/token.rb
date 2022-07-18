@@ -35,14 +35,14 @@ module Dentaku
     end
 
     def inspect
-      "<Token :#{category}(#{value})#{loc_range && loc_range.repr}>"
+      "<Token #{repr}>"
     end
 
     def repr
-      if @value
-        "#{category.inspect}(#{@value.inspect})#{loc_range && loc_range.repr}"
-      else
+      if @value.nil?
         "#{category.inspect}#{loc_range && loc_range.repr}"
+      else
+        "#{category.inspect}(#{@value.inspect})#{loc_range && loc_range.repr}"
       end
     end
 

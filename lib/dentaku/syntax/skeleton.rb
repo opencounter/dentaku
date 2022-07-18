@@ -5,7 +5,7 @@ module Dentaku
         def root?(*)   false; end
         def nested?(*) false; end
         def clause?(*) false; end
-        def token?(*)  false; end
+        def atom?(*)  false; end
         def error?(*)  false; end
 
         def first_token
@@ -44,6 +44,10 @@ module Dentaku
           @open
         end
 
+        def last_token
+          @close
+        end
+
         def loc_range
           Tokenizer::LocRange.between(@open, @close)
         end
@@ -74,7 +78,7 @@ module Dentaku
         end
       end
 
-      class Token < Base
+      class Atom < Base
         attr_reader :tok
         def initialize(tok)
           @tok = tok
@@ -100,7 +104,7 @@ module Dentaku
           @tok.loc_range
         end
 
-        def token?(category=nil)
+        def atom?(category=nil)
           category.nil? || @tok.category == category
         end
 
@@ -187,7 +191,7 @@ module Dentaku
               return result if result.error?
               @elems << result
             else
-              @elems << Token.new(@token)
+              @elems << Atom.new(@token)
             end
           end
 

@@ -32,13 +32,13 @@ module Dentaku
       end
 
       def parse_lambda(elems)
-        before, op, after = lpart(elems) { |e| e.token?(:rarrow) }
+        before, op, after = lpart(elems) { |e| e.atom?(:rarrow) }
         return parse_combinator(elems) if op.nil?
 
         return invalid op, 'missing lambda arguments' if before.empty?
 
         before.map! do |arg|
-          return invalid arg, 'lambda arguments must be a name with a question mark' unless arg.token?(:binder)
+          return invalid arg, 'lambda arguments must be a name with a question mark' unless arg.atom?(:binder)
           arg.value
         end
 
@@ -46,7 +46,7 @@ module Dentaku
       end
 
       def parse_combinator(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:combinator) }
+        before, op, after = rpart(elems) { |e| e.atom?(:combinator) }
         return parse_comparator(elems) if op.nil?
 
         lhs = nonempty!(op, before) { parse_combinator(before) }
@@ -57,7 +57,7 @@ module Dentaku
 
       # next precedence: comparator ops: < > = != etc
       def parse_comparator(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:comparator) }
+        before, op, after = rpart(elems) { |e| e.atom?(:comparator) }
         return parse_range(elems) if op.nil?
 
         lhs = nonempty!(op, before) { parse_comparator(before) }
@@ -78,7 +78,7 @@ module Dentaku
 
       # next precedence: range expressions A..B
       def parse_range(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:range) }
+        before, op, after = rpart(elems) { |e| e.atom?(:range) }
         return parse_additive(elems) if op.nil?
 
         lhs = nonempty!(op, before) { parse_additive(before) }
@@ -88,7 +88,7 @@ module Dentaku
       end
 
       def parse_additive(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:additive) }
+        before, op, after = rpart(elems) { |e| e.atom?(:additive) }
         return parse_multiplicative(elems) if op.nil?
 
         lhs = nonempty!(op, before) { parse_additive(before) }
@@ -104,7 +104,7 @@ module Dentaku
       end
 
       def parse_multiplicative(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:multiplicative) }
+        before, op, after = rpart(elems) { |e| e.atom?(:multiplicative) }
         return parse_exponential(elems) if op.nil?
 
         lhs = nonempty!(op, before) { parse_multiplicative(before) }
@@ -119,7 +119,7 @@ module Dentaku
       end
 
       def parse_exponential(elems)
-        before, op, after = rpart(elems) { |x| x.token?(:exponential) }
+        before, op, after = rpart(elems) { |x| x.atom?(:exponential) }
         return parse_minus(elems) if op.nil?
 
         lhs = nonempty!(op, before) { parse_exponential(before) }
@@ -129,16 +129,16 @@ module Dentaku
       end
 
       def parse_minus(elems)
-        return parse_access(elems) unless elems.first.token?(:minus)
+        return parse_access(elems) unless elems.first.atom?(:minus)
         first, *rest = elems
         return nonempty!(first, rest) { AST::Negation.make(elems, parse_minus(rest)) }
       end
 
       def parse_access(elems)
-        before, op, after = rpart(elems) { |e| e.token?(:dot) }
+        before, op, after = rpart(elems) { |e| e.atom?(:dot) }
         return parse_funcall(elems) if op.nil?
 
-        valid = after.size == 1 && after[0].token?(:identifier)
+        valid = after.size == 1 && after[0].atom?(:identifier)
         return invalid(op, "must use an identifier after a dot") unless valid
 
         accessor = after[0].value
@@ -151,7 +151,7 @@ module Dentaku
       def parse_funcall(elems)
         return parse_check_error(elems) unless elems.size == 2
         func, args = elems
-        return parse_check_error(elems) unless func.token?(:identifier)
+        return parse_check_error(elems) unless func.atom?(:identifier)
         return parse_check_error(elems) unless args.nested?(:lparen)
 
         fn = AST::Function.get(func.value, func)
@@ -163,7 +163,7 @@ module Dentaku
 
         return invalid(err, err.message) if err
 
-        before, comma, after = lpart(elems) { |e| e.token?(:comma) }
+        before, comma, after = lpart(elems) { |e| e.atom?(:comma) }
 
         if comma
           children = []
@@ -194,10 +194,10 @@ module Dentaku
 
         node = elems.first
 
-        return AST::Identifier.make(node, node.value) if node.token?(:identifier)
-        return AST::String.make(node, node.value) if node.token?(:string)
-        return AST::Numeric.make(node, node.value) if node.token?(:numeric)
-        return AST::Logical.make(node, node.value) if node.token?(:logical)
+        return AST::Identifier.make(node, node.value) if node.atom?(:identifier)
+        return AST::String.make(node, node.value) if node.atom?(:string)
+        return AST::Numeric.make(node, node.value) if node.atom?(:numeric)
+        return AST::Logical.make(node, node.value) if node.atom?(:logical)
 
         return parse_case(node) if node.nested?(:case)
         return AST::List.make(node, *parse_comma_sep(node.elems)) if node.nested?(:lbrack)
@@ -212,8 +212,8 @@ module Dentaku
         pairs = parse_comma_sep(struct.elems) do |segment|
           next ['_', invalid(struct, 'empty struct segment')] if segment.empty?
           key = segment.shift
-          next ['_', invalid(key, 'stray comma')] if key.token?(:comma)
-          next [key.repr, invalid(key, 'invalid key')] unless key.token?(:key)
+          next ['_', invalid(key, 'stray comma')] if key.atom?(:comma)
+          next [key.repr, invalid(key, 'invalid key')] unless key.atom?(:key)
           next [key.value, invalid(key, 'empty expression')] if segment.empty?
 
           [key.value, parse_expr(segment)]
@@ -231,7 +231,7 @@ module Dentaku
         out = []
 
         loop do
-          before, comma, after = lpart(args) { |a| a.token?(:comma) }
+          before, comma, after = lpart(args) { |a| a.atom?(:comma) }
           break if comma.nil?
 
           if before.empty?
@@ -308,12 +308,12 @@ module Dentaku
         # grab the resulting AST
         pairs.map! do |(w, t)|
           when_tok, when_exp = w
-          unless when_tok.token?(:when)
+          unless when_tok.atom?(:when)
             when_exp = invalid(when_tok, 'expected a WHEN clause', when_exp)
           end
 
           then_tok, then_exp = t
-          unless then_tok.token?(:then)
+          unless then_tok.atom?(:then)
             then_exp = invalid(then_tok, 'expected a THEN clause', then_exp)
           end
 
@@ -324,7 +324,7 @@ module Dentaku
         else_exp = nil
         if last
           else_tok, else_exp = last
-          unless else_tok.token?(:else)
+          unless else_tok.atom?(:else)
             else_exp = invalid else_tok, "hanging #{else_tok.tok.category.to_s.upcase} clause", else_exp
           end
         end
