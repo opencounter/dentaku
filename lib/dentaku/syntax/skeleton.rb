@@ -110,9 +110,9 @@ module Dentaku
 
         def repr
           if @tok.value.nil?
-            "{token #{@tok.category}}"
+            "{atom #{@tok.category}}"
           else
-            "{token #{@tok.category}(#{@tok.value.inspect})}"
+            "{atom #{@tok.category}(#{@tok.value.inspect})}"
           end
         end
       end
