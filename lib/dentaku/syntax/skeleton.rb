@@ -3,10 +3,15 @@ module Dentaku
     module Skeleton
       class Base
         def root?(*)   false; end
+
         def nested?(*) false; end
+
+        # TODO - clause should be deprecated, but is still in use elsewhere.
         def clause?(*) false; end
-        def atom?(*)  false; end
-        def error?(*)  false; end
+
+        def atom?(*) false; end
+
+        def error?(*) false; end
 
         def first_token
           raise "abstract"
@@ -14,13 +19,6 @@ module Dentaku
 
         def last_token
           raise "abstract"
-        end
-
-        def match(matcher, &b)
-          vars = matcher.match_vars(self)
-          return false unless vars
-          yield *vars
-          true
         end
 
         def inspect
