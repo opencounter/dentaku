@@ -98,14 +98,14 @@ module Dentaku
       end
     end
 
-    class KeyError < Error
+    class StructError < Error
       include HasConstraint
 
       attr_reader :constraint
       def initialize(constraint)
         @constraint = constraint
-        raise "invalid KeyError" unless @constraint.rhs.key_of?
-        raise "invalid KeyError" unless @constraint.rhs.expr.struct?
+        raise "invalid StructError" unless @constraint.rhs.key_of?
+        raise "invalid StructError" unless @constraint.rhs.expr.struct?
       end
 
       def missing_key
@@ -134,7 +134,7 @@ module Dentaku
         end
 
         available[-1] = "and #{available[-1]}" if available.size
-        "KeyError: Could not look up #{missing} - #{available_sentence}. Caused by #{@constraint.repr_with_reason}"
+        "StructError: Could not look up #{missing} - #{available_sentence}. Caused by #{@constraint.repr_with_reason}"
       end
     end
 

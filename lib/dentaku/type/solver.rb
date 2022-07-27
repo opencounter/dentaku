@@ -126,13 +126,13 @@ module Dentaku
               param: ->(name, args) {
                 as_struct = DECLARED_TYPES[name].structable
 
-                simplify_error!(expr, KeyError.new(constraint)) unless as_struct.key?(key)
+                simplify_error!(expr, StructError.new(constraint)) unless as_struct.key?(key)
 
                 Expression.from_sexpr(as_struct[key])
               },
               struct: ->(keys, types) {
                 idx = keys.find_index(key)
-                return simplify_error!(expr, KeyError.new(constraint)) if idx.nil?
+                return simplify_error!(expr, StructError.new(constraint)) if idx.nil?
 
                 simplify_expr(constraint, types[idx])
               },
