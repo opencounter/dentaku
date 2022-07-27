@@ -6,7 +6,6 @@ module Dentaku
 
         def nested?(*) false; end
 
-        # TODO - clause should be deprecated, but is still in use elsewhere.
         def clause?(*) false; end
 
         def atom?(*) false; end
