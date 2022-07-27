@@ -17,6 +17,10 @@ module Dentaku
       Type.singleton_class.define_method(name) { |*a| Type.declared(decl.new(a)) }
     end
 
+    def self.declared?(type)
+      DECLARED_TYPES.key?(type)
+    end
+
     class DeclaredType
       class << self
         def inspect

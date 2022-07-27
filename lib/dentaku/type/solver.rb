@@ -126,7 +126,7 @@ module Dentaku
               param: ->(name, args) {
                 as_struct = DECLARED_TYPES[name].structable
 
-                simplify_error!(expr, StructError.new(constraint)) unless as_struct.key?(key)
+                return simplify_error!(expr, StructError.new(constraint)) unless as_struct.key?(key)
 
                 Expression.from_sexpr(as_struct[key])
               },

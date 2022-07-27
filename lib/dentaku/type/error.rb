@@ -105,15 +105,20 @@ module Dentaku
       def initialize(constraint)
         @constraint = constraint
         raise "invalid StructError" unless @constraint.rhs.key_of?
-        raise "invalid StructError" unless @constraint.rhs.expr.struct?
+      end
+
+      def available_keys
+        return @constraint.rhs.expr.keys if @constraint.rhs.expr.struct?
+        return nil unless @constraint.rhs.expr.param?
+        declared = DECLARED_TYPES[@constraint.rhs.expr.name]
+
+        return nil unless declared.structable.any?
+
+        declared.structable.keys
       end
 
       def missing_key
         @constraint.rhs.key
-      end
-
-      def available_keys
-        @constraint.rhs.expr.keys
       end
 
       def additional_json
@@ -121,8 +126,11 @@ module Dentaku
       end
 
       def message
+        keys = self.available_keys
+        return "cannot use dot syntax on #{@constraint.rhs.expr.repr}" if keys.nil?
+
         missing = ".#{missing_key}"
-        available = available_keys.map { |k| ".#{k}" }
+        available = keys.map { |k| ".#{k}" }
 
         available_sentence = case available.size
         when 0 then "empty struct"
@@ -133,7 +141,6 @@ module Dentaku
           "available keys are #{available.join(', ')}"
         end
 
-        available[-1] = "and #{available[-1]}" if available.size
         "StructError: Could not look up #{missing} - #{available_sentence}. Caused by #{@constraint.repr_with_reason}"
       end
     end
