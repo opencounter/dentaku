@@ -1,7 +1,15 @@
+require 'thread'
+
 module Dentaku
   module Type
     DECLARED_TYPES = {}
-    def self.declare(name, arity=0, &b)
+    MUTEX = Mutex.new
+
+    def self.declare(*a, &b)
+      MUTEX.synchronize { declare_inner(*a, &b) }
+    end
+
+    def self.declare_inner(name, arity=0, &b)
       name = name.to_sym
 
       raise "multiple declarations of #{name}" if DECLARED_TYPES.key?(name)
