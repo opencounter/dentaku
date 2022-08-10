@@ -9,6 +9,16 @@ module Dentaku
       MUTEX.synchronize { declare_inner(*a, &b) }
     end
 
+    def self.declare!(name, arity=0, &b)
+      name = name.to_sym
+
+      MUTEX.synchronize do
+        warn "redeclaring dentaku type #{name}" if DECLARED_TYPES.key?(name)
+        DECLARED_TYPES.delete(name)
+        declare_inner(name, arity, &b)
+      end
+    end
+
     def self.declare_inner(name, arity=0, &b)
       name = name.to_sym
 
