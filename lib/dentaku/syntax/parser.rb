@@ -282,14 +282,18 @@ module Dentaku
         # all other clauses guaranteed nonempty
         head = clauses.shift
         head = head.empty? ? nil : parse_expr(head)
-        clauses.map! do |head, *rest|
+        clauses.map! do |kw, *rest|
           exp = if rest.empty?
-            invalid head, "empty #{head.tok.desc.upcase} clause"
+            invalid kw, "empty #{kw.tok.desc.upcase} clause"
+
+          # when clauses can be comma separated
+          elsif kw.atom?(:when)
+            parse_comma_sep(rest)
           else
             parse_expr(rest)
           end
 
-          [head, exp]
+          [kw, exp]
         end
 
         # once head is popped, there should be an even number of clauses, except
@@ -310,8 +314,8 @@ module Dentaku
         # grab the resulting AST
         pairs.map! do |(w, t)|
           when_tok, when_exp = w
-          unless when_tok.atom?(:when)
-            when_exp = invalid(when_tok, 'expected a WHEN clause', when_exp)
+          unless when_tok.atom?(:when) && when_exp.is_a?(Array) && when_exp.size >= 1
+            when_exp = invalid(when_tok, 'expected a WHEN clause', when_tok)
           end
 
           then_tok, then_exp = t
@@ -327,7 +331,7 @@ module Dentaku
         if last
           else_tok, else_exp = last
           unless else_tok.atom?(:else)
-            else_exp = invalid else_tok, "hanging #{else_tok.tok.category.to_s.upcase} clause", else_exp
+            else_exp = invalid else_tok, "hanging #{else_tok.tok.category.to_s.upcase} clause", else_tok
           end
         end
 
