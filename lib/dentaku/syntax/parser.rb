@@ -283,12 +283,10 @@ module Dentaku
         head = clauses.shift
         head = head.empty? ? nil : parse_expr(head)
         clauses.map! do |kw, *rest|
-          exp = if rest.empty?
-            invalid kw, "empty #{kw.tok.desc.upcase} clause"
-
-          # when clauses can be comma separated
-          elsif kw.atom?(:when)
+          exp = if kw.atom?(:when)
             parse_comma_sep(rest)
+          elsif rest.empty?
+            invalid kw, "empty #{kw.tok.desc.upcase} clause"
           else
             parse_expr(rest)
           end
@@ -310,12 +308,16 @@ module Dentaku
         # be when/then
         pairs = make_pairs(clauses)
 
-        # make sure each pair is *actuall* when followed by then, and only
+        # make sure each pair is *actually* when followed by then, and only
         # grab the resulting AST
         pairs.map! do |(w, t)|
           when_tok, when_exp = w
-          unless when_tok.atom?(:when) && when_exp.is_a?(Array) && when_exp.size >= 1
-            when_exp = invalid(when_tok, 'expected a WHEN clause', when_tok)
+          unless when_tok.atom?(:when)
+            when_exp = [invalid(when_tok, 'expected a WHEN clause')]
+          end
+
+          unless when_exp.size >= 1
+            when_exp = [invalid(when_tok, 'empty WHEN clause')]
           end
 
           then_tok, then_exp = t
@@ -331,7 +333,7 @@ module Dentaku
         if last
           else_tok, else_exp = last
           unless else_tok.atom?(:else)
-            else_exp = invalid else_tok, "hanging #{else_tok.tok.category.to_s.upcase} clause", else_tok
+            else_exp = invalid else_tok, "hanging #{else_tok.tok.category.to_s.upcase} clause"
           end
         end
 

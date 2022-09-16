@@ -413,6 +413,23 @@ describe Dentaku::Calculator do
     expect(e!(formula, a: true, b: false)).to eq(2)
   end
 
+  it 'handles multi-case' do
+    formula = <<~FORMULA
+    CASE foo
+    WHEN 'a', 'b' THEN 1
+    WHEN 'c', 'd', 'e' THEN 2
+    ELSE 3
+    END
+    FORMULA
+
+    expect(e!(formula, foo: 'a')).to eq(1)
+    expect(e!(formula, foo: 'b')).to eq(1)
+    expect(e!(formula, foo: 'c')).to eq(2)
+    expect(e!(formula, foo: 'd')).to eq(2)
+    expect(e!(formula, foo: 'e')).to eq(2)
+    expect(e!(formula, foo: 'f')).to eq(3)
+  end
+
   describe 'math functions' do
     Math.methods(false).each do |method|
       it method do
