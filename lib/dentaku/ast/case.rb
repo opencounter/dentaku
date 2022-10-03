@@ -16,8 +16,11 @@ module Dentaku
 
         @clauses.each do |clause|
           when_, then_ = clause
-          if when_.evaluate === switch_value
-            return then_.evaluate
+
+          when_.each do |w|
+            if w.evaluate === switch_value
+              return then_.evaluate
+            end
           end
         end
 
@@ -33,19 +36,22 @@ module Dentaku
         @switch.generate_constraints(context) if @switch
 
         @clauses.each_with_index do |(when_, then_), index|
-          when_.generate_constraints(context)
-          if @switch.nil?
-            context.add_constraint!([:syntax, when_],
-                                    [:concrete, :bool],
-                                    [:case_when, self, index])
-          elsif when_.is_a?(AST::Range)
-            context.add_constraint!([:syntax, @switch],
-                                    [:concrete, :numeric],
-                                    [:case_when_range, self, index])
-          else
-            context.add_constraint!([:syntax, @switch],
-                                    [:syntax, when_],
-                                    [:case_when, self, index])
+          when_.each do |w|
+            w.generate_constraints(context)
+
+            if @switch.nil?
+              context.add_constraint!([:syntax, w],
+                                      [:concrete, :bool],
+                                      [:case_when, self, index])
+            elsif w.is_a?(AST::Range)
+              context.add_constraint!([:syntax, @switch],
+                                      [:concrete, :numeric],
+                                      [:case_when_range, self, index])
+            else
+              context.add_constraint!([:syntax, @switch],
+                                      [:syntax, w],
+                                      [:case_when, self, index])
+            end
           end
 
           then_.generate_constraints(context)
@@ -71,7 +77,7 @@ module Dentaku
         out << 'CASE '
         out << "SWITCH(#{@switch.repr})\n" if @switch
         @clauses.each do |(when_, then_)|
-          out << '(WHEN ' << when_.repr
+          out << '(WHEN ' << when_.map(&:repr).join(', ')
           out << ' THEN ' << then_.repr << ')'
           out << "\n"
         end

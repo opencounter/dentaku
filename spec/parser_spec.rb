@@ -59,6 +59,12 @@ describe Dentaku::Syntax::Parser do
         WHEN faz THEN 1
         END", Dentaku::AST::Case)
 
+    valid("CASE foo WHEN 1, 2 THEN 'a' ELSE 'b' END", Dentaku::AST::Case)
+
+    # [jneen] it's a little weird that comma is supported here, but it should
+    # just mean the same as OR but without branch favouring
+    valid("CASE WHEN true, false THEN 'phew' ELSE 'oh no' END", Dentaku::AST::Case)
+
     # this is not a parse error, it's a type error
     valid("IF(true, 3)", Dentaku::AST::Function)
 
@@ -86,6 +92,7 @@ describe Dentaku::Syntax::Parser do
     invalid("CASE foo WHEN baz THEN 3 WHEN faz 3 END", /hanging WHEN clause/)
     invalid("CASE foo END", /a CASE statement must have at least one clause/)
     invalid("CASE foo WHEN baz THEN 3 IF(true, 1, 2) WHEN baz THEN 3 END", /too many expressions/)
+    invalid("CASE WHEN THEN 2 END", /empty WHEN clause/)
     invalid("([)]", /expected square bracket, got parenthesis/)
     invalid("field:$money", /Unknown token starting with `[$]mo'/)
     invalid("case 1 when 2 then 3 else end", /empty ELSE clause/)
