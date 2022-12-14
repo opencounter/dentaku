@@ -20,6 +20,10 @@ module Dentaku
           raise "abstract"
         end
 
+        def loc_range
+          raise "abstract"
+        end
+
         def inspect
           "<skeleton #{repr}>"
         end
@@ -68,6 +72,10 @@ module Dentaku
 
         def last_token
           @elems.last
+        end
+
+        def loc_range
+          Tokenizer::LocRange.between(first_token, last_token)
         end
 
         def repr
