@@ -115,10 +115,13 @@ module Dentaku
         self.object_id
       end
 
+      # Full evaluation must NOT reuse probe results: partial mode evaluates
+      # under different semantics (Missing swallowed per-branch, default()
+      # without its fallback, AND yielding nil), so a cached probe value can
+      # differ from the true value and silently change requirement/fee
+      # activation. Probes stay memoized in partial_cache for branch
+      # favoring; evaluate always computes fresh.
       def evaluate
-        cached = partial_cache[partial_cache_key]
-        return cached unless cached.nil?
-
         value
       end
 
